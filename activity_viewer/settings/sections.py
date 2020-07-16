@@ -119,4 +119,4 @@ class System(Serializable):
     @data_directory.setter
     def data_directory(self, val: PathType):
         type_check(val, PathType.__args__)
-        self._data_directory = Path(val)
+        self._data_directory = Path(val).resolve()

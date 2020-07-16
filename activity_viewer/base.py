@@ -189,7 +189,7 @@ class Serializable:
         for attr in cls.ATTRS:
             var_attr = slugify(snake_to_camel(attr))
             if var_attr not in val:
-                raise KeyError(f"Missing key '{var_attr}'")
+                raise KeyError(f"Missing key '{var_attr}'.")
 
             kwargs[attr] = val[var_attr]
 
