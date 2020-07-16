@@ -79,7 +79,7 @@ def snake_to_camel(val: str) -> str:
     Returns
     -------
     valCamel : str
-    A camelCase version of `val`.
+        A camelCase version of `val`.
 
     Raises
     ------

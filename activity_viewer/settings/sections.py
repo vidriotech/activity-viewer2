@@ -10,7 +10,7 @@ StrListType = List[str]
 
 class Compartment(Serializable):
     """A class representation of the compartment-related section in the settings file. It is meant to be used as a
-    property of the :class:activity_viewer.settings.AVSettings class.
+    property of the `activity_viewer.settings.AVSettings` class.
 
     Parameters
     ----------
@@ -47,6 +47,7 @@ class Compartment(Serializable):
 
     @property
     def blacklist(self) -> StrListType:
+        """List of compartments to exclude from the available compartment hierarchy."""
         return self._blacklist
 
     @blacklist.setter
@@ -55,16 +56,8 @@ class Compartment(Serializable):
         self._blacklist = val
 
     @property
-    def whitelist(self) -> StrListType:
-        return self._whitelist
-
-    @whitelist.setter
-    def whitelist(self, val: StrListType):
-        type_check(val, list)
-        self._whitelist = val
-
-    @property
     def max_depth(self) -> int:
+        """Maximum level number of levels below the root node in the compartment hierarchy made available."""
         return self._max_depth
 
     @max_depth.setter
@@ -77,13 +70,23 @@ class Compartment(Serializable):
 
         self._max_depth = val
 
+    @property
+    def whitelist(self) -> StrListType:
+        """List of compartments to include in the available compartment hierarchy."""
+        return self._whitelist
+
+    @whitelist.setter
+    def whitelist(self, val: StrListType):
+        type_check(val, list)
+        self._whitelist = val
+
 
 class System(Serializable):
     ATTRS = ["atlas_version", "data_directory"]
 
     def __init__(self, **kwargs):
         """A class representation of the system section in the settings file. It is meant to be used as a
-            property of the :class:activity_viewer.settings.AVSettings class.
+            property of the `activity_viewer.settings.AVSettings` class.
 
             Parameters
             ----------
@@ -105,6 +108,7 @@ class System(Serializable):
 
     @property
     def atlas_version(self) -> str:
+        """Version of the Allen Brain Atlas in use."""
         return self._atlas_version
 
     @atlas_version.setter
@@ -114,6 +118,7 @@ class System(Serializable):
 
     @property
     def data_directory(self) -> Path:
+        """Directory where data is cached."""
         return self._data_directory
 
     @data_directory.setter

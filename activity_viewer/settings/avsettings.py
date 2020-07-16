@@ -27,8 +27,8 @@ def touch_file(filename: PathType):
 
 class AVSettings(Serializable):
     """A class representation of the settings file. Its members include the file path `filename`, the
-    :class:activity_viewer.settings.sections.Compartment class representing the 'compartment' section, and the
-    :class:activity_viewer.settings.sections.System class representing the 'system' section.
+    `activity_viewer.settings.sections.Compartment` class representing the 'compartment' section, and the
+    `activity_viewer.settings.sections.System` class representing the 'system' section.
     You probably don't want to instantiate this directly. Instead, use the `from_file` class method.
 
     Parameters
@@ -100,7 +100,7 @@ class AVSettings(Serializable):
         Parameters
         ----------
         filename : str or Path, optional
-            The filename to write settings to. Uses self.filename if not specified.
+            The filename to write settings to. Uses `self.filename` if not specified.
         """
         if filename is None:  # pragma: no cover
             filename = self.filename
