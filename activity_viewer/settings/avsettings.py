@@ -8,6 +8,22 @@ from activity_viewer.base import Serializable, type_check
 PathType = Union[Path, str]
 
 
+def touch_file(filename: PathType):
+    """Creates or touches a file living at `filename`.
+
+    Ensures the file and any parent directories exist.
+
+    Parameters
+    ----------
+    filename : str or Path
+        The filename to touch.
+    """
+    filename = Path(filename)
+
+    filename.parent.mkdirs(exist_ok=True)
+    filename.touch(exist_ok=True)
+
+
 class AVSettings(Serializable):
     ATTRS = ["compartment", "system"]
 
@@ -15,6 +31,7 @@ class AVSettings(Serializable):
         super().__init__()
 
         self._filename = filename
+        self._compartments = kwargs.pop("compartments")
 
     @classmethod
     def from_file(cls, filename: PathType):
@@ -24,10 +41,6 @@ class AVSettings(Serializable):
         ----------
         filename : str or Path
             Path to file containing settings.
-
-        Returns
-        -------
-
         """
         with open(filename, "r") as fh:
             as_dict = json.load(fh)
@@ -46,9 +59,16 @@ class AVSettings(Serializable):
         if filename is None:
             filename = self.filename
 
+        touch_file(filename)  # make sure file and parent directory exist
+
         with open(filename, "w") as fh:
             fh.write(self.to_json(prettify=True))
 
     @property
-    def filename(self):
+    def filename(self) -> Path:
         return self._filename
+
+    @filename.setter
+    def filename(self, val: PathType):
+        type_check(val, PathType.__args__)
+        self._filename = Path(val)
