@@ -16,9 +16,9 @@ class Compartment(Serializable):
         self._whitelist = None
 
         # all values in attrs are required and will throw a KeyError if not found
-        self.whitelist = kwargs.pop("whitelist")
         self.blacklist = kwargs.pop("blacklist")
         self.max_depth = kwargs.pop("max_depth")
+        self.whitelist = kwargs.pop("whitelist")
 
     @property
     def blacklist(self):
