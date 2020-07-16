@@ -23,7 +23,7 @@ def nest_tuples(val: dict, list_to_tuple: bool = False) -> tuple:
     Returns
     -------
     result : tuple
-        A nested tuple representation of `val`
+        A nested tuple representation of `val`.
     """
     if isinstance(val, list):
         return tuple(nest_tuples(v, list_to_tuple) for v in val)
@@ -40,7 +40,7 @@ def slugify(val: str) -> str:
     Parameters
     ----------
     val : str
-        An arbitrary string
+        An arbitrary string.
 
     Returns
     -------

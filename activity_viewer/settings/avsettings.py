@@ -3,9 +3,9 @@ import json
 from pathlib import Path
 from typing import Optional, Union
 
-PathType = Union[Path, str]
-
 from activity_viewer.base import Serializable, type_check
+
+PathType = Union[Path, str]
 
 
 class AVSettings(Serializable):
