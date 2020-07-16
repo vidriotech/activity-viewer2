@@ -7,7 +7,7 @@ from typing import Any, Iterable, Type, Union
 import numpy as np
 
 
-def nest_tuples(val: dict, list_to_tuple: bool = False) -> tuple:
+def nest_tuples(val: Any, list_to_tuple: bool = True) -> tuple:
     """Recursively convert a dict to a tuple of tuples of key-value pairs.
 
     Each tuple has exactly two entries, the first corresponding to the key and the second corresponding to the value.
@@ -26,7 +26,11 @@ def nest_tuples(val: dict, list_to_tuple: bool = False) -> tuple:
         A nested tuple representation of `val`.
     """
     if isinstance(val, list):
-        return tuple(nest_tuples(v, list_to_tuple) for v in val)
+        nested = [nest_tuples(v, list_to_tuple) for v in val]
+        if list_to_tuple:
+            return tuple(nested)
+
+        return nested
 
     if not isinstance(val, dict):
         return val
@@ -145,11 +149,11 @@ class Serializable:
         elif isinstance(val, np.ndarray):
             val = val.tolist()
         elif isinstance(val, list) or isinstance(val, tuple) or isinstance(val, set):
-            val_iterable = []
+            val_list = []
             for v in val:
-                val_iterable.append(cls._dictify_member(v))
+                val_list.append(cls._dictify_member(v))
 
-            val = type(val)(val_iterable)  # convert back to tuple or set
+            val = val_list  # don't convert back to tuple or set
         elif not isinstance(val, (int, float)):
             val = str(val)
 

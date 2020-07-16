@@ -1,9 +1,13 @@
 import pytest
 
 from collections import OrderedDict
+from datetime import datetime
 from json.decoder import JSONDecodeError
+import numpy as np
 
-from activity_viewer.base import Serializable, slugify, snake_to_camel, type_check
+from activity_viewer.base import Serializable, nest_tuples, slugify, snake_to_camel, type_check
+
+now = datetime.now()
 
 
 class ImplementsSerializable(Serializable):
@@ -33,6 +37,16 @@ def simple_implements_serializable():
 
 def nested_implements_serializable():
     return ImplementsSerializable(simple_implements_serializable())
+
+
+@pytest.mark.parametrize(("value", "list_to_tuple", "expected"), [
+    (["foo"], False, ["foo"]),  # list stays as a list
+    (["foo"], True, ("foo",)),  # list converts to a tuple
+    ({"foo": ["bar", "baz"]}, True, (("foo", ("bar", "baz")), )),
+
+])
+def test_nest_tuples(value, list_to_tuple, expected):
+    assert nest_tuples(value, list_to_tuple=list_to_tuple) == expected
 
 
 @pytest.mark.parametrize(("fun", "val", "expected", "error"), [
@@ -89,6 +103,20 @@ def test_type_check(val, val_type, error):
         pytest.raises(error, type_check, val, val_type)
     else:
         assert type_check(val, val_type) is None
+
+
+@pytest.mark.parametrize(("value", "expected"), [
+    (now, now.timestamp()),  # datetimes are converted into their timestamps
+    (b"a string", "a string"),  # bytes are decoded
+    (np.array([1, 2, 3]), [1, 2, 3]),  # numpy arrays are converted to lists
+    ({1, 2, 3}, [1, 2, 3]),  # so are sets
+    ((1, 2, 3), [1, 2, 3]),  # so are tuples
+    (1, 1),  # ints remain ints
+    (1., 1.),  # floats remain floats
+    (None, "None")  # everything else gets stringified
+])
+def test_dictify_member(value, expected):
+    assert Serializable._dictify_member(value) == expected
 
 
 @pytest.mark.parametrize(("str_val", "instance", "error"), [
