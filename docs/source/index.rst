@@ -11,13 +11,17 @@ Mesoscale Activity Viewer
    :maxdepth: 2
    :caption: Contents:
 
-   intro
-   settings
+   about
+   settings-file
 
 .. contents::
    :depth: 3
 
-.. include:: intro.rst
+.. _about:
+
+.. include:: about.rst
+
+.. _settings_file:
 
 .. include:: settings-file.rst
 
