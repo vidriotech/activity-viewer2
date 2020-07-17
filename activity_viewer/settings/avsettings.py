@@ -50,8 +50,16 @@ class AVSettings(Serializable):
         self._system = None
 
         self.filename = filename
-        self.compartment = kwargs.pop("compartment")
-        self.system = kwargs.pop("system")
+
+        try:
+            self.compartment = kwargs.pop("compartment")
+        except KeyError:
+            self.compartment = Compartment()
+
+        try:
+            self.system = kwargs.pop("system")
+        except KeyError:
+            self.system = System()
 
     @classmethod
     def from_dict(cls, val: dict):
@@ -69,13 +77,10 @@ class AVSettings(Serializable):
         """
         type_check(val, dict)  # includes OrderedDict as a subtype
 
-        kwargs = {}
-        for attr in cls.ATTRS:
-            var_attr = slugify(snake_to_camel(attr))
-            if var_attr not in val:
-                raise KeyError(f"Missing key '{var_attr}'.")
-
-            kwargs[attr] = val[var_attr]
+        kwargs = {
+            "compartment": Compartment() if "compartment" not in val else val["compartment"],
+            "system": System() if "system" not in val else val["system"]
+        }
 
         return cls(val["filename"], **kwargs)
 
