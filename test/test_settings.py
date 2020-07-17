@@ -98,9 +98,9 @@ def test_system_constructor(kwargs, error, emsg):
 
 
 @pytest.mark.parametrize(("filename", "kwargs", "error", "emsg"), [
-    (None, {"compartment": {"blacklist": [], "whitelist": [], "max_depth": 0},
+    (1, {"compartment": {"blacklist": [], "whitelist": [], "max_depth": 0},
             "system": {"atlas_version": "", "data_directory": "/foo/bar"}}, TypeError,
-     "Expected one of 'str', 'Path', but got 'NoneType'."),  # filename should be a string or Path
+     "Expected one of 'str', 'Path', but got 'int'."),  # filename should be a string or Path
     ("/foo/bar/baz", {}, None, None),
     ("/foo/bar/baz", {"compartment": {"blacklist": [], "whitelist": [], "max_depth": 0}},
      None, None),
@@ -127,14 +127,15 @@ def test_avsettings_constructor(filename, kwargs, error, emsg):
             assert settings.system == System()
 
 
-@pytest.mark.parametrize(("settings_dict", "error", "emsg"), [
+@pytest.mark.parametrize(("settings_dict", ), [
+    ({}, ),
     ({
          "compartment": {
              "maxDepth": 0,
              "blacklist": [],
              "whitelist": []
          },
-     }, None, None),
+     }, ),
     ({
         "compartment": {
             "maxDepth": 0,
@@ -145,59 +146,54 @@ def test_avsettings_constructor(filename, kwargs, error, emsg):
             "dataDirectory": "/foo/bar/baz",
             "atlasVersion": "CCFv3-2017"
         }
-    }, None, None),  # ok
+    }, ),
     ({
         "compartment": {
         },
         "system": {
         }
-    }, None, None),  # set defaults on the fly
+    }, ),
 ])
-def test_avsettings_from_file(tmp_path, settings_dict, error, emsg):
+def test_avsettings_from_file(tmp_path, settings_dict):
     filename = tmp_path / "settings.json"
     with open(filename, "w") as fh:
         json.dump(settings_dict, fh)
 
-    if error is not None:
-        with pytest.raises(error) as excinfo:
-            AVSettings.from_file(filename)
+    settings = AVSettings.from_file(filename)
 
-        assert excinfo.match(emsg)
+    assert settings.filename == filename.resolve()
+
+    if "compartment" not in settings_dict:
+        assert settings.compartment == Compartment()
     else:
-        settings = AVSettings.from_file(filename)
-
-        assert settings.filename == filename.resolve()
-
-        if "compartment" not in settings_dict:
-            assert settings.compartment == Compartment()
+        if "blacklist" not in settings_dict["compartment"]:
+            assert settings.compartment.blacklist == Compartment.DEFAULTS["blacklist"]
         else:
-            if "blacklist" not in settings_dict["compartment"]:
-                assert settings.compartment.blacklist == Compartment.DEFAULTS["blacklist"]
-            else:
-                assert settings.compartment.blacklist == settings_dict["compartment"]["blacklist"]
+            assert settings.compartment.blacklist == settings_dict["compartment"]["blacklist"]
 
-            if "maxDepth" not in settings_dict["compartment"]:
-                assert settings.compartment.max_depth == Compartment.DEFAULTS["max_depth"]
-            else:
-                assert settings.compartment.max_depth == settings_dict["compartment"]["maxDepth"]
-
-            if "whitelist" not in settings_dict["compartment"]:
-                assert settings.compartment.whitelist == Compartment.DEFAULTS["whitelist"]
-            else:
-                assert settings.compartment.whitelist == settings_dict["compartment"]["whitelist"]
-
-        if "system" not in settings_dict:
-            assert settings.system == System()
+        if "maxDepth" not in settings_dict["compartment"]:
+            assert settings.compartment.max_depth == Compartment.DEFAULTS["max_depth"]
         else:
-            if "atlasVersion" not in settings_dict["system"]:
-                assert settings.system.atlas_version == System.DEFAULTS["atlas_version"]
-            else:
-                assert settings.system.atlas_version == settings_dict["system"]["atlasVersion"]
+            assert settings.compartment.max_depth == settings_dict["compartment"]["maxDepth"]
 
-            if "dataDirectory" not in settings_dict["system"]:
-                assert settings.system.data_directory == System.DEFAULTS["data_directory"]
-            else:
-                assert settings.system.data_directory == Path(settings_dict["system"]["dataDirectory"]).resolve()
+        if "whitelist" not in settings_dict["compartment"]:
+            assert settings.compartment.whitelist == Compartment.DEFAULTS["whitelist"]
+        else:
+            assert settings.compartment.whitelist == settings_dict["compartment"]["whitelist"]
+
+    if "system" not in settings_dict:
+        assert settings.system == System()
+    else:
+        if "atlasVersion" not in settings_dict["system"]:
+            assert settings.system.atlas_version == System.DEFAULTS["atlas_version"]
+        else:
+            assert settings.system.atlas_version == settings_dict["system"]["atlasVersion"]
+
+        if "dataDirectory" not in settings_dict["system"]:
+            assert settings.system.data_directory == System.DEFAULTS["data_directory"]
+        else:
+            assert settings.system.data_directory == Path(settings_dict["system"]["dataDirectory"]).resolve()
+
 
 
 @pytest.mark.parametrize(("settings_dict",), [

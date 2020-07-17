@@ -102,7 +102,7 @@ class Compartment(Serializable):
 
 class System(Serializable):
     ATTRS = ["atlas_version", "data_directory"]
-    DEFAULTS = {"atlas_version": "CCFv3-2017", "data_directory": Path(appdirs.user_config_dir(), "activity-viewer")}
+    DEFAULTS = {"atlas_version": "CCFv3-2017", "data_directory": Path(appdirs.user_cache_dir(), "activity-viewer")}
 
     def __init__(self, **kwargs):
         """A class representation of the system section in the settings file. It is meant to be used as a

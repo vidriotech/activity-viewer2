@@ -1,7 +1,8 @@
-from collections import OrderedDict
 import json
 from pathlib import Path
 from typing import Optional, Union
+
+import appdirs
 
 from activity_viewer.base import Serializable, slugify, snake_to_camel, type_check
 from activity_viewer.settings.sections import Compartment, System
@@ -42,14 +43,15 @@ class AVSettings(Serializable):
     """
     ATTRS = ["compartment", "system"]
 
-    def __init__(self, filename: PathType, **kwargs):
+    def __init__(self, filename: Optional[PathType] = None, **kwargs):
         super().__init__()
 
         self._filename = None
         self._compartment = None
         self._system = None
 
-        self.filename = filename
+        self.filename = filename if filename is not None else Path(appdirs.user_config_dir(), "activity-viewer",
+                                                                   "settings.json")
 
         try:
             self.compartment = kwargs.pop("compartment")
@@ -77,10 +79,13 @@ class AVSettings(Serializable):
         """
         type_check(val, dict)  # includes OrderedDict as a subtype
 
-        kwargs = {
-            "compartment": Compartment() if "compartment" not in val else val["compartment"],
-            "system": System() if "system" not in val else val["system"]
-        }
+        kwargs = {}
+        for attr in cls.ATTRS:
+            var_attr = slugify(snake_to_camel(attr))
+            if var_attr not in val:  # pragma: no cover
+                raise KeyError(f"Missing key '{var_attr}'.")
+
+            kwargs[attr] = val[var_attr]
 
         return cls(val["filename"], **kwargs)
 
@@ -97,9 +102,15 @@ class AVSettings(Serializable):
         with open(filename, "r") as fh:
             as_dict.update(json.load(fh))
 
+        if "compartment" not in as_dict:
+            as_dict["compartment"] = Compartment()
+
+        if "system" not in as_dict:
+            as_dict["system"] = System()
+
         return cls.from_dict(as_dict)
 
-    def to_file(self, filename: Optional[PathType]):
+    def to_file(self, filename: Optional[PathType] = None):
         """Save these settings to a file given by `filename`.
 
         Parameters
