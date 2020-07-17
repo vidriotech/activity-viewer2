@@ -25,9 +25,9 @@ program. There are two main sections, namely:
 
   - ``atlasVersion``: the version of the Allen Brain Atlas to use. Options are:
 
-    - "CCFv3-2017" (October 2017) (the default value)
-    - "CCFv3-2016" (October 2016)
-    - "CCFv3-2015" (May 2015).
+    - "ccf_2017" (October 2017) (the default value)
+    - "ccf_2016" (October 2016)
+    - "ccf_2015" (May 2015).
   - ``dataDirectory``: the directory where large data files are cached. If you
     don't specify a data directory, this defaults to
     ``$HOME/.activity-viewer/cache``.
@@ -41,7 +41,7 @@ program. There are two main sections, namely:
             "whitelist": []
         },
         "system": {
-            "atlasVersion": "CCFv3-2017",
+            "atlasVersion": "ccf_2017",
             "dataDirectory": "/home/me/.activity-viewer/cache"
         }
     }

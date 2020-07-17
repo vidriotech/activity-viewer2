@@ -42,6 +42,11 @@ class AVSettings(Serializable):
     >>> settings = AVSettings.from_file("/path/to/settings.json")
     """
     ATTRS = ["compartment", "system"]
+    DEFAULTS = {
+        "filename": Path(appdirs.user_config_dir(),"activity-viewer", "settings.json"),
+        "compartment": Compartment(),
+        "system": System()
+    }
 
     def __init__(self, filename: Optional[PathType] = None, **kwargs):
         super().__init__()
@@ -50,18 +55,17 @@ class AVSettings(Serializable):
         self._compartment = None
         self._system = None
 
-        self.filename = filename if filename is not None else Path(appdirs.user_config_dir(), "activity-viewer",
-                                                                   "settings.json")
+        self.filename = filename if filename is not None else self.DEFAULTS["filename"]
 
         try:
             self.compartment = kwargs.pop("compartment")
         except KeyError:
-            self.compartment = Compartment()
+            self.compartment = self.DEFAULTS["compartment"]
 
         try:
             self.system = kwargs.pop("system")
         except KeyError:
-            self.system = System()
+            self.system = self.DEFAULTS["system"]
 
     @classmethod
     def from_dict(cls, val: dict):
@@ -144,6 +148,25 @@ class AVSettings(Serializable):
         self._compartment = val
 
     @property
+    def filename(self) -> Path:
+        """Path to file containing these settings."""
+        return self._filename
+
+    @filename.setter
+    def filename(self, val: PathType):
+        type_check(val, PathType.__args__)
+        self._filename = Path(val).resolve()
+
+    @property
+    def structure_centers_path(self):
+        """Path to a CSV file with a list of structure centers."""
+        return self.versioned_data_directory / "structure_centers.csv"
+
+    @property
+    def structure_graph_path(self):
+        return self.versioned_data_directory / "structure_graph.json"
+
+    @property
     def system(self) -> System:
         """Class representation of the 'system' section of the settings file."""
         return self._system
@@ -161,11 +184,6 @@ class AVSettings(Serializable):
         self._system = val
 
     @property
-    def filename(self) -> Path:
-        """Path to file containing these settings."""
-        return self._filename
-
-    @filename.setter
-    def filename(self, val: PathType):
-        type_check(val, PathType.__args__)
-        self._filename = Path(val).resolve()
+    def versioned_data_directory(self):
+        """Subdirectory of data directory containing data for a specific CCF version."""
+        return self.system.data_directory / self.system.atlas_version

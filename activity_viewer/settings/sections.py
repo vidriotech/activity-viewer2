@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import List, Union
 
+from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
 import appdirs
 
 from activity_viewer.base import Serializable, type_check, snake_to_camel
@@ -102,7 +103,8 @@ class Compartment(Serializable):
 
 class System(Serializable):
     ATTRS = ["atlas_version", "data_directory"]
-    DEFAULTS = {"atlas_version": "CCFv3-2017", "data_directory": Path(appdirs.user_cache_dir(), "activity-viewer")}
+    DEFAULTS = {"atlas_version": ReferenceSpaceApi.CCF_2017.replace("annotation/", ""),
+                "data_directory": Path(appdirs.user_cache_dir(), "activity-viewer")}
 
     def __init__(self, **kwargs):
         """A class representation of the system section in the settings file. It is meant to be used as a
@@ -143,7 +145,9 @@ class System(Serializable):
         type_check(val, str)
 
         # allowable options
-        options = ("CCFv3-2017", "CCFv3-2016", "CCFv3-2015")
+        options = (ReferenceSpaceApi.CCF_2017.replace("annotation/", ""),
+                   ReferenceSpaceApi.CCF_2016.replace("annotation/", ""),
+                   ReferenceSpaceApi.CCF_2015.replace("annotation/", ""))
         if val not in options:
             raise ValueError(f"""Expecting one of '{"', '".join(options)}' for atlas_version, got '{val}'.""")
 

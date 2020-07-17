@@ -1,6 +1,8 @@
 from collections import OrderedDict
 from datetime import datetime
+from hashlib import sha256
 import json
+from pathlib import Path
 import re
 from typing import Any, Iterable, Type, Union
 
@@ -36,6 +38,36 @@ def nest_tuples(val: Any, list_to_tuple: bool = True) -> tuple:
         return val
 
     return tuple((k, nest_tuples(v, list_to_tuple)) for k, v in val.items())
+
+
+def sha256sum_file(file_path: Union[str, Path]) -> str:
+    """Get the SHA256 checksum of the file living at `file_path`.
+
+    Parameters
+    ----------
+    file_path : str or pathlib.Path
+        The path to the file in question.
+
+    Returns
+    -------
+    shasum : str
+        The (hex digest of the) SHA2-256 checksum of the file.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the file is not found.
+    """
+    chunk_size = 5 * 2**20
+    shasum = sha256()
+    with open(file_path, "rb") as fh:
+        data = fh.read(chunk_size)
+
+        while data:
+            shasum.update(data)
+            data = fh.read(chunk_size)
+
+    return shasum.hexdigest()
 
 
 def slugify(val: str) -> str:

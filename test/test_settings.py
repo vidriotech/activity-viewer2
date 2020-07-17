@@ -69,13 +69,13 @@ def test_compartment_constructor(kwargs, error, emsg):
 
 @pytest.mark.parametrize(("kwargs", "error", "emsg"), [
     ({"atlas_version": 1, "data_directory": ""}, TypeError, "Expected one of 'str', but got 'int'."),  # atlas_version should be a string
-    ({"atlas_version": "CCFv3-2015", "data_directory": 0.}, TypeError, "Expected one of 'str', 'Path', but got 'float'."),  # atlas_version should be a string or Path
-    ({"atlas_version": "CCFv3-2015", "data_directory": "/foo/bar", "extra_arg": None}, ValueError, "Unrecognized argument: 'extra_arg'."),  # argument not recognized
-    ({"atlas_version": "CCFv3-2014", "data_directory": "/foo/bar"}, ValueError,
-     "Expecting one of 'CCFv3-2017', 'CCFv3-2016', 'CCFv3-2015' for atlas_version, got 'CCFv3-2014'."),  # unknown atlas version
-    ({"atlas_version": "CCFv3-2015", "data_directory": "/foo/bar"}, None, None),  # ok
+    ({"atlas_version": "ccf_2015", "data_directory": 0.}, TypeError, "Expected one of 'str', 'Path', but got 'float'."),  # atlas_version should be a string or Path
+    ({"atlas_version": "ccf_2015", "data_directory": "/foo/bar", "extra_arg": None}, ValueError, "Unrecognized argument: 'extra_arg'."),  # argument not recognized
+    ({"atlas_version": "ccf_2014", "data_directory": "/foo/bar"}, ValueError,
+     "Expecting one of 'ccf_2017', 'ccf_2016', 'ccf_2015' for atlas_version, got 'ccf_2014'."),  # unknown atlas version
+    ({"atlas_version": "ccf_2015", "data_directory": "/foo/bar"}, None, None),  # ok
     ({}, None, None),  # empty kwargs, all defaults used
-    ({"atlas_version": "CCFv3-2016"}, None, None),  # data_directory not given
+    ({"atlas_version": "ccf_2016"}, None, None),  # data_directory not given
 ])
 def test_system_constructor(kwargs, error, emsg):
     if error is not None:
@@ -105,7 +105,7 @@ def test_system_constructor(kwargs, error, emsg):
     ("/foo/bar/baz", {"compartment": {"blacklist": [], "whitelist": [], "max_depth": 0}},
      None, None),
     ("/foo/bar/baz", {"compartment": {"blacklist": [], "whitelist": [], "max_depth": 0},
-                      "system": {"atlas_version": "CCFv3-2017", "data_directory": "/foo/bar"}},
+                      "system": {"atlas_version": "ccf_2017", "data_directory": "/foo/bar"}},
      None, None)
 
 ])
@@ -144,7 +144,7 @@ def test_avsettings_constructor(filename, kwargs, error, emsg):
         },
         "system": {
             "dataDirectory": "/foo/bar/baz",
-            "atlasVersion": "CCFv3-2017"
+            "atlasVersion": "ccf_2017"
         }
     }, ),
     ({
@@ -205,7 +205,7 @@ def test_avsettings_from_file(tmp_path, settings_dict):
         },
         "system": {
             "data_directory": "/foo/bar/baz",
-            "atlas_version": "CCFv3-2017"
+            "atlas_version": "ccf_2017"
         }
     },),
 ])

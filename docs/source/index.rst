@@ -11,8 +11,7 @@ Mesoscale Activity Viewer
    :maxdepth: 2
    :caption: Contents:
 
-   about
-   settings-file
+   usage
 
 .. contents::
    :depth: 3
@@ -21,9 +20,9 @@ Mesoscale Activity Viewer
 
 .. include:: about.rst
 
-.. _settings_file:
+.. _quickstart:
 
-.. include:: settings-file.rst
+.. include:: quickstart.rst
 
 
 Indices and tables
