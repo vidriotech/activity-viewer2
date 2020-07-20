@@ -2,5 +2,6 @@ appdirs==1.4.4
 allensdk==2.1.0
 click==7.1.2
 fastapi==0.60.0
+Hypercorn==0.10.1
 numpy==1.18.5
 requests==2.24.0
