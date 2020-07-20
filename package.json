@@ -1,0 +1,27 @@
+{
+  "name": "activity-viewer2",
+  "version": "1.0.0",
+  "description": "Mesoscale Activity Viewer\r =========================",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs",
+    "test": "test"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vidriotech/activity-viewer2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vidriotech/activity-viewer2/issues"
+  },
+  "homepage": "https://github.com/vidriotech/activity-viewer2#readme",
+  "devDependencies": {
+    "electron": "^9.1.0"
+  }
+}
