@@ -144,7 +144,7 @@ def test_avsettings_constructor(filename, kwargs, error, emsg):
         },
         "system": {
             "dataDirectory": "/foo/bar/baz",
-            "atlasVersion": "ccf_2017"
+            "atlasVersion": "ccf_2017",
         }
     }, ),
     ({
@@ -194,6 +194,10 @@ def test_avsettings_from_file(tmp_path, settings_dict):
         else:
             assert settings.system.data_directory == Path(settings_dict["system"]["dataDirectory"]).resolve()
 
+        if "resolution" not in settings_dict["system"]:
+            assert settings.system.resolution == System.DEFAULTS["resolution"]
+        else:
+            assert settings.system.resolution == settings_dict["system"]["resolution"]
 
 
 @pytest.mark.parametrize(("settings_dict",), [
@@ -205,7 +209,8 @@ def test_avsettings_from_file(tmp_path, settings_dict):
         },
         "system": {
             "data_directory": "/foo/bar/baz",
-            "atlas_version": "ccf_2017"
+            "atlas_version": "ccf_2017",
+            "resolution": 100
         }
     },),
 ])
@@ -214,6 +219,9 @@ def test_avsettings_to_file(tmp_path, settings_dict):
 
     settings = AVSettings(filename, **settings_dict)
     settings.to_file(filename)
+    import logging
+    logging.debug(filename)
     settings2 = AVSettings.from_file(filename)
 
     assert settings == settings2
+

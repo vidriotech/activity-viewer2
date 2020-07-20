@@ -4,19 +4,14 @@ from typing import List, Union
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
 import appdirs
 
-from activity_viewer.base import Serializable, type_check, snake_to_camel
+from activity_viewer.base import DefaultSerializable, type_check, snake_to_camel
 
 CompartmentIDType = Union[str, int]
 PathType = Union[str, Path]
 StrListType = List[str]
 
 
-class AVSettingsSection(Serializable):
-    """Superclass of sections in the settings file. Allows for defaults to be set."""
-    DEFAULTS = {}
-
-
-class Compartment(Serializable):
+class Compartment(DefaultSerializable):
     """A class representation of the compartment-related section in the settings file. It is meant to be used as a
     property of the `activity_viewer.settings.AVSettings` class.
 
@@ -101,10 +96,11 @@ class Compartment(Serializable):
         self._whitelist = val
 
 
-class System(Serializable):
-    ATTRS = ["atlas_version", "data_directory"]
+class System(DefaultSerializable):
+    ATTRS = ["atlas_version", "data_directory", "resolution"]
     DEFAULTS = {"atlas_version": ReferenceSpaceApi.CCF_2017.replace("annotation/", ""),
-                "data_directory": Path(appdirs.user_cache_dir(), "activity-viewer")}
+                "data_directory": Path(appdirs.user_cache_dir(), "activity-viewer"),
+                "resolution": 100}
 
     def __init__(self, **kwargs):
         """A class representation of the system section in the settings file. It is meant to be used as a
@@ -121,6 +117,7 @@ class System(Serializable):
 
         self._atlas_version = None
         self._data_directory = None
+        self._resolution = None
 
         try:
             self.atlas_version = kwargs.pop("atlas_version")
@@ -131,6 +128,11 @@ class System(Serializable):
             self.data_directory = kwargs.pop("data_directory")
         except KeyError:
             self.data_directory = self.DEFAULTS["data_directory"]
+
+        try:
+            self.resolution = kwargs.pop("resolution")
+        except KeyError:
+            self.resolution = self.DEFAULTS["resolution"]
 
         if len(kwargs) > 0:
             raise ValueError(f"Unrecognized argument: '{kwargs.popitem()[0]}'.")
@@ -162,3 +164,18 @@ class System(Serializable):
     def data_directory(self, val: PathType):
         type_check(val, PathType.__args__)
         self._data_directory = Path(val).resolve()
+
+    @property
+    def resolution(self) -> int:
+        """Voxel resolution for annotation and template volumes, in cubic microns."""
+        return self._resolution
+
+    @resolution.setter
+    def resolution(self, val: int):
+        type_check(val, int)
+
+        options = (10, 25, 50, 100)
+        if val not in options:
+            raise ValueError(f"""Expecting one of {', '.join(map(str, options))} for resolution, got {val}.""")
+
+        self._resolution = val

@@ -280,3 +280,35 @@ class Serializable:
             kwargs["separators"] = kwargs["separators"] if "separators" in kwargs else (",", ":")
 
         return json.dumps(self.to_dict(), **kwargs)
+
+
+class DefaultSerializable(Serializable):
+    DEFAULTS = {}
+
+    @classmethod
+    def from_dict(cls, val: dict):
+        """Create a new instance of this class from a dict.
+
+        Fill in defaults if any are missing.
+
+        Parameters
+        ----------
+        val : dict
+            A dict containing key-value pairs for each of the fields in this object.
+
+        Returns
+        -------
+        new : Serializable
+            A new instance of this class, loaded from the dict `val`.
+        """
+        type_check(val, dict)  # includes OrderedDict as a subtype
+
+        kwargs = {}
+        for attr in cls.ATTRS:
+            var_attr = slugify(snake_to_camel(attr))
+            if var_attr not in val:
+                val[var_attr] = cls.DEFAULTS[attr]
+
+            kwargs[attr] = val[var_attr]
+
+        return cls(**kwargs)

@@ -4,7 +4,7 @@ from typing import Optional, Union
 
 import appdirs
 
-from activity_viewer.base import Serializable, slugify, snake_to_camel, type_check
+from activity_viewer.base import DefaultSerializable, slugify, snake_to_camel, type_check
 from activity_viewer.settings.sections import Compartment, System
 
 PathType = Union[str, Path]
@@ -26,7 +26,7 @@ def touch_file(filename: PathType):
     filename.touch(exist_ok=True)
 
 
-class AVSettings(Serializable):
+class AVSettings(DefaultSerializable):
     """A class representation of the settings file. Its members include the file path `filename`, the
     `activity_viewer.settings.sections.Compartment` class representing the 'compartment' section, and the
     `activity_viewer.settings.sections.System` class representing the 'system' section.
@@ -86,8 +86,8 @@ class AVSettings(Serializable):
         kwargs = {}
         for attr in cls.ATTRS:
             var_attr = slugify(snake_to_camel(attr))
-            if var_attr not in val:  # pragma: no cover
-                raise KeyError(f"Missing key '{var_attr}'.")
+            if var_attr not in val:
+                val[var_attr] = cls.DEFAULTS[attr]
 
             kwargs[attr] = val[var_attr]
 
@@ -156,15 +156,6 @@ class AVSettings(Serializable):
     def filename(self, val: PathType):
         type_check(val, PathType.__args__)
         self._filename = Path(val).resolve()
-
-    @property
-    def structure_centers_path(self):
-        """Path to a CSV file with a list of structure centers."""
-        return self.versioned_data_directory / "structure_centers.csv"
-
-    @property
-    def structure_graph_path(self):
-        return self.versioned_data_directory / "structure_graph.json"
 
     @property
     def system(self) -> System:
