@@ -2,7 +2,7 @@ import pytest
 
 from activity_viewer.settings import AVSettings
 from activity_viewer.settings.sections import System
-from activity_viewer.downloader import Downloader
+from activity_viewer.cache import Cache
 
 
 @pytest.fixture(scope="function")
@@ -18,8 +18,8 @@ def temp_settings(tmp_path):
     ("structure_graph", [False], None, None),
     ("structure_mesh", [997, False], None, None),
 ])
-def test_downloaders(temp_settings, prop, args, error, emsg):
-    downloader = Downloader(temp_settings)
+def test_cache_downloaders(temp_settings, prop, args, error, emsg):
+    downloader = Cache(temp_settings)
 
     if error is not None:
         with pytest.raises(error) as excinfo:

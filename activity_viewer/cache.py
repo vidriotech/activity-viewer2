@@ -9,8 +9,8 @@ from activity_viewer.base import type_check
 from activity_viewer.settings import AVSettings
 
 
-class Downloader:
-    """Downloads data from the Allen API.
+class Cache:
+    """Download and caches data from the Allen API.
 
     Parameters
     ==========

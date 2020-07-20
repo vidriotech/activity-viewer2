@@ -1,8 +1,9 @@
 from pathlib import Path
 
 import click
+import numpy as np
 
-from activity_viewer.downloader import Downloader
+from activity_viewer.cache import Cache
 from activity_viewer.settings import AVSettings
 
 
@@ -38,42 +39,42 @@ def download(ctx: click.core.Context, force: bool):
     settings = load_settings_file(ctx.obj["settings"])
 
     # download some data from the API
-    downloader = Downloader(settings)
+    cache = Cache(settings)
 
     # download some data
-    if downloader.structure_centers_exists() and not force:
+    if cache.structure_centers_exists() and not force:
         click.echo("Structure centers file already exists. Skipping.")
     else:
         click.echo("Downloading structure centers file...", nl=False)
-        downloader.download_structure_centers(force)
+        cache.download_structure_centers(force)
         click.echo("done.")
 
-    if downloader.structure_graph_exists() and not force:
+    if cache.structure_graph_exists() and not force:
         click.echo("Structure graph file already exists. Skipping.")
     else:
         click.echo("Downloading structure graph file...", nl=False)
-        downloader.download_structure_graph(force)
+        cache.download_structure_graph(force)
         click.echo("done.")
 
-    if downloader.structure_mesh_exists(997) and not force:
+    if cache.structure_mesh_exists(997) and not force:
         click.echo("Root node mesh file already exists. Skipping.")
     else:
         click.echo("Downloading root node mesh file...", nl=False)
-        downloader.download_structure_mesh(997, force)
+        cache.download_structure_mesh(997, force)
         click.echo("done.")
 
-    if downloader.annotation_volume_exists() and not force:
+    if cache.annotation_volume_exists() and not force:
         click.echo("Annotation volume already exists. Skipping.")
     else:
         click.echo("Downloading annotation volume (please be patient)...", nl=False)
-        downloader.download_annotation_volume(force)
+        cache.download_annotation_volume(force)
         click.echo("done.")
 
-    if downloader.template_volume_exists() and not force:
+    if cache.template_volume_exists() and not force:
         click.echo("Template volume already exists. Skipping.")
     else:
         click.echo("Downloading template volume (please be patient)...", nl=False)
-        downloader.download_template_volume(force)
+        cache.download_template_volume(force)
         click.echo("done.")
 
 
@@ -100,3 +101,19 @@ def validate(filename: str = None):
         return
 
     click.echo("Looks ok!")
+
+
+@cli.command()
+@click.argument("filename", type=click.Path(exists=True))
+@click.pass_context
+def visualize(ctx: click.core.Context, filename: str):
+    """Load and validate a .npz file."""
+    settings = load_settings_file(ctx.obj["settings"])
+
+    try:
+        dat = np.load(filename)
+    except ValueError:
+        click.echo(f"Failed to load '{filename}'. Possibly not a .npz file?", err=True)
+        return
+
+    click.echo(dat)

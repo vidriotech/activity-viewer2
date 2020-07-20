@@ -1,7 +1,9 @@
 from pathlib import Path
 from typing import List, Union
 
+from allensdk.api.queries.ontologies_api import OntologiesApi
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
+from allensdk.core.structure_tree import StructureTree
 import appdirs
 
 from activity_viewer.base import DefaultSerializable, type_check, snake_to_camel
@@ -19,7 +21,7 @@ class Compartment(DefaultSerializable):
     ----------
     max_depth : int
         The maximum level number of levels below the root node in the compartment hierarchy to make available
-        by default. Legal values are nonnegative integers.
+        by default. Legal values are nonnegative integers less than or equal to 11.
     blacklist : list of (str or int)
         A list of compartments to manually exclude from the available compartment hierarchy. This also blacklists child
         compartments. The list may contain compartment IDs (integers), labels (strings), or a combination of these. The
@@ -80,8 +82,10 @@ class Compartment(DefaultSerializable):
         type_check(val, int)
 
         if val < 0:
-            msg = f"Negative values for {snake_to_camel('max_depth')} are not permitted."
-            raise ValueError(msg)
+            raise ValueError(f"Negative values for {snake_to_camel('max_depth')} are not permitted.")
+
+        if val > 10:
+            raise ValueError(f"Maximum legal value of 10 for {snake_to_camel('max_depth')} exceeded.")
 
         self._max_depth = val
 

@@ -10,8 +10,7 @@ program. There are two main sections, namely:
   - ``maxDepth``: the maximum number of levels below the root node (i.e., the
     whole brain) in the compartment hierarchy to make available by default.
     The minimum value is 0 (so just the root node is available), and the
-    maximum value is *whatever the maximum depth actually is* (**TODO**: find
-    out and upate).
+    maximum value is 10.
   - ``blacklist``: a list of compartments to manually exclude from the
     available compartment hierarchy. This also blacklists child compartments.
     **If this is defined, it takes precedence over** ``maxDepth``.
