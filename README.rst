@@ -30,3 +30,10 @@ After all the dependencies are installed, do a quick sanity check:
 .. code-block:: shell
 
     (venv) > $ tox # or pytest if you prefer
+
+You'll also need to have `Node.js <https://nodejs.org/en/>`_ with 
+`Yarn <https://yarnpkg.com/>`_ installed. Simply execute
+
+.. code-block:: shell
+
+    $ yarn install
