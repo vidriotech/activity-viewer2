@@ -32,6 +32,7 @@ release = '0.1.0'
 # ones.
 extensions = [
     "sphinxcontrib.napoleon",
+    "sphinx_click.ext"
 ]
 
 # Add any paths that contain templates here, relative to this directory.

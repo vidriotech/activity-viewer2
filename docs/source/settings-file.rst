@@ -1,3 +1,5 @@
+.. _settings_file:
+
 The settings file
 -----------------
 
@@ -28,23 +30,27 @@ program. There are two main sections, namely:
     - "ccf_2016" (October 2016)
     - "ccf_2015" (May 2015).
   - ``dataDirectory``: the directory where large data files are cached. If you
-    don't specify a data directory, this defaults to
-    ``$HOME/.activity-viewer/cache``.
+    don't specify a data directory, this defaults to a subdirectory of your
+    system's user cache directory (a dot folder on a Unix-like OS, or
+    C:\Users\me\AppData\Local on Windows).
+  - ``resolution``: the voxel resolution of the template and annotation volumes
+    to use, in μm^3. Options are:
 
-.. code-block:: json
-
-    {
-        "compartment": {
-            "maxDepth": 0,
-            "blacklist": [],
-            "whitelist": []
-        },
-        "system": {
-            "atlasVersion": "ccf_2017",
-            "dataDirectory": "/home/me/.activity-viewer/cache"
-        }
-    }
+    - 10 (results in very large data files)
+    - 25
+    - 50
+    - 100 (much smaller data files).
 
 If you don't have a settings file in the current working directory, the
-activity viewer will try to use ``$HOME/.activity-viewer/settings.json``. If
-that file can't be found, it will be created and populated with default values.
+activity viewer will try to use a default settings file, installed in a
+system-dependent user config directory (a dot folder on a Unix-like OS, or
+C:\Users\me\AppData\Local on Windows). If that file can't be found, it will be
+created and populated with default values (see below).
+
+The default settings file
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Note that ``dataDirectory`` is system dependent and so is not defined here.
+
+.. literalinclude:: ../../activity_viewer/settings/default_settings.json
+   :language: json

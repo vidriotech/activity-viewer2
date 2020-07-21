@@ -30,7 +30,7 @@ def load_settings_file(filename: Path):
 @click.group()
 @click.pass_context
 def cli(ctx: click.core.Context):
-    """Command-line application. Settings file is a sine qua non."""
+    """Command-line interface for the Activity Viewer."""
     ctx.ensure_object(dict)
 
     # load settings
@@ -38,10 +38,11 @@ def cli(ctx: click.core.Context):
 
 
 @cli.command()
-@click.option("--force", "-f", is_flag=True, default=False)
+@click.option("--force", "-f", is_flag=True, default=False,
+              help="Overwrite existing files if this is set.")
 @click.pass_context
 def download(ctx: click.core.Context, force: bool):
-    """Download large data files and store them in cache."""
+    """Pre-downloads and caches large data files for quick access later."""
     settings = load_settings_file(ctx.obj["settings_file"])
 
     # download some data from the API
@@ -52,7 +53,7 @@ def download(ctx: click.core.Context, force: bool):
         click.echo("Structure centers file already exists. Skipping.")
     else:
         click.echo("Downloading structure centers file...", nl=False)
-        cache.download_structure_centers(force)
+        cache.save_structure_centers(force)
         click.echo("done.")
 
     if cache.structure_graph_exists() and not force:
@@ -66,28 +67,29 @@ def download(ctx: click.core.Context, force: bool):
         click.echo("Root node mesh file already exists. Skipping.")
     else:
         click.echo("Downloading root node mesh file...", nl=False)
-        cache.download_structure_mesh(997, force)
+        cache.save_structure_mesh(997, force)
         click.echo("done.")
 
     if cache.annotation_volume_exists() and not force:
         click.echo("Annotation volume already exists. Skipping.")
     else:
         click.echo("Downloading annotation volume (please be patient)...", nl=False)
-        cache.download_annotation_volume(force)
+        cache.save_annotation_volume(force)
         click.echo("done.")
 
     if cache.template_volume_exists() and not force:
         click.echo("Template volume already exists. Skipping.")
     else:
         click.echo("Downloading template volume (please be patient)...", nl=False)
-        cache.download_template_volume(force)
+        cache.save_template_volume(force)
         click.echo("done.")
 
 
 @cli.command()
-@click.option("--filename", "-f", type=str)
+@click.option("--filename", "-f", type=str,
+              help="The filename to validate. If you don't specify this, the default file will be validated.")
 def validate(filename: str = None):
-    """Validate a settings file."""
+    """Validate your settings file. Useful for basic sanity checks."""
     if filename is None:
         local_filename = Path("./settings.json")
         if local_filename.is_file():
@@ -136,15 +138,13 @@ def validate(filename: str = None):
 @click.argument("filename", type=click.Path(exists=True))
 @click.pass_context
 def visualize(ctx: click.core.Context, filename: str):
-    """Load and validate a .npz file."""
+    """Load data file, `FILENAME`, and start the visualizer tool."""
     settings = load_settings_file(ctx.obj["settings_file"])
 
     os.chdir(REPO_BASE)
     npm = shutil.which("npm")
-    subprocess.run(f"npm start", shell=True)
+    if npm is None:
+        click.echo("npm not found! Please install Node.js.", err=True)
+        return
 
-    # try:
-    #     dat = np.load(filename)
-    # except ValueError:
-    #     click.echo(f"Failed to load '{filename}'. Possibly not a .npz file?", err=True)
-    #     return
+    subprocess.run(shlex.split(f"'{npm}' start"))

@@ -20,6 +20,14 @@ activity\_viewer.settings.sections module
    :undoc-members:
    :show-inheritance:
 
+activity\_viewer.settings.validate module
+-----------------------------------------
+
+.. automodule:: activity_viewer.settings.validate
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 
 Module contents
 ---------------

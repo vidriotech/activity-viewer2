@@ -1,4 +1,5 @@
 import pytest
+from unittest import mock
 
 from activity_viewer.settings import AVSettings
 from activity_viewer.settings.sections import System
@@ -11,26 +12,42 @@ def temp_settings(tmp_path):
     yield AVSettings(system=system)
 
 
-@pytest.mark.parametrize(("prop", "args", "error", "emsg"), [
-    ("annotation_volume", [False], None, None),
-    ("template_volume", [False], None, None),
-    ("structure_centers", [False], None, None),
-    ("structure_graph", [False], None, None),
-    ("structure_mesh", [997, False], None, None),
+@pytest.mark.parametrize(("settings", "error", "emsg"), [
+    (None, TypeError, "Expected one of 'AVSettings', but got 'NoneType'."),
+    (AVSettings(), None, None)
 ])
-def test_cache_downloaders(temp_settings, prop, args, error, emsg):
-    downloader = Cache(temp_settings)
-
+def test_cache_constructor(settings, error, emsg):
     if error is not None:
         with pytest.raises(error) as excinfo:
-            getattr(downloader, "download_" + prop)(*args)
+            Cache(settings)
 
         assert excinfo.match(emsg)
     else:
-        getattr(downloader, "download_" + prop)(*args)
+        cache = Cache(settings)
 
-        if prop == "structure_mesh":
-            assert downloader.structure_mesh_exists(args[0])
-        else:
-            assert getattr(downloader, prop + "_exists")
+        assert cache.settings == settings
+
+
+# @pytest.mark.parametrize(("",), [
+
+# ])
+
+# @pytest.mark.parametrize(("prop", "args", "error", "emsg"), [
+#     ("annotation_volume", [False], None, None),
+#     ("template_volume", [False], None, None),
+#     ("structure_centers", [False], None, None),
+#     ("structure_graph", [False], None, None),
+#     ("structure_mesh", [997, False], None, None),
+# ])
+# def test_cache_downloaders(temp_settings, prop, args, error, emsg):
+#     downloader = Cache(temp_settings)
+
+    
+#     else:
+#         getattr(downloader, "download_" + prop)(*args)
+
+#         if prop == "structure_mesh":
+#             assert downloader.structure_mesh_exists(args[0])
+#         else:
+#             assert getattr(downloader, prop + "_exists")
 

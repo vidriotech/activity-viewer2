@@ -12,10 +12,34 @@ Subpackages
 Submodules
 ----------
 
+activity\_viewer.app module
+---------------------------
+
+.. automodule:: activity_viewer.app
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 activity\_viewer.base module
 ----------------------------
 
 .. automodule:: activity_viewer.base
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+activity\_viewer.cache module
+-----------------------------
+
+.. automodule:: activity_viewer.cache
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+activity\_viewer.cli module
+---------------------------
+
+.. automodule:: activity_viewer.cli
    :members:
    :undoc-members:
    :show-inheritance:

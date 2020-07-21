@@ -4,6 +4,7 @@ from typing import Optional
 from allensdk.api.queries.ontologies_api import OntologiesApi
 from allensdk.core.structure_tree import StructureTree
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
+import pandas as pd
 import requests
 
 from activity_viewer.base import type_check
@@ -26,48 +27,16 @@ class Cache:
 
     def annotation_volume_exists(self) -> bool:
         """Return true if and only if annotation volume is already cached on disk."""
-        return self.annotation_volume_path.is_file()
+        return self.annotation_volume_path.is_file()  # pragma: no cover
 
-    def download_annotation_volume(self, force: bool = False):
-        """Download and cache annotation volume."""
-        if self.annotation_volume_exists() and not force:
-            return
-
-        file_path = self.annotation_volume_path
-        file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
-
-        ccf_version = "annotation/" + self.settings.system.atlas_version
-        self._reference_space_api.download_annotation_volume(ccf_version, self.settings.system.resolution, file_path)
-
-    def download_structure_mesh(self, structure_id: int, force: bool = False):
-        """Download WaveFront mesh file for the compartment with ID `structure_id`."""
-        if self.structure_mesh_exists(structure_id) and not force:
-            return
-
-        file_path = self.structure_mesh_path(structure_id)
-        file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
-
-        ccf_version = "annotation/" + self.settings.system.atlas_version
-        self._reference_space_api.download_structure_mesh(structure_id, ccf_version, file_path)
-
-    def download_structure_centers(self, force: bool = False):
-        """Download a CSV of structure centers and save it to cache."""
-        if self.structure_centers_exists() and not force:
-            return
-
-        file_path = self.structure_centers_path
-
+    def download_structure_centers(self) -> pd.DataFrame:
+        """Download a CSV of structure centers and load it into a pandas dataframe."""
         ccf_version = self.settings.system.atlas_version
         api_path = "http://download.alleninstitute.org/informatics-archive/current-release/mouse_ccf/annotation/"\
                    f"{ccf_version}/structure_centers.csv"
+        df = pd.read_csv(api_path)
 
-        res = requests.get(api_path)
-        if not res.ok:
-            return
-
-        file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
-        with open(file_path, "w") as fh:
-            fh.write(res.content.decode())
+        return df
 
     def download_structure_graph(self) -> dict:
         """Download, clean, and return the structure graph."""
@@ -75,18 +44,6 @@ class Cache:
         structure_graph = StructureTree.clean_structures(structure_graph)
 
         return structure_graph
-
-    def save_structure_graph(self, force: bool = False):
-        """Download the structure graph file and save it to cache."""
-        if self.structure_graph_exists() and not force:
-            return
-
-        file_path = self.structure_graph_path
-        file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
-
-        structure_graph = self.download_structure_graph()
-        with open(file_path, "w") as fh:
-            json.dump(structure_graph, fh)
 
     def load_structure_graph(self, recache_on_error: bool = True) -> Optional[dict]:
         """Load the structure graph from cache, downloading and saving if necessary."""
@@ -103,7 +60,52 @@ class Cache:
 
         return structure_graph
 
-    def download_template_volume(self, force: bool = False):
+    def save_annotation_volume(self, force: bool = False):
+        """Download and cache annotation volume."""
+        if self.annotation_volume_exists() and not force:
+            return
+
+        file_path = self.annotation_volume_path
+        file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
+
+        ccf_version = "annotation/" + self.settings.system.atlas_version
+        self._reference_space_api.download_annotation_volume(ccf_version, self.settings.system.resolution, file_path)
+
+    def save_structure_graph(self, force: bool = False):
+        """Download the structure graph file and save it to cache."""
+        if self.structure_graph_exists() and not force:
+            return
+
+        file_path = self.structure_graph_path
+        file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
+
+        structure_graph = self.download_structure_graph()
+        with open(file_path, "w") as fh:
+            json.dump(structure_graph, fh)
+
+    def save_structure_centers(self, force: bool = False):
+        """Download a CSV containing structure centers and save it to cache."""
+        if self.structure_centers_exists() and not force:
+            return
+
+        file_path = self.structure_centers_path
+        file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
+        
+        df = self.download_structure_centers()
+        df.to_csv(file_path)
+
+    def save_structure_mesh(self, structure_id: int, force: bool = False):
+        """Download WaveFront mesh file for the compartment with ID `structure_id` and save it to cache."""
+        if self.structure_mesh_exists(structure_id) and not force:
+            return
+
+        file_path = self.structure_mesh_path(structure_id)
+        file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
+
+        ccf_version = "annotation/" + self.settings.system.atlas_version
+        self._reference_space_api.download_structure_mesh(structure_id, ccf_version, file_path)
+
+    def save_template_volume(self, force: bool = False):
         """Download and cache template volume."""
         if self.template_volume_exists() and not force:
             return
@@ -111,16 +113,15 @@ class Cache:
         file_path = self.template_volume_path
         file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
 
-        ccf_version = "annotation/" + self.settings.system.atlas_version
         self._reference_space_api.download_template_volume(self.settings.system.resolution, file_path)
 
     def structure_centers_exists(self) -> bool:
         """Return true if and only if the CSV structure centers file exists."""
-        return self.structure_centers_path.is_file()
+        return self.structure_centers_path.is_file()  # pragma: no cover
 
     def structure_graph_exists(self) -> bool:
         """Return true if and only if the JSON structure graph file exists."""
-        return self.structure_graph_path.is_file()
+        return self.structure_graph_path.is_file()  # pragma: no cover
 
     def structure_mesh_path(self, structure_id: int):
         """Return path for the mesh file for structure `structure_id`."""
@@ -128,11 +129,11 @@ class Cache:
 
     def structure_mesh_exists(self, structure_id: int) -> bool:
         """Return true if and only if the mesh file for structure `structure_id` exists."""
-        return self.structure_mesh_path(structure_id).is_file()
+        return self.structure_mesh_path(structure_id).is_file()  # pragma: no cover
 
     def template_volume_exists(self) -> bool:
         """Return true if and only if template volume is already cached on disk."""
-        return self.template_volume_path.is_file()
+        return self.template_volume_path.is_file()  # pragma: no cover
 
     @property
     def annotation_volume_path(self):

@@ -219,8 +219,6 @@ def test_avsettings_to_file(tmp_path, settings_dict):
 
     settings = AVSettings(filename, **settings_dict)
     settings.to_file(filename)
-    import logging
-    logging.debug(filename)
     settings2 = AVSettings.from_file(filename)
 
     assert settings == settings2
