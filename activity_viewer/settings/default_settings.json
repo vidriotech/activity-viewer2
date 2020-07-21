@@ -143,5 +143,9 @@
             "Pontine gray", "corticopontine tract", "Pedunculopontine nucleus",
             "Pontine reticular nucleus, caudal part", "Tegmental reticular nucleus"
         ]
+    },
+    "system": {
+        "atlasVersion": "ccf_2017",
+        "resolution": 100
     }
 }
