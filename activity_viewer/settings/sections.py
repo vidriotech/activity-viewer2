@@ -108,15 +108,15 @@ class System(DefaultSerializable):
 
     def __init__(self, **kwargs):
         """A class representation of the system section in the settings file. It is meant to be used as a
-            property of the `activity_viewer.settings.AVSettings` class.
+        property of the `activity_viewer.settings.AVSettings` class.
 
-            Parameters
-            ----------
-            atlas_version : str
-                The version of the Allen Brain Atlas to use.
-            data_directory : str or Path
-                Directory where data is cached.
-            """
+        Parameters
+        ----------
+        atlas_version : str
+            The version of the Allen Brain Atlas to use.
+        data_directory : str or Path
+            Directory where data is cached.
+        """
         super().__init__()
 
         self._atlas_version = None

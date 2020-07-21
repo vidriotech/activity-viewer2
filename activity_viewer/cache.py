@@ -1,4 +1,5 @@
 import json
+from typing import Optional
 
 from allensdk.api.queries.ontologies_api import OntologiesApi
 from allensdk.core.structure_tree import StructureTree
@@ -68,7 +69,14 @@ class Cache:
         with open(file_path, "w") as fh:
             fh.write(res.content.decode())
 
-    def download_structure_graph(self, force: bool = False):
+    def download_structure_graph(self) -> dict:
+        """Download, clean, and return the structure graph."""
+        structure_graph = self._ontologies_api.get_structures_with_sets([1])  # ID of adult mouse structure graph is 1
+        structure_graph = StructureTree.clean_structures(structure_graph)
+
+        return structure_graph
+
+    def save_structure_graph(self, force: bool = False):
         """Download the structure graph file and save it to cache."""
         if self.structure_graph_exists() and not force:
             return
@@ -76,11 +84,24 @@ class Cache:
         file_path = self.structure_graph_path
         file_path.parent.mkdir(parents=True, exist_ok=True)  # create parent directory if it doesn't exist
 
-        structure_graph = self._ontologies_api.get_structures_with_sets([1])  # ID of adult mouse structure graph is 1
-        structure_graph = StructureTree.clean_structures(structure_graph)
-
+        structure_graph = self.download_structure_graph()
         with open(file_path, "w") as fh:
             json.dump(structure_graph, fh)
+
+    def load_structure_graph(self, recache_on_error: bool = True) -> Optional[dict]:
+        """Load the structure graph from cache, downloading and saving if necessary."""
+        try:
+            with open(self.structure_graph_path, "r") as fh:
+                structure_graph = json.load(fh)
+        except Exception as e:
+            if recache_on_error:
+                self.save_structure_graph(force=True)
+                with open(self.structure_graph_path, "r") as fh:
+                    structure_graph = json.load(fh)
+            else:
+                structure_graph = self.download_structure_graph()
+
+        return structure_graph
 
     def download_template_volume(self, force: bool = False):
         """Download and cache template volume."""

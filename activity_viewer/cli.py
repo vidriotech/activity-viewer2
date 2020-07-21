@@ -1,10 +1,16 @@
+import os
 from pathlib import Path
+import shlex
+import shutil
+import subprocess
 
 import click
 import numpy as np
 
+from activity_viewer.base import REPO_BASE
 from activity_viewer.cache import Cache
 from activity_viewer.settings import AVSettings
+from activity_viewer.settings.validate import SettingsValidator
 
 
 def load_settings_file(filename: Path):
@@ -14,7 +20,7 @@ def load_settings_file(filename: Path):
 
     try:
         settings = AVSettings.from_file(filename)
-    except Exception as e:
+    except Exception:
         click.echo(f"Failed to load settings from file '{filename.resolve()}'. Using default settings.")
         settings = AVSettings()
 
@@ -36,7 +42,7 @@ def cli(ctx: click.core.Context):
 @click.pass_context
 def download(ctx: click.core.Context, force: bool):
     """Download large data files and store them in cache."""
-    settings = load_settings_file(ctx.obj["settings"])
+    settings = load_settings_file(ctx.obj["settings_file"])
 
     # download some data from the API
     cache = Cache(settings)
@@ -53,7 +59,7 @@ def download(ctx: click.core.Context, force: bool):
         click.echo("Structure graph file already exists. Skipping.")
     else:
         click.echo("Downloading structure graph file...", nl=False)
-        cache.download_structure_graph(force)
+        cache.save_structure_graph(force)
         click.echo("done.")
 
     if cache.structure_mesh_exists(997) and not force:
@@ -95,12 +101,35 @@ def validate(filename: str = None):
             return -1
 
     try:
-        AVSettings.from_file(filename)
+        settings = AVSettings.from_file(filename)
     except Exception as e:
         click.echo(f"Failed to load: {e}", err=True)
         return
 
-    click.echo("Looks ok!")
+    # formally validate
+    validator = SettingsValidator(settings)
+    is_valid, messages = validator.validate()
+
+    if is_valid:
+        click.echo("Looks OK!\n")
+    else:
+        click.echo("Your settings file is not valid.\n")
+
+    # display errors
+    if len(messages["errors"]) > 0:
+        click.echo("The following errors were found:", err=True)
+    
+        for err in messages["errors"]:
+            click.echo(err, err=True)
+
+        click.echo("")
+
+    # display warnings
+    if len(messages["warnings"]) > 0:
+        click.echo("You might want to look into these issues:")
+
+        for warn in messages["warnings"]:
+            click.echo(warn)
 
 
 @cli.command()
@@ -108,12 +137,14 @@ def validate(filename: str = None):
 @click.pass_context
 def visualize(ctx: click.core.Context, filename: str):
     """Load and validate a .npz file."""
-    settings = load_settings_file(ctx.obj["settings"])
+    settings = load_settings_file(ctx.obj["settings_file"])
 
-    try:
-        dat = np.load(filename)
-    except ValueError:
-        click.echo(f"Failed to load '{filename}'. Possibly not a .npz file?", err=True)
-        return
+    os.chdir(REPO_BASE)
+    npm = shutil.which("npm")
+    subprocess.run(f"npm start", shell=True)
 
-    click.echo(dat)
+    # try:
+    #     dat = np.load(filename)
+    # except ValueError:
+    #     click.echo(f"Failed to load '{filename}'. Possibly not a .npz file?", err=True)
+    #     return

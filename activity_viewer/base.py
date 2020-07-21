@@ -8,6 +8,8 @@ from typing import Any, Iterable, Type, Union
 
 import numpy as np
 
+REPO_BASE = Path(__file__).parent.parent
+
 
 def nest_tuples(val: Any, list_to_tuple: bool = True) -> tuple:
     """Recursively convert a dict to a tuple of tuples of key-value pairs.
