@@ -24,6 +24,7 @@ install dependencies:
     > $ python3 -m virtualenv venv
     > $ . venv/bin/activate # .\venv\Scripts\activate on Windows
     (venv) > $ python3 -m pip install -U -r requirements.txt -r requirements-dev.txt
+    (venv) > $ python3 -m pip install -e .
 
 After all the dependencies are installed, do a quick sanity check:
 
@@ -31,7 +32,7 @@ After all the dependencies are installed, do a quick sanity check:
 
     (venv) > $ tox # or pytest if you prefer
 
-You'll also need to have `Node.js <https://nodejs.org/en/>`_ with 
+You'll also need to have `Node.js <https://nodejs.org/en/>`_ 12 or later with 
 `Yarn <https://yarnpkg.com/>`_ installed. Simply execute
 
 .. code-block:: shell
