@@ -89,9 +89,9 @@ class SettingsValidator:
         nm_id_map = {v.lower(): k for k, v in self._structure_tree.get_name_map().items()}
         id_nm_map = {v: k for k, v in nm_id_map.items()}
 
-        # check whitelist first
-        whitelist_ids = set()
-        for val in compartment.whitelist:
+        # check include first
+        include_ids = set()
+        for val in compartment.include:
             if isinstance(val, str):
                 val_lower = val.lower()
 
@@ -100,32 +100,32 @@ class SettingsValidator:
                 elif val_lower in nm_id_map:
                     cid = nm_id_map[val_lower]
                 else:
-                    messages["errors"].append(f"Unrecognized compartment in whitelist: '{val}'.'")
+                    messages["errors"].append(f"Unrecognized compartment in include: '{val}'.'")
                     is_valid = False
                     continue
             elif isinstance(val, int):
                 if val not in ac_id_map.values():
-                    messages["errors"].append(f"Unrecognized compartment ID in whitelist: {val}")
+                    messages["errors"].append(f"Unrecognized compartment ID in include: {val}")
                     is_valid = False
                     continue
 
                 cid = val
             else:
-                messages["errors"].append(f"Invalid compartment in whitelist: '{val}'.")
+                messages["errors"].append(f"Invalid compartment in include: '{val}'.")
                 is_valid = False
                 continue
 
             # duplicate entry
-            if cid in whitelist_ids:
+            if cid in include_ids:
                 ac = id_ac_map[cid]
                 nm = id_nm_map[cid]
-                messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in whitelist.")
+                messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in include.")
 
-            whitelist_ids.add(cid)
+            include_ids.add(cid)
 
-        # now check blacklist
-        blacklist_ids = set()
-        for val in compartment.blacklist:
+        # now check exclude
+        exclude_ids = set()
+        for val in compartment.exclude:
             if isinstance(val, str):
                 val_lower = val.lower()
 
@@ -134,34 +134,34 @@ class SettingsValidator:
                 elif val_lower in nm_id_map:
                     cid = nm_id_map[val_lower]
                 else:
-                    messages["errors"].append(f"Unrecognized compartment in blacklist: '{val}'.'")
+                    messages["errors"].append(f"Unrecognized compartment in exclude: '{val}'.'")
                     is_valid = False
                     continue
             elif isinstance(val, int):
                 if val not in ac_id_map.values():
-                    messages["errors"].append(f"Unrecognized compartment ID in blacklist: {val}")
+                    messages["errors"].append(f"Unrecognized compartment ID in exclude: {val}")
                     is_valid = False
                     continue
 
                 cid = val
             else:
-                messages["errors"].append(f"Invalid compartment in blacklist: '{val}'.")
+                messages["errors"].append(f"Invalid compartment in exclude: '{val}'.")
                 is_valid = False
                 continue
 
-            # entry found in whitelist
-            if cid in whitelist_ids:
+            # entry found in include
+            if cid in include_ids:
                 ac = id_ac_map[cid]
                 nm = id_nm_map[cid]
-                messages["warnings"].append(f"Whitelisted compartment with id {cid}, name '{nm}', or acronym '{ac}', found in blacklist. Blacklist entry will be ignored")
+                messages["warnings"].append(f"includeed compartment with id {cid}, name '{nm}', or acronym '{ac}', found in exclude. exclude entry will be ignored")
 
             # duplicate entry
-            if cid in blacklist_ids:
+            if cid in exclude_ids:
                 ac = id_ac_map[cid]
                 nm = id_nm_map[cid]
-                messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in blacklist.")
+                messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in exclude.")
 
-            blacklist_ids.add(cid)
+            exclude_ids.add(cid)
 
         ## validate system section
         system = self.settings.system

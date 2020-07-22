@@ -22,37 +22,37 @@ class Compartment(DefaultSerializable):
     max_depth : int
         The maximum level number of levels below the root node in the compartment hierarchy to make available
         by default. Legal values are nonnegative integers less than or equal to 11.
-    blacklist : list of (str or int)
-        A list of compartments to manually exclude from the available compartment hierarchy. This also blacklists child
+    exclude : list of (str or int)
+        A list of compartments to manually exclude from the available compartment hierarchy. This also excludes child
         compartments. The list may contain compartment IDs (integers), labels (strings), or a combination of these. The
-        blacklist takes precedence over `max_depth`. If a whitelist is not also specified, then all compartments not in
-        the blacklist will be shown.
-    whitelist : list of (str or int)
-        A list of compartments to include in the available compartment hierarchy. This will *not* whitelist child
+        exclude takes precedence over `max_depth`. If a include is not also specified, then all compartments not in
+        the exclude will be shown.
+    include : list of (str or int)
+        A list of compartments to include in the available compartment hierarchy. This will *not* include child
         compartments. The list may contain compartment IDs (integers), labels (strings), or a combination of these. The
-        whitelist takes precedence over `blacklist` and may be used together with it. For example, you can blacklist a
-        compartment but whitelist one of that compartment's children.
+        include takes precedence over `exclude` and may be used together with it. For example, you can exclude a
+        compartment but include one of that compartment's children.
     """
-    ATTRS = ["max_depth", "blacklist", "whitelist"]
-    DEFAULTS = {"max_depth": 0, "blacklist": [], "whitelist": []}
+    ATTRS = ["max_depth", "exclude", "include"]
+    DEFAULTS = {"max_depth": 0, "exclude": [], "include": []}
 
     def __init__(self, **kwargs):
         super().__init__()
 
         self._max_depth = None
-        self._blacklist = None
-        self._whitelist = None
+        self._exclude = None
+        self._include = None
 
         # all values in attrs are required and will populate with defaults if not found
         try:
-            self.blacklist = kwargs.pop("blacklist")
+            self.exclude = kwargs.pop("exclude")
         except KeyError:
-            self.blacklist = self.DEFAULTS["blacklist"]
+            self.exclude = self.DEFAULTS["exclude"]
 
         try:
-            self.whitelist = kwargs.pop("whitelist")
+            self.include = kwargs.pop("include")
         except KeyError:
-            self.whitelist = self.DEFAULTS["whitelist"]
+            self.include = self.DEFAULTS["include"]
 
         try:
             self.max_depth = kwargs.pop("max_depth")
@@ -63,14 +63,14 @@ class Compartment(DefaultSerializable):
             raise ValueError(f"Unrecognized argument: '{kwargs.popitem()[0]}'.")
 
     @property
-    def blacklist(self) -> StrListType:
+    def exclude(self) -> StrListType:
         """List of compartments to exclude from the available compartment hierarchy."""
-        return self._blacklist
+        return self._exclude
 
-    @blacklist.setter
-    def blacklist(self, val: StrListType):
+    @exclude.setter
+    def exclude(self, val: StrListType):
         type_check(val, list)
-        self._blacklist = val
+        self._exclude = val
 
     @property
     def max_depth(self) -> int:
@@ -90,14 +90,14 @@ class Compartment(DefaultSerializable):
         self._max_depth = val
 
     @property
-    def whitelist(self) -> StrListType:
+    def include(self) -> StrListType:
         """List of compartments to include in the available compartment hierarchy."""
-        return self._whitelist
+        return self._include
 
-    @whitelist.setter
-    def whitelist(self, val: StrListType):
+    @include.setter
+    def include(self, val: StrListType):
         type_check(val, list)
-        self._whitelist = val
+        self._include = val
 
 
 class System(DefaultSerializable):

@@ -32,15 +32,15 @@ def test_touch_file(tmp_path, filename, error, emsg):
 
 
 @pytest.mark.parametrize(("kwargs", "error", "emsg"), [
-    ({"blacklist": 1, "whitelist": [], "max_depth": 0}, TypeError, "Expected one of 'list', but got 'int'."),  # blacklist should be a list
-    ({"blacklist": [], "whitelist": [], "max_depth": 0.9}, TypeError, "Expected one of 'int', but got 'float'."),  # max_depth should be an int
-    ({"blacklist": [], "whitelist": None, "max_depth": 0}, TypeError, "Expected one of 'list', but got 'NoneType'."),  # whitelist should be a list
-    ({"blacklist": [], "whitelist": [], "max_depth": -1}, ValueError, "Negative values for maxDepth are not permitted."),  # invalid max_depth
-    ({"blacklist": [], "whitelist": [], "max_depth": 0, "extra_arg": None}, ValueError, "Unrecognized argument: 'extra_arg'."),  # argument not recognized
-    ({"blacklist": [], "whitelist": [], "max_depth": 0}, None, None),  # ok
+    ({"exclude": 1, "include": [], "max_depth": 0}, TypeError, "Expected one of 'list', but got 'int'."),  # exclude should be a list
+    ({"exclude": [], "include": [], "max_depth": 0.9}, TypeError, "Expected one of 'int', but got 'float'."),  # max_depth should be an int
+    ({"exclude": [], "include": None, "max_depth": 0}, TypeError, "Expected one of 'list', but got 'NoneType'."),  # include should be a list
+    ({"exclude": [], "include": [], "max_depth": -1}, ValueError, "Negative values for maxDepth are not permitted."),  # invalid max_depth
+    ({"exclude": [], "include": [], "max_depth": 0, "extra_arg": None}, ValueError, "Unrecognized argument: 'extra_arg'."),  # argument not recognized
+    ({"exclude": [], "include": [], "max_depth": 0}, None, None),  # ok
     ({}, None, None),  # empty kwargs, all defaults used
-    ({"blacklist": ["item"]}, None, None),  # defaults used for whitelist and max_depth
-    ({"blacklist": [], "whitelist": []}, None, None),  # default used for max_depth
+    ({"exclude": ["item"]}, None, None),  # defaults used for include and max_depth
+    ({"exclude": [], "include": []}, None, None),  # default used for max_depth
 ])
 def test_compartment_constructor(kwargs, error, emsg):
     if error is not None:
@@ -51,15 +51,15 @@ def test_compartment_constructor(kwargs, error, emsg):
     else:
         compartment = Compartment(**kwargs)
 
-        if "blacklist" not in kwargs:
-            assert compartment.blacklist == Compartment.DEFAULTS["blacklist"]
+        if "exclude" not in kwargs:
+            assert compartment.exclude == Compartment.DEFAULTS["exclude"]
         else:
-            assert compartment.blacklist == kwargs["blacklist"]
+            assert compartment.exclude == kwargs["exclude"]
 
-        if "whitelist" not in kwargs:
-            assert compartment.whitelist == Compartment.DEFAULTS["whitelist"]
+        if "include" not in kwargs:
+            assert compartment.include == Compartment.DEFAULTS["include"]
         else:
-            assert compartment.whitelist == kwargs["whitelist"]
+            assert compartment.include == kwargs["include"]
 
         if "max_depth" not in kwargs:
             assert compartment.max_depth == Compartment.DEFAULTS["max_depth"]
@@ -98,13 +98,13 @@ def test_system_constructor(kwargs, error, emsg):
 
 
 @pytest.mark.parametrize(("filename", "kwargs", "error", "emsg"), [
-    (1, {"compartment": {"blacklist": [], "whitelist": [], "max_depth": 0},
+    (1, {"compartment": {"exclude": [], "include": [], "max_depth": 0},
             "system": {"atlas_version": "", "data_directory": "/foo/bar"}}, TypeError,
      "Expected one of 'str', 'Path', but got 'int'."),  # filename should be a string or Path
     ("/foo/bar/baz", {}, None, None),
-    ("/foo/bar/baz", {"compartment": {"blacklist": [], "whitelist": [], "max_depth": 0}},
+    ("/foo/bar/baz", {"compartment": {"exclude": [], "include": [], "max_depth": 0}},
      None, None),
-    ("/foo/bar/baz", {"compartment": {"blacklist": [], "whitelist": [], "max_depth": 0},
+    ("/foo/bar/baz", {"compartment": {"exclude": [], "include": [], "max_depth": 0},
                       "system": {"atlas_version": "ccf_2017", "data_directory": "/foo/bar"}},
      None, None)
 
@@ -132,15 +132,15 @@ def test_avsettings_constructor(filename, kwargs, error, emsg):
     ({
          "compartment": {
              "maxDepth": 0,
-             "blacklist": [],
-             "whitelist": []
+             "exclude": [],
+             "include": []
          },
      }, ),
     ({
         "compartment": {
             "maxDepth": 0,
-            "blacklist": [],
-            "whitelist": []
+            "exclude": [],
+            "include": []
         },
         "system": {
             "dataDirectory": "/foo/bar/baz",
@@ -166,20 +166,20 @@ def test_avsettings_from_file(tmp_path, settings_dict):
     if "compartment" not in settings_dict:
         assert settings.compartment == Compartment()
     else:
-        if "blacklist" not in settings_dict["compartment"]:
-            assert settings.compartment.blacklist == Compartment.DEFAULTS["blacklist"]
+        if "exclude" not in settings_dict["compartment"]:
+            assert settings.compartment.exclude == Compartment.DEFAULTS["exclude"]
         else:
-            assert settings.compartment.blacklist == settings_dict["compartment"]["blacklist"]
+            assert settings.compartment.exclude == settings_dict["compartment"]["exclude"]
 
         if "maxDepth" not in settings_dict["compartment"]:
             assert settings.compartment.max_depth == Compartment.DEFAULTS["max_depth"]
         else:
             assert settings.compartment.max_depth == settings_dict["compartment"]["maxDepth"]
 
-        if "whitelist" not in settings_dict["compartment"]:
-            assert settings.compartment.whitelist == Compartment.DEFAULTS["whitelist"]
+        if "include" not in settings_dict["compartment"]:
+            assert settings.compartment.include == Compartment.DEFAULTS["include"]
         else:
-            assert settings.compartment.whitelist == settings_dict["compartment"]["whitelist"]
+            assert settings.compartment.include == settings_dict["compartment"]["include"]
 
     if "system" not in settings_dict:
         assert settings.system == System()
@@ -204,8 +204,8 @@ def test_avsettings_from_file(tmp_path, settings_dict):
     ({
         "compartment": {
             "max_depth": 0,
-            "blacklist": [],
-            "whitelist": []
+            "exclude": [],
+            "include": []
         },
         "system": {
             "data_directory": "/foo/bar/baz",

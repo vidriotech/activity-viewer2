@@ -1,8 +1,8 @@
 {
     "compartment" : {
         "max_depth": 0,
-        "blacklist": [],
-        "whitelist": [
+        "exclude": [],
+        "include": [
             "Primary motor area, Layer 1", "Primary motor area, Layer 5",
             "Primary motor area, Layer 6a", "Primary motor area, Layer 6b",
             "Primary motor area, Layer 2/3", "Primary motor area",

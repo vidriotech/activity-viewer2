@@ -13,13 +13,13 @@ program. There are two main sections, namely:
     whole brain) in the compartment hierarchy to make available by default.
     The minimum value is 0 (so just the root node is available), and the
     maximum value is 10.
-  - ``blacklist``: a list of compartments to manually exclude from the
-    available compartment hierarchy. This also blacklists child compartments.
+  - ``exclude``: a list of compartments to manually exclude from the
+    available compartment hierarchy. This also excludes child compartments.
     **If this is defined, it takes precedence over** ``maxDepth``.
-  - ``whitelist``: a list of compartments to manually *include* in the
-    available compartment hierarchy. This will not whitelist child
+  - ``include``: a list of compartments to manually *include* in the
+    available compartment hierarchy. This does not include child
     compartments or parent compartments. **If this is defined it takes
-    precedence over** ``blacklist``.
+    precedence over** ``exclude``.
 
 - ``system``, containing fields related to the fetching and storage of data.
   Those fields are:
