@@ -7,6 +7,7 @@ Subpackages
 .. toctree::
    :maxdepth: 4
 
+   activity_viewer.api
    activity_viewer.settings
 
 Submodules
@@ -40,6 +41,14 @@ activity\_viewer.cli module
 ---------------------------
 
 .. automodule:: activity_viewer.cli
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+activity\_viewer.loaders module
+-------------------------------
+
+.. automodule:: activity_viewer.loaders
    :members:
    :undoc-members:
    :show-inheritance:
