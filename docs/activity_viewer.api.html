@@ -1,0 +1,239 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>activity_viewer.api package &mdash; Mesoscale Activity Viewer 0.1.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Mesoscale Activity Viewer
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the Activity Viewer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mesoscale Activity Viewer</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>activity_viewer.api package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/activity_viewer.api.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="activity-viewer-api-package">
+<h1>activity_viewer.api package<a class="headerlink" href="#activity-viewer-api-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-activity_viewer.api.routes">
+<span id="activity-viewer-api-routes-module"></span><h2>activity_viewer.api.routes module<a class="headerlink" href="#module-activity_viewer.api.routes" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="activity_viewer.api.routes.hello">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">hello</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.hello" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.settings">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update or fetch settings in use.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer.api.state">
+<span id="activity-viewer-api-state-module"></span><h2>activity_viewer.api.state module<a class="headerlink" href="#module-activity_viewer.api.state" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="activity_viewer.api.state.APIState">
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.api.state.</code><code class="sig-name descname">APIState</code><a class="headerlink" href="#activity_viewer.api.state.APIState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class representing state of the HTTP API.</p>
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.settings">
+<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#activity_viewer.api.state.APIState.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Settings object.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer.api">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-activity_viewer.api" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Alan Liddell
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

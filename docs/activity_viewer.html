@@ -1,0 +1,612 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>activity_viewer package &mdash; Mesoscale Activity Viewer 0.1.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="author" title="About these documents" href="about.html" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Mesoscale Activity Viewer
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the Activity Viewer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mesoscale Activity Viewer</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>activity_viewer package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/activity_viewer.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="activity-viewer-package">
+<h1>activity_viewer package<a class="headerlink" href="#activity-viewer-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="activity_viewer.api.html">activity_viewer.api package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#module-activity_viewer.api.routes">activity_viewer.api.routes module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#module-activity_viewer.api.state">activity_viewer.api.state module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#module-activity_viewer.api">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="activity_viewer.settings.html">activity_viewer.settings package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.settings.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.settings.html#module-activity_viewer.settings.avsettings">activity_viewer.settings.avsettings module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.settings.html#module-activity_viewer.settings.sections">activity_viewer.settings.sections module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.settings.html#module-activity_viewer.settings.validate">activity_viewer.settings.validate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.settings.html#module-activity_viewer.settings">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-activity_viewer.app">
+<span id="activity-viewer-app-module"></span><h2>activity_viewer.app module<a class="headerlink" href="#module-activity_viewer.app" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-activity_viewer.base">
+<span id="activity-viewer-base-module"></span><h2>activity_viewer.base module<a class="headerlink" href="#module-activity_viewer.base" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="activity_viewer.base.DefaultSerializable">
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.base.</code><code class="sig-name descname">DefaultSerializable</code><a class="headerlink" href="#activity_viewer.base.DefaultSerializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#activity_viewer.base.Serializable" title="activity_viewer.base.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">activity_viewer.base.Serializable</span></code></a></p>
+<dl class="py attribute">
+<dt id="activity_viewer.base.DefaultSerializable.DEFAULTS">
+<code class="sig-name descname">DEFAULTS</code><em class="property"> = {}</em><a class="headerlink" href="#activity_viewer.base.DefaultSerializable.DEFAULTS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.base.DefaultSerializable.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.base.DefaultSerializable.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new instance of this class from a dict.</p>
+<p>Fill in defaults if any are missing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>val</strong> (<em>dict</em>) – A dict containing key-value pairs for each of the fields in this object.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>new</strong> – A new instance of this class, loaded from the dict <cite>val</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#activity_viewer.base.Serializable" title="activity_viewer.base.Serializable">Serializable</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="activity_viewer.base.Serializable">
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.base.</code><code class="sig-name descname">Serializable</code><a class="headerlink" href="#activity_viewer.base.Serializable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Subclasses of Serializable can be instantiated from or serialized to a dict or JSON string.</p>
+<ul class="simple">
+<li><p>Arguments to __init__ MUST match the ATTRS class attribute, or from_dict will break!</p></li>
+<li><p>Constructors expecting subclasses of Serializable SHOULD check for dicts and use from_dict accordingly.</p></li>
+</ul>
+<dl class="py attribute">
+<dt id="activity_viewer.base.Serializable.ATTRS">
+<code class="sig-name descname">ATTRS</code><em class="property"> = []</em><a class="headerlink" href="#activity_viewer.base.Serializable.ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.base.Serializable.from_dict">
+<em class="property">classmethod </em><code class="sig-name descname">from_dict</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span><span class="p">:</span> <span class="n">dict</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.base.Serializable.from_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new instance of this class from a dict.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>val</strong> (<em>dict</em>) – A dict containing key-value pairs for each of the fields in this object.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>new</strong> – A new instance of this class, loaded from the dict <cite>val</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#activity_viewer.base.Serializable" title="activity_viewer.base.Serializable">Serializable</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.base.Serializable.from_json">
+<em class="property">classmethod </em><code class="sig-name descname">from_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>bytes<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.base.Serializable.from_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create a new instance of this class from its JSON string representation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>val</strong> (<em>str</em><em> or </em><em>bytes</em>) – A JSON string representation of this object.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>new</strong> – A new instance of this class, loaded from the string <cite>val</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#activity_viewer.base.Serializable" title="activity_viewer.base.Serializable">Serializable</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.base.Serializable.to_dict">
+<code class="sig-name descname">to_dict</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; collections.OrderedDict<a class="headerlink" href="#activity_viewer.base.Serializable.to_dict" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent this object as an OrderedDict, suitable for serializing.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>self_dict</strong> – A representation of this object as a dict.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.base.Serializable.to_json">
+<code class="sig-name descname">to_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">minify</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">prettify</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#activity_viewer.base.Serializable.to_json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represent this object as a JSON string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><strong>self_str</strong> – A JSON string representation of this object.</p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.base.nest_tuples">
+<code class="sig-prename descclassname">activity_viewer.base.</code><code class="sig-name descname">nest_tuples</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span><span class="p">:</span> <span class="n">Any</span></em>, <em class="sig-param"><span class="n">list_to_tuple</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; tuple<a class="headerlink" href="#activity_viewer.base.nest_tuples" title="Permalink to this definition">¶</a></dt>
+<dd><p>Recursively convert a dict to a tuple of tuples of key-value pairs.</p>
+<p>Each tuple has exactly two entries, the first corresponding to the key and the second corresponding to the value.
+Values which are themselves dicts will be converted in like manner.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val</strong> (<em>dict</em>) – The dict to convert.</p></li>
+<li><p><strong>list_to_tuple</strong> (<em>bool</em>) – Convert lists to tuples if True.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>result</strong> – A nested tuple representation of <cite>val</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.base.sha256sum_file">
+<code class="sig-prename descclassname">activity_viewer.base.</code><code class="sig-name descname">sha256sum_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">]</span></span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#activity_viewer.base.sha256sum_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the SHA256 checksum of the file living at <cite>file_path</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em><em> or </em><em>pathlib.Path</em>) – The path to the file in question.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>shasum</strong> – The (hex digest of the) SHA2-256 checksum of the file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>FileNotFoundError</strong> – If the file is not found.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.base.slugify">
+<code class="sig-prename descclassname">activity_viewer.base.</code><code class="sig-name descname">slugify</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#activity_viewer.base.slugify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a string to a slug by removing all characters outside a constrained set.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>val</strong> (<em>str</em>) – An arbitrary string.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>slugified_val</strong> – <cite>val</cite> with all characters removed except letters, numbers, underscores, and hyphens.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If <cite>val</cite> is not a string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.base.snake_to_camel">
+<code class="sig-prename descclassname">activity_viewer.base.</code><code class="sig-name descname">snake_to_camel</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#activity_viewer.base.snake_to_camel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a snake_case string to a camelCase string.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>val</strong> (<em>str</em>) – A snake_case string.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>valCamel</strong> – A camelCase version of <cite>val</cite>.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If <cite>val</cite> is not a string.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.base.type_check">
+<code class="sig-prename descclassname">activity_viewer.base.</code><code class="sig-name descname">type_check</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">val</span><span class="p">:</span> <span class="n">Any</span></em>, <em class="sig-param"><span class="n">allowed_types</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>Type<span class="p">, </span>Iterable<span class="p">[</span>Type<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.base.type_check" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that <cite>val</cite> is an instance of one of <cite>allowed_types</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>val</strong> (<em>object</em>) – An object. Anything.</p></li>
+<li><p><strong>allowed_types</strong> (<em>type</em><em> or </em><em>iterable of types</em>) – Set of types that <cite>val</cite> is allowed to be.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Raises</dt>
+<dd class="field-even"><p><strong>TypeError</strong> – If (and only if) <cite>val</cite> is not an instance of one of <cite>allowed_types</cite>.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer.cache">
+<span id="activity-viewer-cache-module"></span><h2>activity_viewer.cache module<a class="headerlink" href="#module-activity_viewer.cache" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="activity_viewer.cache.Cache">
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.cache.</code><code class="sig-name descname">Cache</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n"><a class="reference internal" href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings" title="activity_viewer.settings.avsettings.AVSettings">activity_viewer.settings.avsettings.AVSettings</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Download and caches data from the Allen API.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>settings</strong> (<a class="reference internal" href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings" title="activity_viewer.settings.avsettings.AVSettings"><em>AVSettings</em></a>) – </p>
+</dd>
+</dl>
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.annotation_volume_exists">
+<code class="sig-name descname">annotation_volume_exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#activity_viewer.cache.Cache.annotation_volume_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return true if and only if annotation volume is already cached on disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.annotation_volume_path">
+<em class="property">property </em><code class="sig-name descname">annotation_volume_path</code><a class="headerlink" href="#activity_viewer.cache.Cache.annotation_volume_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to a binary file containing the annotation volume.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.download_structure_centers">
+<code class="sig-name descname">download_structure_centers</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; pandas.core.frame.DataFrame<a class="headerlink" href="#activity_viewer.cache.Cache.download_structure_centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download a CSV of structure centers and load it into a pandas dataframe.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.download_structure_graph">
+<code class="sig-name descname">download_structure_graph</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#activity_viewer.cache.Cache.download_structure_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download, clean, and return the structure graph.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.load_structure_graph">
+<code class="sig-name descname">load_structure_graph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">recache_on_error</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>dict<span class="p">]</span><a class="headerlink" href="#activity_viewer.cache.Cache.load_structure_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load the structure graph from cache, downloading and saving if necessary.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.save_annotation_volume">
+<code class="sig-name descname">save_annotation_volume</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache.save_annotation_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download and cache annotation volume.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.save_structure_centers">
+<code class="sig-name descname">save_structure_centers</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache.save_structure_centers" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download a CSV containing structure centers and save it to cache.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.save_structure_graph">
+<code class="sig-name descname">save_structure_graph</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache.save_structure_graph" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download the structure graph file and save it to cache.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.save_structure_mesh">
+<code class="sig-name descname">save_structure_mesh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">structure_id</span><span class="p">:</span> <span class="n">int</span></em>, <em class="sig-param"><span class="n">force</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache.save_structure_mesh" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download WaveFront mesh file for the compartment with ID <cite>structure_id</cite> and save it to cache.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.save_template_volume">
+<code class="sig-name descname">save_template_volume</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">force</span><span class="p">:</span> <span class="n">bool</span> <span class="o">=</span> <span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache.save_template_volume" title="Permalink to this definition">¶</a></dt>
+<dd><p>Download and cache template volume.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.settings">
+<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#activity_viewer.cache.Cache.settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Settings object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.structure_centers_exists">
+<code class="sig-name descname">structure_centers_exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#activity_viewer.cache.Cache.structure_centers_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return true if and only if the CSV structure centers file exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.structure_centers_path">
+<em class="property">property </em><code class="sig-name descname">structure_centers_path</code><a class="headerlink" href="#activity_viewer.cache.Cache.structure_centers_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to a CSV file with a list of structure centers.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.structure_graph_exists">
+<code class="sig-name descname">structure_graph_exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#activity_viewer.cache.Cache.structure_graph_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return true if and only if the JSON structure graph file exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.structure_graph_path">
+<em class="property">property </em><code class="sig-name descname">structure_graph_path</code><a class="headerlink" href="#activity_viewer.cache.Cache.structure_graph_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to a JSON file containing the structure graph.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.structure_mesh_exists">
+<code class="sig-name descname">structure_mesh_exists</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">structure_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#activity_viewer.cache.Cache.structure_mesh_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return true if and only if the mesh file for structure <cite>structure_id</cite> exists.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.structure_mesh_path">
+<code class="sig-name descname">structure_mesh_path</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">structure_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache.structure_mesh_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return path for the mesh file for structure <cite>structure_id</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.template_volume_exists">
+<code class="sig-name descname">template_volume_exists</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; bool<a class="headerlink" href="#activity_viewer.cache.Cache.template_volume_exists" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return true if and only if template volume is already cached on disk.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.cache.Cache.template_volume_path">
+<em class="property">property </em><code class="sig-name descname">template_volume_path</code><a class="headerlink" href="#activity_viewer.cache.Cache.template_volume_path" title="Permalink to this definition">¶</a></dt>
+<dd><p>Path to a binary file containing the template volume.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer.cli">
+<span id="activity-viewer-cli-module"></span><h2>activity_viewer.cli module<a class="headerlink" href="#module-activity_viewer.cli" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="activity_viewer.cli.load_settings_file">
+<code class="sig-prename descclassname">activity_viewer.cli.</code><code class="sig-name descname">load_settings_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cli.load_settings_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load settings from a file.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer.loaders">
+<span id="activity-viewer-loaders-module"></span><h2>activity_viewer.loaders module<a class="headerlink" href="#module-activity_viewer.loaders" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="activity_viewer.loaders.FileLoader">
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.loaders.</code><code class="sig-name descname">FileLoader</code><a class="headerlink" href="#activity_viewer.loaders.FileLoader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Class for loading data files.</p>
+<dl class="py method">
+<dt id="activity_viewer.loaders.FileLoader.data">
+<em class="property">property </em><code class="sig-name descname">data</code><a class="headerlink" href="#activity_viewer.loaders.FileLoader.data" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.loaders.FileLoader.file_path">
+<em class="property">property </em><code class="sig-name descname">file_path</code><a class="headerlink" href="#activity_viewer.loaders.FileLoader.file_path" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.loaders.FileLoader.load_file">
+<code class="sig-name descname">load_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.loaders.FileLoader.load_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>Load data from the file living at <cite>file_path</cite>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em>) – Path to file to load.</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-activity_viewer" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Alan Liddell
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
