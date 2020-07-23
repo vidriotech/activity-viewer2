@@ -151,10 +151,38 @@
             
   <div class="section" id="about">
 <h1>About<a class="headerlink" href="#about" title="Permalink to this headline">¶</a></h1>
-<p>The Mesoscale Activity Viewer is a tool for exploring time series data for
-units extracted by a spike sorter.
-This package provides both a command-line interface and an
-<a class="reference internal" href="py-modindex.html"><span class="std std-ref">API</span></a>.</p>
+<div class="section" id="mesoscale-activity-viewer">
+<h2>Mesoscale Activity Viewer<a class="headerlink" href="#mesoscale-activity-viewer" title="Permalink to this headline">¶</a></h2>
+<p>This is the new and improved unit viewer for the Mesoscale Activity Project.</p>
+</div>
+</div>
+<div class="section" id="developing">
+<h1>Developing<a class="headerlink" href="#developing" title="Permalink to this headline">¶</a></h1>
+<p>After you clone this repository from GitHub, fire up your favorite terminal (I strongly recommend the Anaconda Prompt on
+Windows).
+Make sure your Python interpreter is the one you’re expecting:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt; $ which python3 <span class="c1"># where.exe python3 on Windows</span>
+/home/alan/anaconda3/bin/python3
+</pre></div>
+</div>
+<p>Once you’ve satisfied yourself that this is the correct Python, create and activate a new virtual environment, then
+install dependencies:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt; $ python3 -m pip install --user virtualenv <span class="c1"># ensure you have virtualenv installed</span>
+&gt; $ python3 -m virtualenv venv
+&gt; $ . venv/bin/activate <span class="c1"># .\venv\Scripts\activate on Windows</span>
+<span class="o">(</span>venv<span class="o">)</span> &gt; $ python3 -m pip install -U -r requirements.txt -r requirements-dev.txt
+<span class="o">(</span>venv<span class="o">)</span> &gt; $ python3 -m pip install -e .
+</pre></div>
+</div>
+<p>After all the dependencies are installed, do a quick sanity check:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>venv<span class="o">)</span> &gt; $ tox <span class="c1"># or pytest if you prefer</span>
+</pre></div>
+</div>
+<p>You’ll also need to have <a class="reference external" href="https://nodejs.org/en/">Node.js</a> 12 or later with
+<a class="reference external" href="https://yarnpkg.com/">Yarn</a> installed. Simply execute</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ yarn install
+</pre></div>
+</div>
 </div>
 
 

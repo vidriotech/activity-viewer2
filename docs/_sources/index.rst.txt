@@ -3,9 +3,6 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-Mesoscale Activity Viewer
-=========================
-
 .. toctree::
    :hidden:
    :maxdepth: 2
@@ -13,17 +10,13 @@ Mesoscale Activity Viewer
 
    usage
 
-.. contents::
-   :depth: 3
-
 .. _about:
 
-.. include:: about.rst
+.. include:: ../../README.rst
 
 .. _quickstart:
 
 .. include:: quickstart.rst
-
 
 Indices and tables
 ==================
