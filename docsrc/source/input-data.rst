@@ -48,8 +48,6 @@ Some other fields are not mandatory but will be recognized:
 - ``unit_stats``: A list of strings, each being the label of another field that
   you've saved in your data file, representing a **unit statistic**. (See
   :ref:`unit-stats-fields` below.)
-- ``unit_psth``: A special timeseries field representing the unit peristimulus
-  time histogram.
 
 .. _coord-convention:
 
