@@ -1,0 +1,296 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Input data &mdash; Mesoscale Activity Viewer 0.1.0 documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+  
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+        <script src="_static/language_data.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home" alt="Documentation Home"> Mesoscale Activity Viewer
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="usage.html">Using the Activity Viewer</a></li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">Mesoscale Activity Viewer</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+      <li>Input data</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/input-data.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="input-data">
+<h1>Input data<a class="headerlink" href="#input-data" title="Permalink to this headline">¶</a></h1>
+<p>At the moment, input data is stored in a NumPy .npz file, which is a format similar
+to the .npy format you may be familiar with, but allows you to store multiple
+arrays in a single file, with optional compression. See the NumPy docs for
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.savez.html">savez</a> and <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.savez_compressed.html">savez_compressed</a> for more info. The idea is that after the
+first positional argument specifying the file to save to, each array is passed
+as a keyword argument to <code class="docutils literal notranslate"><span class="pre">savez</span></code>.</p>
+<p>As an example, if you have an array of unit IDs and an array of unit SNR
+values, you can save them into <code class="docutils literal notranslate"><span class="pre">data.npz</span></code> like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># import numpy as np</span>
+<span class="c1"># ...</span>
+<span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="s2">&quot;data.npz&quot;</span><span class="p">,</span> <span class="n">unit_id</span><span class="o">=</span><span class="n">unit_id</span><span class="p">,</span> <span class="n">unit_snr</span><span class="o">=</span><span class="n">unit_snr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Loading the file and accessing the data inside is simple:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># import numpy as np</span>
+<span class="c1"># ...</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data.npz&quot;</span><span class="p">)</span>
+<span class="n">unit_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;unit_id&quot;</span><span class="p">]</span>
+<span class="n">unit_snr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;unit_snr&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Assuming you have <code class="docutils literal notranslate"><span class="pre">n</span></code> units, we expect the following fields at a minimum to
+be saved:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">probe_insertion</span></code>: A string identifying the penetration represented by the
+data in this file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit_id</span></code>: A 1D array of <code class="docutils literal notranslate"><span class="pre">n</span></code> integers, each uniquely identifying a given
+unit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccf_coord</span></code>: An <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">x</span> <span class="pre">3</span></code> array of indices specifying each unit’s
+location in the Allen CCF space. (See <a class="reference internal" href="usage.html#coord-convention"><span class="std std-ref">Unit coordinate convention</span></a> for how to
+arrange these values.</p></li>
+</ul>
+<p>Some other fields are not mandatory but will be recognized:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">waveform</span></code>: A 2D array of the mean waveform for each unit. If each waveform
+has <code class="docutils literal notranslate"><span class="pre">m</span></code> samples, the <code class="docutils literal notranslate"><span class="pre">waveform</span></code> array should be <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">x</span> <span class="pre">m</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeseries</span></code>: A list of strings, each being the label of another field that
+you’ve saved in your data file, representing a <strong>timeseries</strong>. (See
+<a class="reference internal" href="usage.html#timeseries-fields"><span class="std std-ref">Timeseries fields</span></a> below.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit_stats</span></code>: A list of strings, each being the label of another field that
+you’ve saved in your data file, representing a <strong>unit statistic</strong>. (See
+<a class="reference internal" href="usage.html#unit-stats-fields"><span class="std std-ref">Unit statistic fields</span></a> below.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit_psth</span></code>: A special timeseries field representing the unit peristimulus
+time histogram.</p></li>
+</ul>
+<div class="section" id="unit-coordinate-convention">
+<span id="coord-convention"></span><h2>Unit coordinate convention<a class="headerlink" href="#unit-coordinate-convention" title="Permalink to this headline">¶</a></h2>
+<p>We use the same convention as that used by the Allen Mouse Common Coordinate
+Framework (CCFv3) to define what the <code class="docutils literal notranslate"><span class="pre">$(x,</span> <span class="pre">y,</span> <span class="pre">z)$</span></code> coordinates mean and what
+the origins of those systems are. Namely,</p>
+<p>The reference space is in PIR orientation where:</p>
+<ul class="simple">
+<li><p>The x axis represents Anterior-Posterior with origin at Anterior.</p></li>
+<li><p>The y axis represents Superior-Inferior (alternatively Dorsal-Ventral) with
+origin at Superior (Dorsal).</p></li>
+<li><p>The z axis represents Left-Right with origin at Left.</p></li>
+</ul>
+<p>Units are in <em>microns</em>. Visually:</p>
+<div class="figure align-default" id="id2">
+<img alt="CCF coordinate convention" src="https://help.brain-map.org/download/attachments/5308480/3DOrientation.png" />
+<p class="caption"><span class="caption-text"><a class="reference external" href="https://help.brain-map.org/display/mouseconnectivity/API#API-3DReferenceModels">Source</a>.</span><a class="headerlink" href="#id2" title="Permalink to this image">¶</a></p>
+</div>
+<p>Accordingly, the first column of <code class="docutils literal notranslate"><span class="pre">ccf_coord</span></code> should be the x coordinates of each
+unit (along the AP axis as specified); the second column should be the y
+coordinates of each unit (along the SI or DV axis); and the third column should be
+the z coordinates of each unit (along the LR axis).</p>
+</div>
+<div class="section" id="timeseries-fields">
+<span id="id1"></span><h2>Timeseries fields<a class="headerlink" href="#timeseries-fields" title="Permalink to this headline">¶</a></h2>
+<p>Timeseries are unit quantities that vary over some time interval. This can be
+any quantity you can measure, as long as it varies over time. Timeseries fields
+are stored in the data file as a 2D array of size <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">+</span> <span class="pre">1)</span> <span class="pre">x</span> <span class="pre">m</span></code>, where <code class="docutils literal notranslate"><span class="pre">m</span></code>
+is the number of sample points, with the first row storing the time (in s) with
+respect to some reference point at which each sample is taken. Subsequent rows
+store timeseries for each unit in the order given by <code class="docutils literal notranslate"><span class="pre">unit_id</span></code>.</p>
+<p>So if you wanted to store each unit’s firing rate as a timeseries, you could
+have an entry <code class="docutils literal notranslate"><span class="pre">unit_fr</span></code> in the <code class="docutils literal notranslate"><span class="pre">timeseries</span></code> field, and then store your
+firing rate timeseries in the <code class="docutils literal notranslate"><span class="pre">unit_fr</span></code> field in the data file. Activity
+Viewer will then recognize <code class="docutils literal notranslate"><span class="pre">unit_fr</span></code> as a timeseries and treat it
+accordingly.</p>
+</div>
+<div class="section" id="unit-statistic-fields">
+<span id="unit-stats-fields"></span><h2>Unit statistic fields<a class="headerlink" href="#unit-statistic-fields" title="Permalink to this headline">¶</a></h2>
+<p>Unit statistic fields are single point estimates for each unit. This can also
+be any quantity you care about, e.g., signal-to-noise ratio, as long as each
+unit has a single value. Unit statistic fields are stored as a 1D array of
+size <code class="docutils literal notranslate"><span class="pre">n</span></code>, where the entry at index <code class="docutils literal notranslate"><span class="pre">i</span></code> corresponds to the unit identified
+by <code class="docutils literal notranslate"><span class="pre">unit_ids[i]</span></code>.</p>
+<p>So if you wanted to store each unit’s signal-to-noise ratio as a unit
+statistic, you could have an entry <code class="docutils literal notranslate"><span class="pre">unit_snr</span></code> in the <code class="docutils literal notranslate"><span class="pre">unit_stats</span></code> field,
+and then store your SNR values in the <code class="docutils literal notranslate"><span class="pre">unit_snr</span></code> field in the data file.
+Activity Viewer will then recognize <code class="docutils literal notranslate"><span class="pre">unit_snr</span></code> as a unit statistic and treat
+it accordingly.</p>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        
+        &copy; Copyright 2020, Alan Liddell
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

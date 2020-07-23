@@ -4,8 +4,19 @@ Using the Activity Viewer
 =========================
 
 .. toctree::
-    :maxdepth: 1
+    :hidden:
+    :maxdepth: 0
     :caption: Contents:
 
-    cli
-    settings-file
+.. _cli:
+
+.. include:: cli.rst
+
+.. _input-files:
+
+Input files
+-----------
+
+.. include:: settings-file.rst
+
+.. include:: input-data.rst

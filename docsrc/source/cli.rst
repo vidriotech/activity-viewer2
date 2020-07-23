@@ -17,3 +17,4 @@ For example, to download and cache data from the Allen API, you would use
 .. click:: activity_viewer.cli:cli
     :prog: viewer
     :show-nested:
+    

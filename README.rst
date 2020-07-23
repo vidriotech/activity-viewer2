@@ -10,7 +10,7 @@ Installing
 
 This package is under development and does not have a fixed installation method
 just yet. If you're adventurous, follow the instructions in
-:ref:`install-develop` to get started.
+the next section to get started.
 
 .. _install-develop:
 
@@ -35,7 +35,7 @@ You'll also need to have `Node.js <https://nodejs.org/en/>`_ 12 or later with
 `Yarn <https://yarnpkg.com/>`_ installed. After installing Node,
 ``npm install -g yarn`` will get it for you.
 
-Installing
+Setting up
 ++++++++++
 
 Make sure your Python interpreter is the one you're expecting:

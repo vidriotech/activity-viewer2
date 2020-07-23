@@ -34,10 +34,8 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-    <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="The command-line interface" href="cli.html" />
     <link rel="prev" title="Mesoscale Activity Viewer" href="index.html" /> 
 </head>
 
@@ -86,8 +84,28 @@
               <p class="caption"><span class="caption-text">Contents:</span></p>
 <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Using the Activity Viewer</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="cli.html">The command-line interface</a></li>
-<li class="toctree-l2"><a class="reference internal" href="settings-file.html">The settings file</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#the-command-line-interface">The command-line interface</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#viewer">viewer</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#viewer-download">download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#viewer-validate">validate</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#viewer-visualize">visualize</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#input-files">Input files</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#the-settings-file">The settings file</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#the-default-settings-file">The default settings file</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#input-data">Input data</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#unit-coordinate-convention">Unit coordinate convention</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#timeseries-fields">Timeseries fields</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#unit-statistic-fields">Unit statistic fields</a></li>
+</ul>
+</li>
+</ul>
+</li>
 </ul>
 </li>
 </ul>
@@ -158,11 +176,376 @@
   <div class="section" id="using-the-activity-viewer">
 <span id="usage"></span><h1>Using the Activity Viewer<a class="headerlink" href="#using-the-activity-viewer" title="Permalink to this headline">¶</a></h1>
 <div class="toctree-wrapper compound">
-<p class="caption"><span class="caption-text">Contents:</span></p>
+</div>
+<div class="section" id="the-command-line-interface">
+<span id="cli"></span><h2>The command-line interface<a class="headerlink" href="#the-command-line-interface" title="Permalink to this headline">¶</a></h2>
+<p>The Activity Viewer provides a command-line interface that can be invoked like so:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ viewer COMMAND <span class="o">[</span>OPTIONS<span class="o">]</span> <span class="o">[</span>ARGS<span class="o">]</span>
+</pre></div>
+</div>
+<p>For example, to download and cache data from the Allen API, you would use</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>$ viewer download
+</pre></div>
+</div>
+<div class="section" id="viewer">
+<h3>viewer<a class="headerlink" href="#viewer" title="Permalink to this headline">¶</a></h3>
+<p>Command-line interface for the Activity Viewer.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>viewer <span class="o">[</span>OPTIONS<span class="o">]</span> COMMAND <span class="o">[</span>ARGS<span class="o">]</span>...
+</pre></div>
+</div>
+<div class="section" id="viewer-download">
+<h4>download<a class="headerlink" href="#viewer-download" title="Permalink to this headline">¶</a></h4>
+<p>Pre-downloads and caches large data files for quick access later.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>viewer download <span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt id="cmdoption-viewer-download-f">
+<span id="cmdoption-viewer-download-force"></span><code class="sig-name descname">-f</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--force</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-viewer-download-f" title="Permalink to this definition">¶</a></dt>
+<dd><p>Overwrite existing files if this is set.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="viewer-validate">
+<h4>validate<a class="headerlink" href="#viewer-validate" title="Permalink to this headline">¶</a></h4>
+<p>Validate your settings file. Useful for basic sanity checks.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>viewer validate <span class="o">[</span>OPTIONS<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Options</p>
+<dl class="std option">
+<dt id="cmdoption-viewer-validate-f">
+<span id="cmdoption-viewer-validate-filename"></span><code class="sig-name descname">-f</code><code class="sig-prename descclassname"></code><code class="sig-prename descclassname">, </code><code class="sig-name descname">--filename</code><code class="sig-prename descclassname"> &lt;filename&gt;</code><a class="headerlink" href="#cmdoption-viewer-validate-f" title="Permalink to this definition">¶</a></dt>
+<dd><p>The filename to validate. If you don’t specify this, the default file will be validated.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="viewer-visualize">
+<h4>visualize<a class="headerlink" href="#viewer-visualize" title="Permalink to this headline">¶</a></h4>
+<p>Load data file, <cite>FILENAME</cite>, and start the visualizer tool.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>viewer visualize <span class="o">[</span>OPTIONS<span class="o">]</span> FILENAME
+</pre></div>
+</div>
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt id="cmdoption-viewer-visualize-arg-FILENAME">
+<code class="sig-name descname">FILENAME</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-viewer-visualize-arg-FILENAME" title="Permalink to this definition">¶</a></dt>
+<dd><p>Required argument</p>
+</dd></dl>
+
+</div>
+</div>
+</div>
+<div class="section" id="input-files">
+<span id="id1"></span><h2>Input files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="the-settings-file">
+<h3>The settings file<a class="headerlink" href="#the-settings-file" title="Permalink to this headline">¶</a></h3>
+<p>A JSON file allowing you to specify configuration options before running the
+program. There are two main sections, namely:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">compartment</span></code>, containing fields related to the compartments shown or made
+available in the hierarchy by default. Those fields are:</p>
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="cli.html">The command-line interface</a></li>
-<li class="toctree-l1"><a class="reference internal" href="settings-file.html">The settings file</a></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">maxDepth</span></code>: the maximum number of levels below the root node (i.e., the
+whole brain) in the compartment hierarchy to make available by default.
+The minimum value is 0 (so just the root node is available), and the
+maximum value is 10.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exclude</span></code>: a list of compartments to manually exclude from the
+available compartment hierarchy. This also excludes child compartments.
+<strong>If this is defined, it takes precedence over</strong> <code class="docutils literal notranslate"><span class="pre">maxDepth</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">include</span></code>: a list of compartments to manually <em>include</em> in the
+available compartment hierarchy. This does not include child
+compartments or parent compartments. <strong>If this is defined it takes
+precedence over</strong> <code class="docutils literal notranslate"><span class="pre">exclude</span></code>.</p></li>
 </ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">system</span></code>, containing fields related to the fetching and storage of data.
+Those fields are:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">atlasVersion</span></code>: the version of the Allen Brain Atlas to use. Options are:</p>
+<ul>
+<li><p>“ccf_2017” (October 2017) (the default value)</p></li>
+<li><p>“ccf_2016” (October 2016)</p></li>
+<li><p>“ccf_2015” (May 2015).</p></li>
+</ul>
+</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dataDirectory</span></code>: the directory where large data files are cached. If you
+don’t specify a data directory, this defaults to a subdirectory of your
+system’s user cache directory (a dot folder on a Unix-like OS, or
+C:UsersmeAppDataLocal on Windows).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resolution</span></code>: the voxel resolution of the template and annotation volumes
+to use, in μm^3. Options are:</p>
+<ul>
+<li><p>10 (results in very large data files)</p></li>
+<li><p>25</p></li>
+<li><p>50</p></li>
+<li><p>100 (much smaller data files).</p></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<p>If you don’t have a settings file in the current working directory, the
+activity viewer will try to use a default settings file, installed in a
+system-dependent user config directory (a dot folder on a Unix-like OS, or
+C:UsersmeAppDataLocal on Windows). If that file can’t be found, it will be
+created and populated with default values (see below).</p>
+<div class="section" id="the-default-settings-file">
+<h4>The default settings file<a class="headerlink" href="#the-default-settings-file" title="Permalink to this headline">¶</a></h4>
+<p>Note that <code class="docutils literal notranslate"><span class="pre">dataDirectory</span></code> is system dependent and so is not defined here.</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span><span class="p">{</span>
+    <span class="nt">&quot;compartment&quot;</span> <span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;max_depth&quot;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+        <span class="nt">&quot;exclude&quot;</span><span class="p">:</span> <span class="p">[],</span>
+        <span class="nt">&quot;include&quot;</span><span class="p">:</span> <span class="p">[</span>
+            <span class="s2">&quot;Primary motor area, Layer 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Primary motor area, Layer 5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Primary motor area, Layer 6a&quot;</span><span class="p">,</span> <span class="s2">&quot;Primary motor area, Layer 6b&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Primary motor area, Layer 2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;Primary motor area&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Secondary motor area, layer 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Secondary motor area, layer 5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Secondary motor area, layer 2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;Secondary motor area&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Secondary motor area, layer 6a&quot;</span><span class="p">,</span> <span class="s2">&quot;Secondary motor area, layer 6b&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, layer 1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, layer 5&quot;</span><span class="p">,</span> <span class="s2">&quot;Orbital area, lateral part, layer 2/3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, lateral part, layer 6a&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, lateral part, layer 1&quot;</span><span class="p">,</span> <span class="s2">&quot;Orbital area, layer 6a&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, lateral part, layer 6b&quot;</span><span class="p">,</span> <span class="s2">&quot;Orbital area, layer 2/3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, layer 6b&quot;</span><span class="p">,</span> <span class="s2">&quot;Orbital area, medial part, layer 2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, medial part, layer 2/3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, ventrolateral part, layer 6a&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, medial part, layer 5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, lateral part, layer 5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, ventrolateral part, layer 6b&quot;</span><span class="p">,</span> <span class="s2">&quot;Orbital area&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, lateral part&quot;</span><span class="p">,</span> <span class="s2">&quot;Orbital area, medial part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, ventral part&quot;</span><span class="p">,</span> <span class="s2">&quot;Orbital area, ventrolateral part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, medial part, layer 6a&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, ventrolateral part, layer 1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, ventrolateral part, layer 5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Nodulus (X), granular layer&quot;</span><span class="p">,</span> <span class="s2">&quot;Retrosplenial area&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, dorsal part, layer 6a&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, lateral agranular part, layer 6b&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, dorsal part, layer 6b&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, ventral part, layer 2/3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, dorsal part, layer 2/3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, dorsal part, layer 1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, ventral part, layer 1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, dorsal part, layer 4&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, ventral part, layer 6a&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, ventral part, layer 2&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, dorsal part, layer 5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, ventral part, layer 6b&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, lateral agranular part, layer 1&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, ventral part, layer 5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, lateral agranular part, layer 5&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, dorsal part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, ventral part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, lateral agranular part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, lateral agranular part, layer 6a&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Retrosplenial area, lateral agranular part, layer 2/3&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Orbital area, ventrolateral part, layer 2/3&quot;</span><span class="p">,</span> <span class="s2">&quot;Striatum&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Striatum dorsal region&quot;</span><span class="p">,</span> <span class="s2">&quot;Striatum ventral region&quot;</span><span class="p">,</span> <span class="s2">&quot;Caudoputamen&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Pallidum&quot;</span><span class="p">,</span> <span class="s2">&quot;Pallidum, caudal region&quot;</span><span class="p">,</span> <span class="s2">&quot;Fundus of striatum&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Lateral strip of striatum&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;internal medullary lamina of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Intralaminar nuclei of the dorsal thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Intermediodorsal nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Lateral group of the dorsal thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Paraventricular nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;periventricular bundle of the hypothalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Lateral dorsal nucleus of thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Lateral posterior nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Anterior group of the dorsal thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Anteroventral nucleus of thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Reticular nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Mediodorsal nucleus of thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Submedial nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Medial group of the dorsal thalamus&quot;</span><span class="p">,</span> <span class="s2">&quot;Thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Midline group of the dorsal thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Central lateral nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Central medial nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Mediodorsal nucleus of the thalamus, central part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Mediodorsal nucleus of the thalamus, lateral part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ventral anterior-lateral complex of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Mediodorsal nucleus of the thalamus, medial part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ventral group of the dorsal thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Dorsomedial nucleus of the hypothalamus, anterior part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Dorsomedial nucleus of the hypothalamus, posterior part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Dorsomedial nucleus of the hypothalamus, ventral part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ventral medial nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ventral posterior complex of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ventral posterolateral nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;periventricular bundle of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ventral posterolateral nucleus of the thalamus, parvicellular part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ventral posteromedial nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ventral posteromedial nucleus of the thalamus, parvicellular part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;hypothalamus related&quot;</span><span class="p">,</span> <span class="s2">&quot;Dorsomedial nucleus of the hypothalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Thalamus, polymodal association cortex related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Thalamus, sensory-motor cortex related&quot;</span><span class="p">,</span> <span class="s2">&quot;thalamus related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Epithalamus&quot;</span><span class="p">,</span> <span class="s2">&quot;Geniculate group, dorsal thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Geniculate group, ventral thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Posterior complex of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Posterior limiting nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dorsal thalamus related&quot;</span><span class="p">,</span> <span class="s2">&quot;epithalamus related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;external medullary lamina of the thalamus&quot;</span><span class="p">,</span> <span class="s2">&quot;Hypothalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Interanterodorsal nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Interanteromedial nucleus of the thalamus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Ethmoid nucleus of the thalamus&quot;</span><span class="p">,</span> <span class="s2">&quot;Zona incerta&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;central canal, spinal cord/medulla&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Linear nucleus of the medulla&quot;</span><span class="p">,</span> <span class="s2">&quot;Medulla&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Medulla, motor related&quot;</span><span class="p">,</span> <span class="s2">&quot;Medulla, behavioral state related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Medulla, sensory related&quot;</span><span class="p">,</span> <span class="s2">&quot;Medullary reticular nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;stria medullaris&quot;</span><span class="p">,</span> <span class="s2">&quot;Medullary reticular nucleus, dorsal part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Medullary reticular nucleus, ventral part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Paragigantocellular reticular nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Paragigantocellular reticular nucleus, dorsal part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Paragigantocellular reticular nucleus, lateral part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Gigantocellular reticular nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Intermediate reticular nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Interstitial nucleus of the vestibular nerve&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Medial vestibular nucleus&quot;</span><span class="p">,</span> <span class="s2">&quot;Lateral vestibular nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior vestibular nucleus&quot;</span><span class="p">,</span> <span class="s2">&quot;Spinal vestibular nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;spinovestibular pathway&quot;</span><span class="p">,</span> <span class="s2">&quot;vestibular nerve&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Efferent vestibular nucleus&quot;</span><span class="p">,</span> <span class="s2">&quot;Vestibular nuclei&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;efferent cochleovestibular bundle&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Magnocellular reticular nucleus&quot;</span><span class="p">,</span> <span class="s2">&quot;midbrain related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Midbrain reticular nucleus&quot;</span><span class="p">,</span> <span class="s2">&quot;Midbrain raphe nuclei&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Midbrain reticular nucleus, retrorubral area&quot;</span><span class="p">,</span> <span class="s2">&quot;Midbrain&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Midbrain, motor related&quot;</span><span class="p">,</span> <span class="s2">&quot;Midbrain, sensory related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Midbrain, behavioral state related&quot;</span><span class="p">,</span> <span class="s2">&quot;Midbrain trigeminal nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Midbrain reticular nucleus, magnocellular part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Midbrain reticular nucleus, magnocellular part, general&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Midbrain reticular nucleus, parvicellular part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;midbrain tract of the trigeminal nerve&quot;</span><span class="p">,</span> <span class="s2">&quot;Red nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Substantia nigra, compact part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Substantia nigra, reticular part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Substantia nigra, lateral part&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, motor related, intermediate gray layer&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, motor related, intermediate white layer&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, motor related, deep gray layer&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, motor related, deep white layer&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, motor related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, sensory related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;superior colliculus commissure&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, motor related, intermediate gray layer, sublayer a&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, motor related, intermediate gray layer, sublayer b&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, motor related, intermediate gray layer, sublayer c&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, zonal layer&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, superficial gray layer&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Superior colliculus, optic layer&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;brachium of the superior colliculus&quot;</span><span class="p">,</span> <span class="s2">&quot;Ventral tegmental area&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Pons&quot;</span><span class="p">,</span> <span class="s2">&quot;Pons, motor related&quot;</span><span class="p">,</span> <span class="s2">&quot;Pons, behavioral state related&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Pons, sensory related&quot;</span><span class="p">,</span> <span class="s2">&quot;Pontine reticular nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Pontine reticular nucleus, ventral part&quot;</span><span class="p">,</span> <span class="s2">&quot;Pontine central gray&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Pontine gray&quot;</span><span class="p">,</span> <span class="s2">&quot;corticopontine tract&quot;</span><span class="p">,</span> <span class="s2">&quot;Pedunculopontine nucleus&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;Pontine reticular nucleus, caudal part&quot;</span><span class="p">,</span> <span class="s2">&quot;Tegmental reticular nucleus&quot;</span>
+        <span class="p">]</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;system&quot;</span><span class="p">:</span> <span class="p">{</span>
+        <span class="nt">&quot;atlasVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;ccf_2017&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;resolution&quot;</span><span class="p">:</span> <span class="mi">100</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="input-data">
+<h3>Input data<a class="headerlink" href="#input-data" title="Permalink to this headline">¶</a></h3>
+<p>At the moment, input data is stored in a NumPy .npz file, which is a format similar
+to the .npy format you may be familiar with, but allows you to store multiple
+arrays in a single file, with optional compression. See the NumPy docs for
+<a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.savez.html">savez</a> and <a class="reference external" href="https://numpy.org/doc/stable/reference/generated/numpy.savez_compressed.html">savez_compressed</a> for more info. The idea is that after the
+first positional argument specifying the file to save to, each array is passed
+as a keyword argument to <code class="docutils literal notranslate"><span class="pre">savez</span></code>.</p>
+<p>As an example, if you have an array of unit IDs and an array of unit SNR
+values, you can save them into <code class="docutils literal notranslate"><span class="pre">data.npz</span></code> like so:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># import numpy as np</span>
+<span class="c1"># ...</span>
+<span class="n">np</span><span class="o">.</span><span class="n">savez</span><span class="p">(</span><span class="s2">&quot;data.npz&quot;</span><span class="p">,</span> <span class="n">unit_id</span><span class="o">=</span><span class="n">unit_id</span><span class="p">,</span> <span class="n">unit_snr</span><span class="o">=</span><span class="n">unit_snr</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Loading the file and accessing the data inside is simple:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="c1"># import numpy as np</span>
+<span class="c1"># ...</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;data.npz&quot;</span><span class="p">)</span>
+<span class="n">unit_id</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;unit_id&quot;</span><span class="p">]</span>
+<span class="n">unit_snr</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="s2">&quot;unit_snr&quot;</span><span class="p">]</span>
+</pre></div>
+</div>
+<p>Assuming you have <code class="docutils literal notranslate"><span class="pre">n</span></code> units, we expect the following fields at a minimum to
+be saved:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">probe_insertion</span></code>: A string identifying the penetration represented by the
+data in this file.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit_id</span></code>: A 1D array of <code class="docutils literal notranslate"><span class="pre">n</span></code> integers, each uniquely identifying a given
+unit.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">ccf_coord</span></code>: An <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">x</span> <span class="pre">3</span></code> array of indices specifying each unit’s
+location in the Allen CCF space. (See <a class="reference internal" href="#coord-convention"><span class="std std-ref">Unit coordinate convention</span></a> for how to
+arrange these values.</p></li>
+</ul>
+<p>Some other fields are not mandatory but will be recognized:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">waveform</span></code>: A 2D array of the mean waveform for each unit. If each waveform
+has <code class="docutils literal notranslate"><span class="pre">m</span></code> samples, the <code class="docutils literal notranslate"><span class="pre">waveform</span></code> array should be <code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">x</span> <span class="pre">m</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">timeseries</span></code>: A list of strings, each being the label of another field that
+you’ve saved in your data file, representing a <strong>timeseries</strong>. (See
+<a class="reference internal" href="#timeseries-fields"><span class="std std-ref">Timeseries fields</span></a> below.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit_stats</span></code>: A list of strings, each being the label of another field that
+you’ve saved in your data file, representing a <strong>unit statistic</strong>. (See
+<a class="reference internal" href="#unit-stats-fields"><span class="std std-ref">Unit statistic fields</span></a> below.)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">unit_psth</span></code>: A special timeseries field representing the unit peristimulus
+time histogram.</p></li>
+</ul>
+<div class="section" id="unit-coordinate-convention">
+<span id="coord-convention"></span><h4>Unit coordinate convention<a class="headerlink" href="#unit-coordinate-convention" title="Permalink to this headline">¶</a></h4>
+<p>We use the same convention as that used by the Allen Mouse Common Coordinate
+Framework (CCFv3) to define what the <code class="docutils literal notranslate"><span class="pre">$(x,</span> <span class="pre">y,</span> <span class="pre">z)$</span></code> coordinates mean and what
+the origins of those systems are. Namely,</p>
+<p>The reference space is in PIR orientation where:</p>
+<ul class="simple">
+<li><p>The x axis represents Anterior-Posterior with origin at Anterior.</p></li>
+<li><p>The y axis represents Superior-Inferior (alternatively Dorsal-Ventral) with
+origin at Superior (Dorsal).</p></li>
+<li><p>The z axis represents Left-Right with origin at Left.</p></li>
+</ul>
+<p>Units are in <em>microns</em>. Visually:</p>
+<div class="figure align-default" id="id3">
+<img alt="CCF coordinate convention" src="https://help.brain-map.org/download/attachments/5308480/3DOrientation.png" />
+<p class="caption"><span class="caption-text"><a class="reference external" href="https://help.brain-map.org/display/mouseconnectivity/API#API-3DReferenceModels">Source</a>.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+</div>
+<p>Accordingly, the first column of <code class="docutils literal notranslate"><span class="pre">ccf_coord</span></code> should be the x coordinates of each
+unit (along the AP axis as specified); the second column should be the y
+coordinates of each unit (along the SI or DV axis); and the third column should be
+the z coordinates of each unit (along the LR axis).</p>
+</div>
+<div class="section" id="timeseries-fields">
+<span id="id2"></span><h4>Timeseries fields<a class="headerlink" href="#timeseries-fields" title="Permalink to this headline">¶</a></h4>
+<p>Timeseries are unit quantities that vary over some time interval. This can be
+any quantity you can measure, as long as it varies over time. Timeseries fields
+are stored in the data file as a 2D array of size <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">+</span> <span class="pre">1)</span> <span class="pre">x</span> <span class="pre">m</span></code>, where <code class="docutils literal notranslate"><span class="pre">m</span></code>
+is the number of sample points, with the first row storing the time (in s) with
+respect to some reference point at which each sample is taken. Subsequent rows
+store timeseries for each unit in the order given by <code class="docutils literal notranslate"><span class="pre">unit_id</span></code>.</p>
+<p>So if you wanted to store each unit’s firing rate as a timeseries, you could
+have an entry <code class="docutils literal notranslate"><span class="pre">unit_fr</span></code> in the <code class="docutils literal notranslate"><span class="pre">timeseries</span></code> field, and then store your
+firing rate timeseries in the <code class="docutils literal notranslate"><span class="pre">unit_fr</span></code> field in the data file. Activity
+Viewer will then recognize <code class="docutils literal notranslate"><span class="pre">unit_fr</span></code> as a timeseries and treat it
+accordingly.</p>
+</div>
+<div class="section" id="unit-statistic-fields">
+<span id="unit-stats-fields"></span><h4>Unit statistic fields<a class="headerlink" href="#unit-statistic-fields" title="Permalink to this headline">¶</a></h4>
+<p>Unit statistic fields are single point estimates for each unit. This can also
+be any quantity you care about, e.g., signal-to-noise ratio, as long as each
+unit has a single value. Unit statistic fields are stored as a 1D array of
+size <code class="docutils literal notranslate"><span class="pre">n</span></code>, where the entry at index <code class="docutils literal notranslate"><span class="pre">i</span></code> corresponds to the unit identified
+by <code class="docutils literal notranslate"><span class="pre">unit_ids[i]</span></code>.</p>
+<p>So if you wanted to store each unit’s signal-to-noise ratio as a unit
+statistic, you could have an entry <code class="docutils literal notranslate"><span class="pre">unit_snr</span></code> in the <code class="docutils literal notranslate"><span class="pre">unit_stats</span></code> field,
+and then store your SNR values in the <code class="docutils literal notranslate"><span class="pre">unit_snr</span></code> field in the data file.
+Activity Viewer will then recognize <code class="docutils literal notranslate"><span class="pre">unit_snr</span></code> as a unit statistic and treat
+it accordingly.</p>
+</div>
+</div>
 </div>
 </div>
 
@@ -173,8 +556,6 @@
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-      
-        <a href="cli.html" class="btn btn-neutral float-right" title="The command-line interface" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral float-left" title="Mesoscale Activity Viewer" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

@@ -1,7 +1,5 @@
-.. _settings_file:
-
 The settings file
------------------
+~~~~~~~~~~~~~~~~~
 
 A JSON file allowing you to specify configuration options before running the
 program. There are two main sections, namely:
@@ -48,7 +46,7 @@ C:\Users\me\AppData\Local on Windows). If that file can't be found, it will be
 created and populated with default values (see below).
 
 The default settings file
-~~~~~~~~~~~~~~~~~~~~~~~~~
++++++++++++++++++++++++++
 
 Note that ``dataDirectory`` is system dependent and so is not defined here.
 

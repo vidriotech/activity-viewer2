@@ -1,0 +1,118 @@
+Input data
+~~~~~~~~~~
+
+At the moment, input data is stored in a NumPy .npz file, which is a format similar
+to the .npy format you may be familiar with, but allows you to store multiple
+arrays in a single file, with optional compression. See the NumPy docs for
+`savez`_ and `savez_compressed`_ for more info. The idea is that after the
+first positional argument specifying the file to save to, each array is passed
+as a keyword argument to ``savez``.
+
+As an example, if you have an array of unit IDs and an array of unit SNR
+values, you can save them into ``data.npz`` like so:
+
+.. code:: python
+
+    # import numpy as np
+    # ...
+    np.savez("data.npz", unit_id=unit_id, unit_snr=unit_snr)
+
+Loading the file and accessing the data inside is simple:
+
+.. code:: python
+
+    # import numpy as np
+    # ...
+    data = np.load("data.npz")
+    unit_id = data["unit_id"]
+    unit_snr = data["unit_snr"]
+
+Assuming you have ``n`` units, we expect the following fields at a minimum to
+be saved:
+
+- ``probe_insertion``: A string identifying the penetration represented by the
+  data in this file.
+- ``unit_id``: A 1D array of ``n`` integers, each uniquely identifying a given
+  unit.
+- ``ccf_coord``: An ``n x 3`` array of indices specifying each unit's
+  location in the Allen CCF space. (See :ref:`coord-convention` for how to
+  arrange these values.
+
+Some other fields are not mandatory but will be recognized:
+
+- ``waveform``: A 2D array of the mean waveform for each unit. If each waveform
+  has ``m`` samples, the ``waveform`` array should be ``n x m``.
+- ``timeseries``: A list of strings, each being the label of another field that
+  you've saved in your data file, representing a **timeseries**. (See
+  :ref:`timeseries-fields` below.)
+- ``unit_stats``: A list of strings, each being the label of another field that
+  you've saved in your data file, representing a **unit statistic**. (See
+  :ref:`unit-stats-fields` below.)
+- ``unit_psth``: A special timeseries field representing the unit peristimulus
+  time histogram.
+
+.. _coord-convention:
+
+Unit coordinate convention
+++++++++++++++++++++++++++
+
+We use the same convention as that used by the Allen Mouse Common Coordinate
+Framework (CCFv3) to define what the ``$(x, y, z)$`` coordinates mean and what
+the origins of those systems are. Namely,
+
+The reference space is in PIR orientation where:
+
+- The x axis represents Anterior-Posterior with origin at Anterior.
+- The y axis represents Superior-Inferior (alternatively Dorsal-Ventral) with
+  origin at Superior (Dorsal).
+- The z axis represents Left-Right with origin at Left.
+
+Units are in *microns*. Visually:
+
+.. figure:: https://help.brain-map.org/download/attachments/5308480/3DOrientation.png
+   :alt: CCF coordinate convention
+
+   `Source <https://help.brain-map.org/display/mouseconnectivity/API#API-3DReferenceModels>`__.
+
+Accordingly, the first column of ``ccf_coord`` should be the x coordinates of each
+unit (along the AP axis as specified); the second column should be the y
+coordinates of each unit (along the SI or DV axis); and the third column should be
+the z coordinates of each unit (along the LR axis).
+
+.. _timeseries-fields:
+
+Timeseries fields
++++++++++++++++++
+
+Timeseries are unit quantities that vary over some time interval. This can be
+any quantity you can measure, as long as it varies over time. Timeseries fields
+are stored in the data file as a 2D array of size ``(n + 1) x m``, where ``m``
+is the number of sample points, with the first row storing the time (in s) with
+respect to some reference point at which each sample is taken. Subsequent rows
+store timeseries for each unit in the order given by ``unit_id``.
+
+So if you wanted to store each unit's firing rate as a timeseries, you could
+have an entry ``unit_fr`` in the ``timeseries`` field, and then store your
+firing rate timeseries in the ``unit_fr`` field in the data file. Activity
+Viewer will then recognize ``unit_fr`` as a timeseries and treat it
+accordingly.
+
+.. _unit-stats-fields:
+
+Unit statistic fields
++++++++++++++++++++++
+
+Unit statistic fields are single point estimates for each unit. This can also
+be any quantity you care about, e.g., signal-to-noise ratio, as long as each
+unit has a single value. Unit statistic fields are stored as a 1D array of
+size ``n``, where the entry at index ``i`` corresponds to the unit identified
+by ``unit_ids[i]``.
+
+So if you wanted to store each unit's signal-to-noise ratio as a unit
+statistic, you could have an entry ``unit_snr`` in the ``unit_stats`` field,
+and then store your SNR values in the ``unit_snr`` field in the data file.
+Activity Viewer will then recognize ``unit_snr`` as a unit statistic and treat
+it accordingly.
+
+.. _`savez`: https://numpy.org/doc/stable/reference/generated/numpy.savez.html
+.. _`savez_compressed`: https://numpy.org/doc/stable/reference/generated/numpy.savez_compressed.html
