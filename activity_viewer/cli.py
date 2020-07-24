@@ -34,7 +34,11 @@ def cli(ctx: click.core.Context):
     ctx.ensure_object(dict)
 
     # load settings
-    ctx.obj["settings_file"] = Path("./settings.json")
+    settings_file = Path("./settings.json")
+    if not settings_file.is_file():
+        settings_file = AVSettings.DEFAULTS["filename"]
+
+    ctx.obj["settings_file"] = settings_file.resolve()
 
 
 @cli.command()
@@ -120,7 +124,7 @@ def validate(filename: str):
 @click.pass_context
 def visualize(ctx: click.core.Context, filename: str):
     """Load a data file, FILENAME, and start the visualizer tool."""
-    settings = load_settings_file(ctx.obj["settings_file"])
+    filename = Path(filename).resolve()
 
     os.chdir(REPO_BASE)
     npm = shutil.which("npm")
@@ -128,4 +132,10 @@ def visualize(ctx: click.core.Context, filename: str):
         click.echo("npm not found! Please install Node.js.", err=True)
         return
 
-    subprocess.run(shlex.split(f"'{npm}' start"))
+    env = os.environ
+    env.update({
+        "AV_SETTINGS": str(ctx.obj["settings_file"]),
+        "AV_DATA": str(filename)
+    })
+
+    subprocess.run(shlex.split(f"'{npm}' start"), env=env)

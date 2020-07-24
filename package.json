@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@types/node": "12",
+    "axios": "^0.19.2",
     "electron-squirrel-startup": "^1.0.0",
     "python-shell": "^2.0.1"
   },

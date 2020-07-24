@@ -1,4 +1,5 @@
 import { app, BrowserWindow } from 'electron';
+const axios = require('axios')
 import path = require('path');
 import { PythonShell } from 'python-shell';
 
@@ -21,6 +22,7 @@ const createWindow = () => {
 
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
+  // console.log(process.env);
 };
 
 // This method will be called when Electron has finished
@@ -48,3 +50,11 @@ app.on('activate', () => {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 let pyshell = new PythonShell(path.join(pypath, 'app.py'))
+axios.post('http://localhost:5000/settings', {
+  'filename': process.env.AV_SETTINGS
+}).then(res => {
+  console.log(`statusCode: ${res.statusCode}`);
+})
+.catch(error => {
+  console.error(error);
+})
