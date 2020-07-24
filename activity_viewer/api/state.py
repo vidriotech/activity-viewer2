@@ -1,5 +1,5 @@
 from activity_viewer.base import type_check
-from activity_viewer.settings import AVSettings
+from activity_viewer.settings import AVSettings, make_default_settings
 
 
 class APIState:
@@ -11,7 +11,7 @@ class APIState:
     def settings(self) -> AVSettings:
         """Settings object."""
         if self._settings is None:
-            return AVSettings()
+            return make_default_settings()
 
         return self._settings
 

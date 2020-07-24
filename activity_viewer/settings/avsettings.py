@@ -25,7 +25,6 @@ def touch_file(filename: PathType):
     filename.parent.mkdir(parents=True, exist_ok=True)
     filename.touch(exist_ok=True)
 
-
 class AVSettings(DefaultSerializable):
     """A class representation of the settings file. Its members include the file path `filename`, the
     `activity_viewer.settings.sections.Compartment` class representing the 'compartment' section, and the
@@ -172,3 +171,9 @@ class AVSettings(DefaultSerializable):
     def versioned_data_directory(self):
         """Subdirectory of data directory containing data for a specific CCF version."""
         return self.system.data_directory / self.system.atlas_version
+
+
+def make_default_settings() -> AVSettings:
+    """Return default settings"""
+    return AVSettings.from_file(Path(__file__).parent / "default_settings.json")
+    

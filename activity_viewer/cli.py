@@ -9,7 +9,7 @@ import numpy as np
 
 from activity_viewer.base import REPO_BASE
 from activity_viewer.cache import Cache
-from activity_viewer.settings import AVSettings
+from activity_viewer.settings import AVSettings, make_default_settings
 from activity_viewer.settings.validate import SettingsValidator
 
 
@@ -22,7 +22,7 @@ def load_settings_file(filename: Path):
         settings = AVSettings.from_file(filename)
     except Exception:
         click.echo(f"Failed to load settings from file '{filename.resolve()}'. Using default settings.")
-        settings = AVSettings()
+        settings = make_default_settings()
 
     return settings
 

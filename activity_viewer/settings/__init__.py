@@ -1,1 +1,1 @@
-from .avsettings import AVSettings
+from .avsettings import AVSettings, make_default_settings
