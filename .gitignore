@@ -445,3 +445,6 @@ typings/
 
 # Electron-Forge
 out/
+
+# Data files
+*.npz
