@@ -34,7 +34,6 @@
     <script type="text/javascript" src="_static/js/theme.js"></script>
 
     
-    <link rel="author" title="About these documents" href="about.html" />
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" /> 
 </head>
@@ -357,20 +356,14 @@ compartment but include one of that compartment’s children.</p></li>
 <span id="activity-viewer-settings-validate-module"></span><h2>activity_viewer.settings.validate module<a class="headerlink" href="#module-activity_viewer.settings.validate" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="activity_viewer.settings.validate.SettingsValidator">
-<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.settings.validate.</code><code class="sig-name descname">SettingsValidator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#activity_viewer.settings.avsettings.AVSettings" title="activity_viewer.settings.avsettings.AVSettings">activity_viewer.settings.avsettings.AVSettings</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.settings.validate.SettingsValidator" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.settings.validate.</code><code class="sig-name descname">SettingsValidator</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.settings.validate.SettingsValidator" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>A class for validating AVSettings objects.</p>
+<p>A class for validating settings files.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>settings</strong> (<a class="reference internal" href="#activity_viewer.settings.avsettings.AVSettings" title="activity_viewer.settings.avsettings.AVSettings"><em>AVSettings</em></a>) – Settings object to validate.</p>
+<dd class="field-odd"><p><strong>filename</strong> (<em>str</em><em> or </em><em>Path</em>) – Path to settings file to validate.</p>
 </dd>
 </dl>
-<dl class="py method">
-<dt id="activity_viewer.settings.validate.SettingsValidator.settings">
-<em class="property">property </em><code class="sig-name descname">settings</code><a class="headerlink" href="#activity_viewer.settings.validate.SettingsValidator.settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Settings object.</p>
-</dd></dl>
-
 <dl class="py method">
 <dt id="activity_viewer.settings.validate.SettingsValidator.validate">
 <code class="sig-name descname">validate</code><span class="sig-paren">(</span><em class="sig-param">) -&gt; (&lt;class 'bool'&gt;</em>, <em class="sig-param">&lt;class 'dict'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.settings.validate.SettingsValidator.validate" title="Permalink to this definition">¶</a></dt>
@@ -378,7 +371,7 @@ compartment but include one of that compartment’s children.</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Returns</dt>
 <dd class="field-odd"><p><ul class="simple">
-<li><p><strong>is_valid</strong> (<em>bool</em>) – True if and only if settings are valid.</p></li>
+<li><p><strong>is_valid</strong> (<em>bool</em>) – True if and only if all settings are valid.</p></li>
 <li><p><strong>messages</strong> (<em>dict</em>) – Error messages and warnings.</p></li>
 </ul>
 </p>

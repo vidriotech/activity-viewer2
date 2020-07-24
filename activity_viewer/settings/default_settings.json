@@ -1,6 +1,6 @@
 {
     "compartment" : {
-        "max_depth": 0,
+        "maxDepth": 0,
         "exclude": [],
         "include": [
             "Primary motor area, Layer 1", "Primary motor area, Layer 5",

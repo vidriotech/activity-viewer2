@@ -107,10 +107,10 @@ class AVSettings(DefaultSerializable):
             as_dict.update(json.load(fh))
 
         if "compartment" not in as_dict:
-            as_dict["compartment"] = Compartment()
+            as_dict["compartment"] = {}
 
         if "system" not in as_dict:
-            as_dict["system"] = System()
+            as_dict["system"] = {}
 
         return cls.from_dict(as_dict)
 
@@ -140,10 +140,7 @@ class AVSettings(DefaultSerializable):
         type_check(val, (Compartment, dict))
 
         if isinstance(val, dict):
-            try:
-                val = Compartment.from_dict(val)
-            except KeyError:
-                val = Compartment(**val)
+            val = Compartment.from_dict(val)
 
         self._compartment = val
 
@@ -167,10 +164,7 @@ class AVSettings(DefaultSerializable):
         type_check(val, (System, dict))
 
         if isinstance(val, dict):
-            try:
-                val = System.from_dict(val)
-            except KeyError:
-                val = System(**val)
+            val = System.from_dict(val)
 
         self._system = val
 

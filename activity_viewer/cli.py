@@ -86,30 +86,11 @@ def download(ctx: click.core.Context, force: bool):
 
 
 @cli.command()
-@click.option("--filename", "-f", type=str,
-              help="The filename to validate. If you don't specify this, the default file will be validated.")
-def validate(filename: str = None):
-    """Validate your settings file. Useful for basic sanity checks."""
-    if filename is None:
-        local_filename = Path("./settings.json")
-        if local_filename.is_file():
-            click.echo(f"Filename not given, assuming {local_filename}.")
-            filename = local_filename.resolve()
-        elif AVSettings.DEFAULTS["filename"].is_file():
-            click.echo(f"Filename not given, assuming {AVSettings.DEFAULTS['filename']}.")
-            filename = AVSettings.DEFAULTS["filename"].resolve()
-        else:
-            click.echo("Filename not given and no default settings file exists.", err=True)
-            return -1
-
-    try:
-        settings = AVSettings.from_file(filename)
-    except Exception as e:
-        click.echo(f"Failed to load: {e}", err=True)
-        return
-
+@click.argument("filename", type=click.Path(exists=True, dir_okay=False))
+def validate(filename: str):
+    """Validate a settings file FILENAME. Useful for basic sanity checks."""
     # formally validate
-    validator = SettingsValidator(settings)
+    validator = SettingsValidator(filename)
     is_valid, messages = validator.validate()
 
     if is_valid:
@@ -122,7 +103,7 @@ def validate(filename: str = None):
         click.echo("The following errors were found:", err=True)
     
         for err in messages["errors"]:
-            click.echo(err, err=True)
+            click.echo("- " + err, err=True)
 
         click.echo("")
 
@@ -131,14 +112,14 @@ def validate(filename: str = None):
         click.echo("You might want to look into these issues:")
 
         for warn in messages["warnings"]:
-            click.echo(warn)
+            click.echo("- " + warn)
 
 
 @cli.command()
-@click.argument("filename", type=click.Path(exists=True))
+@click.argument("filename", type=click.Path(exists=True, dir_okay=False))
 @click.pass_context
 def visualize(ctx: click.core.Context, filename: str):
-    """Load data file, `FILENAME`, and start the visualizer tool."""
+    """Load a data file, FILENAME, and start the visualizer tool."""
     settings = load_settings_file(ctx.obj["settings_file"])
 
     os.chdir(REPO_BASE)

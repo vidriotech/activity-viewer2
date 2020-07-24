@@ -1,5 +1,7 @@
 from collections import deque
 import json
+from pathlib import Path
+from typing import Union
 
 from allensdk.api.queries.ontologies_api import OntologiesApi
 from allensdk.core.structure_tree import StructureTree
@@ -7,27 +9,47 @@ from allensdk.core.structure_tree import StructureTree
 from activity_viewer.base import type_check
 from activity_viewer.cache import Cache
 from .avsettings import AVSettings
+from .sections import Compartment, System
+
+PathType = Union[str, Path]
 
 
 class SettingsValidator:
-    """A class for validating AVSettings objects.
+    """A class for validating settings files.
 
     Parameters
     ----------
-    settings : AVSettings
-        Settings object to validate.
+    filename : str or Path
+        Path to settings file to validate.
     """
-    def __init__(self, settings: AVSettings):
-        self._settings = None
+    def __init__(self, filename: PathType):
+        with open(filename, "r") as fh:
+            settings = json.load(fh)
 
-        self.settings = settings
-        self._cache = Cache(self.settings)
+        self._compartment = settings["compartment"] if "compartment" in settings else {}
+        self._system = settings["system"] if "system" in settings else {}
+
+        # construct temporary cache for loading structure tree
+        # data directory and CCF version are relevant, so use what's given
+        cache_system_section = System()
+        if "dataDirectory" in self._system:
+            try:
+                cache_system_section.data_directory = self._system["dataDirectory"]
+            except (TypeError, ValueError):
+                pass
+        if "atlasVersion" in self._system:
+            try:
+                cache_system_section.atlas_version = self._system["atlasVersion"]
+            except (TypeError, ValueError):
+                pass
+
+        self._cache = Cache(AVSettings(None, system=cache_system_section))
         self._structure_tree = None
         self._tree_height = -1
 
     def _load_structure_tree(self):
         """Load the structure tree from cache, or download if necessary."""
-        if self._structure_tree is not None:
+        if self._structure_tree is not None:  # pragma: no cover
             return
 
         # download but don't cache the structure tree
@@ -57,30 +79,33 @@ class SettingsValidator:
 
         self._tree_height = max_depth
 
-    def validate(self) -> (bool, dict):
-        """Validate settings object.
-        
-        Returns
-        -------
-        is_valid : bool
-            True if and only if settings are valid.
-        messages : dict
-            Error messages and warnings.
-        """
-        is_valid = True
-        messages = {"errors": [], "warnings": []}
+    def _validate_compartment(self, messages: dict) -> (bool, dict):
+        """Validate compartment section of a settings file."""
         self._compute_tree_height()
+        is_valid = True
 
-        ## validate compartment section
-        compartment = self.settings.compartment
+        n_errors = len(messages["errors"])  # check this later to determine validity
 
-        # max depth
-        if compartment.max_depth < 0:
-            messages["errors"].append("Max depth cannot be negative.")
-            is_valid = False
+        # collect standard keys
+        max_depth = self._compartment["maxDepth"] if "maxDepth" in self._compartment else Compartment.DEFAULTS["max_depth"]
+        exclude = self._compartment["exclude"] if "exclude" in self._compartment else Compartment.DEFAULTS["exclude"]
+        include = self._compartment["include"] if "include" in self._compartment else Compartment.DEFAULTS["include"]
 
-        if compartment.max_depth > self._tree_height:
-            messages["errors"].append(f"Max depth cannot exceed {self._tree_height}.")
+        # flag additional keys
+        for k in self._compartment:
+            if k not in ("maxDepth", "include", "exclude"):
+                messages["errors"].append(f"Unrecognized field '{k}' in compartment section.")
+
+        # validate maxDepth
+        if not isinstance(max_depth, int):
+            messages["errors"].append("maxDepth must be an integer.")
+
+        if isinstance(max_depth, (int, float)):
+            if max_depth < 0:
+                messages["errors"].append("maxDepth cannot be negative.")
+
+            if max_depth > self._tree_height:
+                messages["errors"].append(f"maxDepth cannot exceed {self._tree_height}.")
 
         # acronym -> id map
         ac_id_map = {k.lower(): v for k, v in self._structure_tree.get_id_acronym_map().items()}
@@ -90,103 +115,129 @@ class SettingsValidator:
         id_nm_map = {v: k for k, v in nm_id_map.items()}
 
         # check include first
-        include_ids = set()
-        for val in compartment.include:
-            if isinstance(val, str):
-                val_lower = val.lower()
+        if isinstance(include, list):
+            include_ids = set()
+            for val in include:
+                if isinstance(val, str):
+                    val_lower = val.lower()
 
-                if val_lower in ac_id_map:
-                    cid = ac_id_map[val_lower]
-                elif val_lower in nm_id_map:
-                    cid = nm_id_map[val_lower]
+                    if val_lower in ac_id_map:
+                        cid = ac_id_map[val_lower]
+                    elif val_lower in nm_id_map:
+                        cid = nm_id_map[val_lower]
+                    else:
+                        messages["errors"].append(f"Unrecognized compartment in include: '{val}'.")
+                        continue
+                elif isinstance(val, int):
+                    if val not in ac_id_map.values():
+                        messages["errors"].append(f"Unrecognized compartment ID in include: {val}")
+                        continue
+
+                    cid = val
                 else:
-                    messages["errors"].append(f"Unrecognized compartment in include: '{val}'.'")
-                    is_valid = False
-                    continue
-            elif isinstance(val, int):
-                if val not in ac_id_map.values():
-                    messages["errors"].append(f"Unrecognized compartment ID in include: {val}")
-                    is_valid = False
+                    messages["errors"].append(f"Invalid compartment in include: '{val}'.")
                     continue
 
-                cid = val
-            else:
-                messages["errors"].append(f"Invalid compartment in include: '{val}'.")
-                is_valid = False
-                continue
+                # duplicate entry
+                if cid in include_ids:
+                    ac = id_ac_map[cid]
+                    nm = id_nm_map[cid]
+                    messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in include.")
 
-            # duplicate entry
-            if cid in include_ids:
-                ac = id_ac_map[cid]
-                nm = id_nm_map[cid]
-                messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in include.")
-
-            include_ids.add(cid)
+                include_ids.add(cid)
+        else:
+            messages["errors"].append("include must be a list.")
 
         # now check exclude
-        exclude_ids = set()
-        for val in compartment.exclude:
-            if isinstance(val, str):
-                val_lower = val.lower()
+        if isinstance(exclude, list):
+            exclude_ids = set()
+            for val in exclude:
+                if isinstance(val, str):
+                    val_lower = val.lower()
 
-                if val_lower in ac_id_map:
-                    cid = ac_id_map[val_lower]
-                elif val_lower in nm_id_map:
-                    cid = nm_id_map[val_lower]
+                    if val_lower in ac_id_map:
+                        cid = ac_id_map[val_lower]
+                    elif val_lower in nm_id_map:
+                        cid = nm_id_map[val_lower]
+                    else:
+                        messages["errors"].append(f"Unrecognized compartment in exclude: '{val}'.")
+                        continue
+                elif isinstance(val, int):
+                    if val not in ac_id_map.values():
+                        messages["errors"].append(f"Unrecognized compartment ID in exclude: {val}")
+                        continue
+
+                    cid = val
                 else:
-                    messages["errors"].append(f"Unrecognized compartment in exclude: '{val}'.'")
-                    is_valid = False
-                    continue
-            elif isinstance(val, int):
-                if val not in ac_id_map.values():
-                    messages["errors"].append(f"Unrecognized compartment ID in exclude: {val}")
-                    is_valid = False
+                    messages["errors"].append(f"Invalid compartment in exclude: '{val}'.")
                     continue
 
-                cid = val
-            else:
-                messages["errors"].append(f"Invalid compartment in exclude: '{val}'.")
-                is_valid = False
-                continue
+                # entry found in include
+                if cid in include_ids:
+                    ac = id_ac_map[cid]
+                    nm = id_nm_map[cid]
+                    messages["warnings"].append(f"Included compartment with id {cid}, name '{nm}', or acronym '{ac}', found in exclude, exclude entry will be ignored.")
 
-            # entry found in include
-            if cid in include_ids:
-                ac = id_ac_map[cid]
-                nm = id_nm_map[cid]
-                messages["warnings"].append(f"includeed compartment with id {cid}, name '{nm}', or acronym '{ac}', found in exclude. exclude entry will be ignored")
+                # duplicate entry
+                if cid in exclude_ids:
+                    ac = id_ac_map[cid]
+                    nm = id_nm_map[cid]
+                    messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in exclude.")
 
-            # duplicate entry
-            if cid in exclude_ids:
-                ac = id_ac_map[cid]
-                nm = id_nm_map[cid]
-                messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in exclude.")
+                exclude_ids.add(cid)
+        else:
+            messages["errors"].append("exclude must be a list.")
 
-            exclude_ids.add(cid)
-
-        ## validate system section
-        system = self.settings.system
-
-        # atlas version
-        if system.atlas_version not in ("ccf_2015", "ccf_2016", "ccf_2017"):
-            messages["errors"].append(f"Unrecognized atlas version: '{system.atlas_version}'.")
+        if len(messages["errors"]) > n_errors:
             is_valid = False
-        
-        # data directory
-        if not system.data_directory.is_dir():
-            messages["warnings"].append(f"Data directory '{system.data_directory}' does not exist or is not a directory.")
 
-        if system.resolution not in (10, 25, 50, 100):
-            messages["errors"].append(f"Unrecognized voxel resolution: {system.resolution}.")
-            is_valid = False
-    
         return is_valid, messages
 
-    @property
-    def settings(self) -> AVSettings:
-        """Settings object."""
-        return self._settings
+    def _validate_system(self, messages: dict) -> (bool, dict):
+        """Validate system section."""
+        is_valid = True
 
-    @settings.setter
-    def settings(self, val: AVSettings):
-        type_check(val, AVSettings)
-        self._settings = val
+        n_errors = len(messages["errors"])  # check this later to determine validity
+
+        # collect standard keys
+        atlas_version = self._system["atlasVersion"] if "atlasVersion" in self._system else System.DEFAULTS["atlas_version"]
+        data_directory = self._system["dataDirectory"] if "dataDirectory" in self._system else System.DEFAULTS["data_directory"]
+        resolution = self._system["resolution"] if "resolution" in self._system else System.DEFAULTS["resolution"]
+
+        # flag additional keys
+        for k in self._system:
+            if k not in ("atlasVersion", "dataDirectory", "resolution"):
+                messages["errors"].append(f"Unrecognized field '{k}' in system section.")
+
+        # atlas version
+        if atlas_version not in ("ccf_2015", "ccf_2016", "ccf_2017"):
+            messages["errors"].append(f"Unrecognized atlasVersion: '{atlas_version}'.")
+        
+        # data directory
+        if not Path(data_directory).is_dir():
+            messages["warnings"].append(f"dataDirectory '{data_directory}' does not exist or is not a directory.")
+
+        # resolution
+        if resolution not in (10, 25, 50, 100):
+            messages["errors"].append(f"Unrecognized voxel resolution: {resolution}.")
+
+        if len(messages["errors"]) > n_errors:
+            is_valid = False
+
+        return is_valid, messages
+
+    def validate(self) -> (bool, dict):
+        """Validate settings object.
+        
+        Returns
+        -------
+        is_valid : bool
+            True if and only if all settings are valid.
+        messages : dict
+            Error messages and warnings.
+        """
+        compartment_is_valid, messages = self._validate_compartment({"errors": [], "warnings": []})
+        system_is_valid, messages = self._validate_system(messages)
+        is_valid = compartment_is_valid and system_is_valid
+    
+        return is_valid, messages
