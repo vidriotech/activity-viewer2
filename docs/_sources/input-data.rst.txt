@@ -75,7 +75,8 @@ Units are in *microns*. Visually:
 Accordingly, the first column of ``ccf_coord`` should be the x coordinates of each
 unit (along the AP axis as specified); the second column should be the y
 coordinates of each unit (along the SI or DV axis); and the third column should be
-the z coordinates of each unit (along the LR axis).
+the z coordinates of each unit (along the LR axis). **You should take care to
+ensure that your origins match those of the CCF**.
 
 .. _timeseries-fields:
 
