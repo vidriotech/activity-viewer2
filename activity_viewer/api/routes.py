@@ -1,8 +1,9 @@
 import json
+import logging
 
 from flask import Flask, request
 
-from activity_viewer.settings import AVSettings
+from activity_viewer.settings import AVSettings, make_default_settings
 from activity_viewer.loaders import FileLoader
 from .state import APIState
 
@@ -23,6 +24,10 @@ def settings():
         data = json.loads(request.data)
 
         if "filename" in data:
-            state.settings = AVSettings.from_file(data["filename"])
+            try:
+                state.settings = AVSettings.from_file(data["filename"])
+                logging.warn(f"Settings file {data['filename']} was not found. Using default settings.")
+            except:
+                state.settings = make_default_settings()
     
     return state.settings.to_dict()
