@@ -45,6 +45,7 @@
     }
   },
   "dependencies": {
+    "@bokeh/bokehjs": "^2.1.1",
     "@types/node": "12",
     "axios": "^0.19.2",
     "electron-squirrel-startup": "^1.0.0",

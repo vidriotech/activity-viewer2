@@ -140,8 +140,8 @@ def visualize(ctx: click.core.Context, filename: str):
 
     env = os.environ
     env.update({
-        "AV_SETTINGS": str(ctx.obj["settings_file"]),
-        "AV_DATA": str(filename)
+        "AV_SETTINGS_PATH": str(ctx.obj["settings_file"]),
+        "AV_DATA_PATH": str(filename)
     })
 
     subprocess.run(shlex.split(f"'{npm}' start"), env=env)

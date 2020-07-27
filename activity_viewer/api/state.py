@@ -1,4 +1,5 @@
 from activity_viewer.base import type_check
+from activity_viewer.loaders import FileLoader
 from activity_viewer.settings import AVSettings, make_default_settings
 
 
@@ -6,6 +7,11 @@ class APIState:
     """Class representing state of the HTTP API."""
     def __init__(self):
         self._settings = None
+        self._loader = FileLoader()
+
+    @property
+    def loader(self) -> FileLoader:
+        return self._loader
 
     @property
     def settings(self) -> AVSettings:
@@ -19,4 +25,3 @@ class APIState:
     def settings(self, val: AVSettings):
         type_check(val, AVSettings)
         self._settings = val
-        

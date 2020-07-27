@@ -43,9 +43,11 @@ electron_1.app.on('activate', function () {
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
 var pyshell = new python_shell_1.PythonShell(path.join(pypath, 'app.py'));
-axios.post('http://localhost:5000/settings', {
-    'filename': process.env.AV_SETTINGS
+axios.post('http://localhost:5000/configure', {
+    'settings_path': process.env.AV_SETTINGS_PATH,
+    'data_path': process.env.AV_DATA_PATH
 }).then(function (res) {
+    console.log(res);
     console.log("statusCode: " + res.statusCode);
 })
     .catch(function (error) {
