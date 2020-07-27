@@ -33,6 +33,12 @@ def cli(ctx: click.core.Context):
     """Command-line interface for the Activity Viewer."""
     ctx.ensure_object(dict)
 
+    # create a default settings file if it does not exist
+    click.echo(AVSettings.DEFAULTS["filename"].is_file())
+    if not AVSettings.DEFAULTS["filename"].is_file():
+        default_settings = make_default_settings()
+        default_settings.to_file(AVSettings.DEFAULTS["filename"])
+
     # load settings
     settings_file = Path("./settings.json")
     if not settings_file.is_file():
