@@ -24,7 +24,8 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "viewer=activity_viewer.cli:cli"
+            "viewer=activity_viewer.cli:cli",
+            "viewerd=activity_viewer.__main__:run_app"
         ]
     },
 )

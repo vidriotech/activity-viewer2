@@ -34,7 +34,6 @@ def cli(ctx: click.core.Context):
     ctx.ensure_object(dict)
 
     # create a default settings file if it does not exist
-    click.echo(AVSettings.DEFAULTS["filename"].is_file())
     if not AVSettings.DEFAULTS["filename"].is_file():
         default_settings = make_default_settings()
         default_settings.to_file(AVSettings.DEFAULTS["filename"])
@@ -132,7 +131,7 @@ def visualize(ctx: click.core.Context, filename: str):
     """Load a data file, FILENAME, and start the visualizer tool."""
     filename = Path(filename).resolve()
 
-    os.chdir(REPO_BASE)
+    os.chdir(REPO_BASE / "app")
     npm = shutil.which("npm")
     if npm is None:
         click.echo("npm not found! Please install Node.js.", err=True)
