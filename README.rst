@@ -52,10 +52,10 @@ activate a new virtual environment, then install dependencies:
 
     > $ python3 -m pip install --user virtualenv
     > $ python3 -m virtualenv venv
-    > $ . venv/bin/activate # .\venv\Scripts\activate on Windows
+    > $ . venv/bin/activate # on Windows: .\venv\Scripts\activate
     (venv) > $ python3 -m pip install -U -r requirements.txt -r requirements-dev.txt
     (venv) > $ python3 -m pip install -e .
-    (venv) > $ yarn install
+    (venv) > $ cd app && yarn install && cd .. # on Windows: cd app; yarn install; cd ..
 
 After all the dependencies are installed, do a quick sanity check:
 

@@ -187,10 +187,10 @@ should get it for you. If you don’t like Anaconda, you can do
 activate a new virtual environment, then install dependencies:</p>
 <div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt; $ python3 -m pip install --user virtualenv
 &gt; $ python3 -m virtualenv venv
-&gt; $ . venv/bin/activate <span class="c1"># .\venv\Scripts\activate on Windows</span>
+&gt; $ . venv/bin/activate <span class="c1"># on Windows: .\venv\Scripts\activate</span>
 <span class="o">(</span>venv<span class="o">)</span> &gt; $ python3 -m pip install -U -r requirements.txt -r requirements-dev.txt
 <span class="o">(</span>venv<span class="o">)</span> &gt; $ python3 -m pip install -e .
-<span class="o">(</span>venv<span class="o">)</span> &gt; $ yarn install
+<span class="o">(</span>venv<span class="o">)</span> &gt; $ <span class="nb">cd</span> app <span class="o">&amp;&amp;</span> yarn install <span class="o">&amp;&amp;</span> <span class="nb">cd</span> .. <span class="c1"># on Windows: cd app; yarn install; cd ..</span>
 </pre></div>
 </div>
 <p>After all the dependencies are installed, do a quick sanity check:</p>
