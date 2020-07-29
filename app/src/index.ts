@@ -1,7 +1,5 @@
 import { app, BrowserWindow } from 'electron';
 const axios = require('axios');
-import path = require('path');
-const { spawn } = require('child_process');
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 // Keep a reference for dev mode
@@ -59,47 +57,29 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-const viewerd = spawn('viewerd')
+if (devMode) {
+  const dotenv = require('dotenv');
+  dotenv.config();
+}
 
-viewerd.on('error', (err: any) => {
-  if (devMode)
-    console.error(`failed to start: ${err}`);
+let dataPaths: string[] = [];
+Object.keys(process.env).forEach((key: string) => {
+  if (key.startsWith('AV_DATA_PATH')) {
+    dataPaths.push(process.env[key]);
+  }
 });
 
-viewerd.stdout.on('data', (data: string) => {
-  if (devMode)
-    console.log(`Received chunk ${data}`);
+axios({
+  'method': 'post',
+  'url': 'http://localhost:3030/configure',
+  'data': {
+    'settings_path': process.env.AV_SETTINGS_PATH,
+    'data_paths': dataPaths
+  },
+  'timeout': 5000
+}).then((res: any) => {
+  console.log(`statusCode: ${res}`);
+})
+.catch((error: any) => {
+  console.error(error);
 });
-
-viewerd.stderr.on('data', (data: string) => {
-  console.error(`Received error ${data}`);
-});
-
-viewerd.on('close', (code: any) => {
-  if (devMode)
-    console.log(`child process exited with code ${code}`);
-});
-
-viewerd.on('exit', (code: number, signal: string) => {
-  if (devMode)
-    console.log(`viewerd has quit with code ${code}: ${signal}.`);
-});
-
-// app.on('before-quit', () => {
-//   console.log('quitting');
-//   let killed = viewerd.kill();
-//   console.log(`killed: ${killed}`);
-// });
-
-// const pypath = path.join(path.dirname(path.dirname(path.dirname(__dirname))), 'activity_viewer');
-// let pyshell = new PythonShell(path.join(pypath, 'app.py'));
-
-// axios.post('http://localhost:3030/configure', {
-//   'settings_path': process.env.AV_SETTINGS_PATH,
-//   'data_path': process.env.AV_DATA_PATH
-// }).then((res: any) => {
-//   console.log(`statusCode: ${res.statusCode}`);
-// })
-// .catch((error: any) => {
-//   console.error(error);
-// })

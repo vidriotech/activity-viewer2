@@ -74,3 +74,51 @@ needs to be manually cleaned up. This is a BUG that needs squashing.
 
 If you make changes to any API routes that aren't reflected when you test them,
 it's likely you've run afoul of this.
+
+For right now, the best way to hack on this project is to use two separate
+processes. In one terminal (with the virtualenv activated), run ``viewerd``,
+like so:
+
+.. code-block:: shell
+
+    > $ viewerd
+     * Serving Flask app "activity_viewer.api.routes" (lazy loading)
+     * Environment: production
+     WARNING: This is a development server. Do not use it in a production deployment.
+     Use a production WSGI server instead.
+     * Debug mode: on
+     * Restarting with stat
+     * Debugger is active!
+     * Debugger PIN: 206-084-148
+     * Running on http://127.0.0.1:3030/ (Press CTRL+C to quit)
+
+In another terminal, ``cd`` to the app/ folder and run ``npm start``, like so,
+expecting the following output:
+
+.. code-block:: shell
+
+    > $ npm start
+
+    > app@1.0.0 start /path/to/activity-viewer2/app
+    > electron-forge start
+
+    √ Checking your system
+    √ Locating Application
+    √ Preparing native dependencies
+    √ Compiling Main Process Code
+    - Launch Dev ServersStarting type checking service...
+    Using 1 worker with 2048MB memory limit
+    √ Launch Dev Servers
+    √ Compiling Preload Scripts
+    √ Launching Application
+
+
+    Webpack Output Available: http://localhost:9000
+
+
+    statusCode: [object Object]
+    Type checking in progress...
+    webpack built ddc1507d1ec19a680ca7 in 3015ms
+    No type errors found
+    Version: typescript 3.9.7
+    Time: 4380ms

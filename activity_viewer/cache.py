@@ -47,6 +47,19 @@ class Cache:
 
         return structure_graph
 
+    def load_annotation_volume_headers(self) -> dict:
+        """Read the header only from the annotation volume file."""
+        if not self.annotation_volume_exists:
+            self.save_annotation_volume()
+        
+        try:
+            header = nrrd.read_header(str(self.annotation_volume_path))
+        except nrrd.NRRDError:
+            self.save_annotation_volume(force=True)
+            header = nrrd.read_header(str(self.annotation_volume_path))
+
+        return header
+
     def load_annotation_volume(self) -> (np.ndarray, dict):
         """Load annotation volume from cache."""
         try:

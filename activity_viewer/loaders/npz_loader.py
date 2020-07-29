@@ -14,6 +14,7 @@ LR_MAX = 11400  # maximum z value
 
 class NpzLoader:
     """Class for loading data files."""
+
     def __init__(self):
         self._data = None
         self._file_path = None
@@ -21,7 +22,7 @@ class NpzLoader:
 
     def _validate_data(self):
         """Ensure data is valid."""
-        ## probe insertion
+        # probe insertion
         try:
             probe_insertion = self._data["probe_insertion"]
         except KeyError:
@@ -36,7 +37,7 @@ class NpzLoader:
         if not isinstance(probe_insertion, str):
             raise TypeError(f"Expecting a string for probe_insertion, got {type(probe_insertion).__name__}")
 
-        ## unit ids
+        # unit ids
         try:
             unit_id = self._data["unit_id"]
         except KeyError:
@@ -54,7 +55,7 @@ class NpzLoader:
         if nunique != nunits:
             raise ValueError(f"Expecting {nunits} unique unit ids, got {nunique}.")
 
-        ## CCF coordinates
+        # CCF coordinates
         try:
             ccf_coord = self._data["ccf_coord"]
         except KeyError:
@@ -80,7 +81,7 @@ class NpzLoader:
         if ((ccf_coord[:, 2] < 0) | (ccf_coord[:, 2] > LR_MAX)).any():
             raise ValueError(f"Some coordinates in z column were outside the allowed range of [0, {LR_MAX}].")
 
-        ## waveform
+        # waveform
         if "waveform" in self._data:
             waveform = self._data["waveform"]
 
@@ -90,59 +91,63 @@ class NpzLoader:
 
             # 3 coords for each unit
             if waveform.ndim != 2 or waveform.shape[0] != nunits:
-                raise ValueError(f"Expecting a 2D array for waveform with {nunits} in the first dimension, got {waveform.shape}")
-        else:
-            waveform is None
+                raise ValueError(
+                    f"Expecting a 2D array for waveform with {nunits} in the first dimension, got {waveform.shape}")
 
-        ## timeseries
+        # timeseries
         if "timeseries" in self._data:
             timeseries = self._data["timeseries"]
 
             if not np.issubdtype(timeseries.dtype, np.str_):
                 raise TypeError(f"Expecting an array of strings for timeseries, got {timeseries.dtype}.")
-                
+
             for t in timeseries:
                 tval = self._data.get(t)
                 if tval is None:
                     raise KeyError(f"Timeseries {t} specified, but not found.")
 
                 if tval.ndim != 2 or tval.shape[0] != nunits + 1:
-                    raise ValueError(f"Expecting a 2D array for timeseries {t} with {nunits + 1} in the first dimension, got {tval.shape}")
+                    raise ValueError(
+                        f"Expecting a 2D array for timeseries {t} with {nunits + 1} in the first dimension, got {tval.shape}")
 
-        ## unit statistics
+        # unit statistics
         if "unit_stats" in self._data:
             unit_stats = self._data["unit_stats"]
 
             if not np.issubdtype(unit_stats.dtype, np.str_):
                 raise TypeError(f"Expecting an array of strings for unit_stats, got {unit_stats.dtype}.")
-                
+
             for s in unit_stats:
                 sval = self._data.get(s)
                 if sval is None:
                     raise KeyError(f"Unit statistic {s} specified, but not found.")
 
                 if sval.size != nunits:
-                    raise ValueError(f"Expecting a 1D array for unit statistic {s} with {nunits} values, got {sval.shape}")
+                    raise ValueError(
+                        f"Expecting a 1D array for unit statistic {s} with {nunits} values, got {sval.shape}")
 
     def get(self, key: str):
         """Get value from data keyed by `key`, or None if `key` is not found."""
         if self._data is not None:
             return self._data.get(key)
 
-    def load_file(self, file_path: PathType):
+    def load_file(self, file_path: PathType, validate: bool = True):
         """Load data from the file living at `file_path`.
         
         Parameters
         ----------
         file_path : str
             Path to file to load.
+        validate : bool, optional
+            Perform data validation iff true.
         """
         type_check(file_path, PathType.__args__)
         self._file_path = file_path
         self._data = np.load(self._file_path)
         self._keys = {k for k in self._data.keys()}
 
-        self._validate_data()
+        if validate:
+            self._validate_data()
 
     @property
     def data(self) -> np.lib.npyio.NpzFile:

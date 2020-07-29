@@ -8,6 +8,7 @@ from typing import Tuple
 import click
 import numpy as np
 
+from activity_viewer.api import app
 from activity_viewer.base import REPO_BASE
 from activity_viewer.cache import Cache
 from activity_viewer.settings import AVSettings, make_default_settings
@@ -138,8 +139,13 @@ def visualize(ctx: click.core.Context, filenames: Tuple[str]):
         click.echo("npm not found! Please install Node.js.", err=True)
         return
 
+    # start the API server
+    api_proc = subprocess.Popen(["viewerd"])
+
     env = os.environ
     env["AV_SETTINGS_PATH"] = str(ctx.obj["settings_file"])
     env.update({f"AV_DATA_PATH{i}": str(f) for i, f in enumerate(filenames)})
 
     subprocess.run(shlex.split(f"'{npm}' start"), env=env)
+
+    api_proc.kill()
