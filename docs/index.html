@@ -199,6 +199,58 @@ activate a new virtual environment, then install dependencies:</p>
 </div>
 <p>Now you can start hacking.</p>
 </div>
+<div class="section" id="word-of-warning">
+<h4>Word of warning<a class="headerlink" href="#word-of-warning" title="Permalink to this headline">¶</a></h4>
+<p>Calling either <code class="docutils literal notranslate"><span class="pre">viewerd</span></code> or <code class="docutils literal notranslate"><span class="pre">viewer</span> <span class="pre">visualize</span> <span class="pre">[FILENAME1</span> <span class="pre">...]</span></code> (or
+<code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">start</span></code> in the app/ directory) will spawn a Flask server which for now
+needs to be manually cleaned up. This is a BUG that needs squashing.</p>
+<p>If you make changes to any API routes that aren’t reflected when you test them,
+it’s likely you’ve run afoul of this.</p>
+<p>For right now, the best way to hack on this project is to use two separate
+processes. In one terminal (with the virtualenv activated), run <code class="docutils literal notranslate"><span class="pre">viewerd</span></code>,
+like so:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt; $ viewerd
+ * Serving Flask app <span class="s2">&quot;activity_viewer.api.routes&quot;</span> <span class="o">(</span>lazy loading<span class="o">)</span>
+ * Environment: production
+ WARNING: This is a development server. Do not use it in a production deployment.
+ Use a production WSGI server instead.
+ * Debug mode: on
+ * Restarting with stat
+ * Debugger is active!
+ * Debugger PIN: <span class="m">206</span>-084-148
+ * Running on http://127.0.0.1:3030/ <span class="o">(</span>Press CTRL+C to quit<span class="o">)</span>
+</pre></div>
+</div>
+<p>In another terminal, <code class="docutils literal notranslate"><span class="pre">cd</span></code> to the app/ folder and run <code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">start</span></code>, like so,
+expecting the following output:</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>&gt; $ npm start
+
+&gt; app@1.0.0 start /path/to/activity-viewer2/app
+&gt; electron-forge start
+
+√ Checking your system
+√ Locating Application
+√ Preparing native dependencies
+√ Compiling Main Process Code
+- Launch Dev ServersStarting <span class="nb">type</span> checking service...
+Using <span class="m">1</span> worker with 2048MB memory limit
+√ Launch Dev Servers
+√ Compiling Preload Scripts
+√ Launching Application
+
+
+Webpack Output Available: http://localhost:9000
+
+
+statusCode: <span class="o">[</span>object Object<span class="o">]</span>
+Type checking in progress...
+webpack built ddc1507d1ec19a680ca7 in 3015ms
+No <span class="nb">type</span> errors found
+Version: typescript <span class="m">3</span>.9.7
+Time: 4380ms
+</pre></div>
+</div>
+</div>
 </div>
 </div>
 </div>
