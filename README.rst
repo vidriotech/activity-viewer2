@@ -15,10 +15,10 @@ the next section to get started.
 .. _install-develop:
 
 Development
-~~~~~~~~~~~
+----------
 
 Prerequisites
-+++++++++++++
+~~~~~~~~~~~~~
 
 We've tested this software on Python 3.7. It's conceivable it could work on an
 earlier version of Python 3, but we won't support it. I strongly recommend
@@ -36,7 +36,7 @@ You'll also need to have `Node.js <https://nodejs.org/en/>`_ 12 or later with
 ``npm install -g yarn`` will get it for you.
 
 Setting up
-++++++++++
+~~~~~~~~~~
 
 Make sure your Python interpreter is the one you're expecting:
 
@@ -65,8 +65,32 @@ After all the dependencies are installed, do a quick sanity check:
 
 Now you can start hacking.
 
-Word of warning
-+++++++++++++++
+Known issues
+~~~~~~~~~~~~
+
+Python 3.8
+++++++++++
+
+On Windows (we haven't tried on Linux or macOS), trying to install dependencies
+via ``pip`` will throw something like the following error with Python 3.8 on
+building the statsmodels wheel:
+
+.. code-block:: python3
+
+    ModuleNotFoundError: No module named 'numpy'
+
+As a workaround, if you do
+
+.. code-block:: shell
+
+    (venv) > $ python3 -m pip install numpy==1.8.5
+    (venv) > $ python3 -m pip install -U -r requirements.txt -r requirements-dev.txt
+
+the dependencies should install correctly. You may also need to install the
+latest `C++ Build Tools <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`__.
+
+Zombie process
+++++++++++++++
 
 Calling either ``viewerd`` or ``viewer visualize [FILENAME1 ...]`` (or
 ``npm start`` in the app/ directory) will spawn a Flask server which for now
