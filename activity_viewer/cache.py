@@ -4,6 +4,8 @@ from typing import Optional
 from allensdk.api.queries.ontologies_api import OntologiesApi
 from allensdk.core.structure_tree import StructureTree
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
+import nrrd
+import numpy as np
 import pandas as pd
 import requests
 
@@ -45,6 +47,19 @@ class Cache:
 
         return structure_graph
 
+    def load_annotation_volume(self) -> (np.ndarray, dict):
+        """Load annotation volume from cache."""
+        try:
+            data, header = nrrd.read(self.annotation_volume_path)
+        except FileNotFoundError:
+            self.save_annotation_volume()
+            data, header = nrrd.read(self.annotation_volume_path)
+        except nrrd.NRRDError:
+            self.save_annotation_volume(force=True)
+            data, header = nrrd.read(self.annotation_volume_path)
+
+        return data, header
+
     def load_structure_graph(self, recache_on_error: bool = True) -> Optional[dict]:
         """Load the structure graph from cache, downloading and saving if necessary."""
         try:
@@ -59,6 +74,33 @@ class Cache:
                 structure_graph = self.download_structure_graph()
 
         return structure_graph
+
+    def load_structure_mesh(self, structure_id: int):
+        """Return contents of structure mesh file."""
+        if not self.structure_mesh_exists(structure_id):
+            try:
+                self.save_structure_mesh(structure_id)
+            except requests.exceptions.HTTPError:
+                return ""
+
+        mesh_path = self.structure_mesh_path(structure_id)
+        with open(mesh_path, "r") as fh:
+            data = fh.read()
+
+        return data
+
+    def load_template_volume(self) -> (np.ndarray, dict):
+        """Load template volume from cache."""
+        if not self.template_volume_exists:
+            self.save_template_volume()
+
+        try:
+            data, header = nrrd.read(self.template_volume_path)
+        except nrrd.NRRDError:
+            self.save_template_volume(force=True)
+            data, header = nrrd.read(self.template_volume_path)
+
+        return data, header
 
     def save_annotation_volume(self, force: bool = False):
         """Download and cache annotation volume."""

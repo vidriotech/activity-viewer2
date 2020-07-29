@@ -64,3 +64,13 @@ After all the dependencies are installed, do a quick sanity check:
     (venv) > $ tox # or pytest if you prefer
 
 Now you can start hacking.
+
+Word of warning
++++++++++++++++
+
+Calling either ``viewerd`` or ``viewer visualize [FILENAME1 ...]`` (or
+``npm start`` in the app/ directory) will spawn a Flask server which for now
+needs to be manually cleaned up. This is a BUG that needs squashing.
+
+If you make changes to any API routes that aren't reflected when you test them,
+it's likely you've run afoul of this.

@@ -26,6 +26,22 @@
  * ```
  */
 
-import './index.css';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-console.log('👋 This message is being logged by "renderer.js", included via webpack');
+import Game from './components/game';
+
+// Import CSS stylesheet
+import './css/index.css';
+
+// Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
+let root = document.createElement('div');
+root.id = 'root';
+document.body.appendChild(root);
+
+ReactDOM.render(
+    <Game />,
+    document.getElementById('root')
+);
+
+console.log('👋 This message is being logged by "renderer.js", included via webpack and hey there\'s some React here too');

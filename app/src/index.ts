@@ -1,9 +1,18 @@
 import { app, BrowserWindow } from 'electron';
 const axios = require('axios');
 import path = require('path');
-import { PythonShell } from 'python-shell';
 const { spawn } = require('child_process');
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
+
+// Keep a reference for dev mode
+let devMode = false;
+
+// Determine the mode (dev or production)
+if (process.defaultApp ||
+   /[\\/]electron-prebuilt[\\/]/.test(process.execPath) || 
+   /[\\/]electron[\\/]/.test(process.execPath)) {
+  devMode = true;
+}
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (require('electron-squirrel-startup')) { // eslint-disable-line global-require
@@ -16,12 +25,14 @@ const createWindow = () => {
     height: 600,
     width: 800,
   });
-
+  
   // and load the index.html of the app.
   mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
 
   // Open the DevTools.
-  mainWindow.webContents.openDevTools();
+  if (devMode) {        
+    mainWindow.webContents.openDevTools();
+  }
 };
 
 // This method will be called when Electron has finished
@@ -48,27 +59,31 @@ app.on('activate', () => {
 
 // In this file you can include the rest of your app's specific main process
 // code. You can also put them in separate files and import them here.
-// const viewerd = spawn('viewerd')
+const viewerd = spawn('viewerd')
 
-// viewerd.on('error', (err: any) => {
-//   console.error(`failed to start: ${err}`)
-// });
+viewerd.on('error', (err: any) => {
+  if (devMode)
+    console.error(`failed to start: ${err}`);
+});
 
-// viewerd.stdout.on('data', (data: string) => {
-//   console.log(`Received chunk ${data}`);
-// });
+viewerd.stdout.on('data', (data: string) => {
+  if (devMode)
+    console.log(`Received chunk ${data}`);
+});
 
-// viewerd.stderr.on('data', (data: string) => {
-//   console.error(`Received error ${data}`);
-// });
+viewerd.stderr.on('data', (data: string) => {
+  console.error(`Received error ${data}`);
+});
 
-// viewerd.on('close', (code: any) => {
-//   console.log(`child process exited with code ${code}`);
-// });
+viewerd.on('close', (code: any) => {
+  if (devMode)
+    console.log(`child process exited with code ${code}`);
+});
 
-// viewerd.on('exit', (code: number, signal: string) => {
-//   console.log(`viewerd has quit with code ${code}: ${signal}.`);
-// });
+viewerd.on('exit', (code: number, signal: string) => {
+  if (devMode)
+    console.log(`viewerd has quit with code ${code}: ${signal}.`);
+});
 
 // app.on('before-quit', () => {
 //   console.log('quitting');
@@ -79,7 +94,7 @@ app.on('activate', () => {
 // const pypath = path.join(path.dirname(path.dirname(path.dirname(__dirname))), 'activity_viewer');
 // let pyshell = new PythonShell(path.join(pypath, 'app.py'));
 
-// axios.post('http://localhost:5000/configure', {
+// axios.post('http://localhost:3030/configure', {
 //   'settings_path': process.env.AV_SETTINGS_PATH,
 //   'data_path': process.env.AV_DATA_PATH
 // }).then((res: any) => {

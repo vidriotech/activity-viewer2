@@ -3,6 +3,7 @@ from pathlib import Path
 import shlex
 import shutil
 import subprocess
+from typing import Tuple
 
 import click
 import numpy as np
@@ -125,11 +126,11 @@ def validate(filename: str):
 
 
 @cli.command()
-@click.argument("filename", type=click.Path(exists=True, dir_okay=False))
+@click.argument("filenames", type=click.Path(exists=True, dir_okay=False), nargs=-1)
 @click.pass_context
-def visualize(ctx: click.core.Context, filename: str):
-    """Load a data file, FILENAME, and start the visualizer tool."""
-    filename = Path(filename).resolve()
+def visualize(ctx: click.core.Context, filenames: Tuple[str]):
+    """Load some number of data files and start the visualizer tool."""
+    filenames = [Path(f).resolve() for f in filenames]
 
     os.chdir(REPO_BASE / "app")
     npm = shutil.which("npm")
@@ -138,9 +139,7 @@ def visualize(ctx: click.core.Context, filename: str):
         return
 
     env = os.environ
-    env.update({
-        "AV_SETTINGS_PATH": str(ctx.obj["settings_file"]),
-        "AV_DATA_PATH": str(filename)
-    })
+    env["AV_SETTINGS_PATH"] = str(ctx.obj["settings_file"])
+    env.update({f"AV_DATA_PATH{i}": str(f) for i, f in enumerate(filenames)})
 
     subprocess.run(shlex.split(f"'{npm}' start"), env=env)

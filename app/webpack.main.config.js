@@ -5,6 +5,8 @@ module.exports = {
    */
   entry: './src/index.ts',
   // Put your normal webpack config below here
+  mode: 'development',
+  target: 'electron-main',
   module: {
     rules: require('./webpack.rules'),
   },

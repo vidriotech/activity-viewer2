@@ -12,7 +12,7 @@ DV_MAX = 8000  # maximum y value
 LR_MAX = 11400  # maximum z value
 
 
-class FileLoader:
+class NpzLoader:
     """Class for loading data files."""
     def __init__(self):
         self._data = None
