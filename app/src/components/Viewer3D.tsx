@@ -12,14 +12,20 @@ export class Viewer3D extends React.Component {
 
         const v = new BrainViewer();
         v.container = 'viewer-container'; // create this div in render()
-        v.init();
+        v.initialize();
         this.viewer = v;
+    }
+
+    private loadAndDisplayCompartment(id: string) {
+        if (!this.loadedCompartments.has(id)) {
+
+        }
     }
 
     private renderCompartments() {
         if (this.viewer === null)
             return;
-        
+
         if (!this.loadedCompartments.has('root')) {
             this.viewer.loadCompartment('root', 997, '878787');
             this.viewer.setCompartmentVisible('root', true);

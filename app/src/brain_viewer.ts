@@ -25,7 +25,7 @@ export class BrainViewer {
 
     private trackControls: any = null;
 
-    init = function() {
+    initialize = function() {
         // create a new renderer
         this.renderer = new THREE.WebGLRenderer({
             antialias: true,	// to get smoother output

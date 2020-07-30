@@ -77,8 +77,6 @@ axios({
     'data_paths': dataPaths
   },
   'timeout': 5000
-}).then((res: any) => {
-  console.log(`statusCode: ${res}`);
 })
 .catch((error: any) => {
   console.error(error);

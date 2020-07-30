@@ -57,14 +57,22 @@ def get_all_penetrations():
     return {"penetration": state.penetrations}
 
 
-@app.route("/pcplane/<penetration_id>")
-def get_pseudocoronal_plane(penetration_id: str):
+@app.route("/penetrations/<penetration_id>/slices/coronal/annotation")
+def get_pseudocoronal_annotation_slice(penetration_id: str):
     if not state.has_penetration(penetration_id):
         return make_response(f"Penetration not found.", 404)
     
-    plane = state.pcplane(penetration_id)
-    strides = plane.shape
-    return {"vals": plane.ravel().tolist(), "strides": strides}
+    plane = state.get_pseudocoronal_annotation_slice(penetration_id)
+    return {"voxels": plane.ravel().tolist(), "stride": coords.shape[0]}
+
+
+@app.route("/penetrations/<penetration_id>/coordinates")
+def get_coordinates(penetration_id: str):
+    if not state.has_penetration(penetration_id):
+        return make_response(f"Penetration not found.", 404)
+    
+    coords = state.get_coordinates(penetration_id)
+    return {"coordinates": coords.ravel().tolist(), "stride": coords.shape[0]}
 
 
 @app.route("/settings", methods=["GET", "POST"])

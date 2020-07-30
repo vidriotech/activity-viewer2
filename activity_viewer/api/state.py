@@ -52,6 +52,7 @@ class APIState:
         self._cache = Cache(self.settings)
         self._npz_loader = NpzLoader()
         self._penetrations = {}
+        self._active_penetration = None
 
     def _find_pseudocoronal_indices(self, coords: np.ndarray):
         X = np.asmatrix(np.hstack((np.ones((coords.shape[0], 1)), coords[:, 1][:, np.newaxis])))
@@ -88,20 +89,16 @@ class APIState:
         probe_insertion = self._npz_loader.get("probe_insertion").reshape(-1)[0]
         self._penetrations[probe_insertion] = Path(file_path)
 
-    def has_penetration(self, penetration_id: str) -> bool:
-        """Return true if and only if `penetration_id` exists."""
-        return penetration_id in self._penetrations
-
-    def load_penetration(self, penetration_id: str):
-        """Load data from penetration file."""
+    def get_coordinates(self, penetration_id: str):
+        """Get CCF coordinates for `penetration_id`."""
         if not self.has_penetration(penetration_id):
             return
+        
+        self.load_penetration(penetration_id)
+        return self.npz_loader.get("ccf_coord")
 
-        # load once without validation (validation has already been performed at the add step)
-        self.npz_loader.load_file(self._penetrations[penetration_id], validate=False)
-
-    def pcplane(self, penetration_id: str):
-        """"""
+    def get_pseudocoronal_annotation_slice(self, penetration_id: str):
+        """Get voxel values for pseudocoronal plane of best fit for `penetration_id`."""
         if not self.has_penetration(penetration_id):
             return
 
@@ -113,6 +110,18 @@ class APIState:
         ref_slice = volume[indices, np.arange(volume.shape[1]), :].squeeze()
 
         return ref_slice
+
+    def has_penetration(self, penetration_id: str) -> bool:
+        """Return true if and only if `penetration_id` exists."""
+        return penetration_id in self._penetrations
+
+    def load_penetration(self, penetration_id: str):
+        """Load data from penetration file."""
+        if not self.has_penetration(penetration_id) or self._active_penetration == penetration_id:
+            return
+
+        # load once without validation (validation has already been performed at the add step)
+        self.npz_loader.load_file(self._penetrations[penetration_id], validate=False)
 
     @property
     def cache(self) -> Cache:

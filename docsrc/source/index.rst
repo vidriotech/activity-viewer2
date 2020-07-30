@@ -9,6 +9,7 @@
    :caption: Contents:
 
    usage
+   api
 
 .. _about:
 
