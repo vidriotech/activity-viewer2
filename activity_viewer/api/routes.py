@@ -2,12 +2,14 @@ import json
 import os
 
 from flask import Flask, make_response, request
+from flask_cors import CORS
 
 from activity_viewer.settings import AVSettings, make_default_settings
 from activity_viewer.loaders import NpzLoader
 from .state import APIState
 
 app = Flask(__name__)
+CORS(app)
 state = APIState()
 
 
@@ -63,6 +65,7 @@ def get_pseudocoronal_plane(penetration_id: str):
     plane = state.pcplane(penetration_id)
     strides = plane.shape
     return {"vals": plane.ravel().tolist(), "strides": strides}
+
 
 @app.route("/settings", methods=["GET", "POST"])
 def settings():

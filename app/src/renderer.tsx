@@ -28,8 +28,11 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+const THREE = require('three');
+import * as THREEM from 'three';
+require("three-obj-loader")(THREE);
 
-import Game from './components/game';
+import {Viewer3D} from './components/Viewer3D';
 
 // Import CSS stylesheet
 import './css/index.css';
@@ -40,8 +43,18 @@ root.id = 'root';
 document.body.appendChild(root);
 
 ReactDOM.render(
-    <Game />,
+    <Viewer3D />,
     document.getElementById('root')
 );
 
 console.log('👋 This message is being logged by "renderer.js", included via webpack and hey there\'s some React here too');
+
+const loader = new THREE.OBJLoader();
+const path = 'http://localhost:3030/mesh/1';
+
+loader.load(path, (obj: THREE.Group) => {
+    console.log(obj);
+    obj.traverse((child: any) => {
+        console.log(child);
+    });
+});

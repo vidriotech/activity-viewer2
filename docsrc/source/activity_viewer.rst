@@ -8,18 +8,11 @@ Subpackages
    :maxdepth: 4
 
    activity_viewer.api
+   activity_viewer.loaders
    activity_viewer.settings
 
 Submodules
 ----------
-
-activity\_viewer.app module
----------------------------
-
-.. automodule:: activity_viewer.app
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 activity\_viewer.base module
 ----------------------------
@@ -41,14 +34,6 @@ activity\_viewer.cli module
 ---------------------------
 
 .. automodule:: activity_viewer.cli
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-activity\_viewer.loaders module
--------------------------------
-
-.. automodule:: activity_viewer.loaders
    :members:
    :undoc-members:
    :show-inheritance:
