@@ -1,5 +1,7 @@
 import React from 'react';
-import {BrainViewer} from '../brain_viewer';
+
+import { BrainViewer } from '../brainViewer';
+import { PointViewModel } from '../pointViewModel';
 
 export class Viewer3D extends React.Component {
     private viewer: BrainViewer = null;
@@ -16,10 +18,15 @@ export class Viewer3D extends React.Component {
         this.viewer = v;
     }
 
-    private loadAndDisplayCompartment(id: string) {
-        if (!this.loadedCompartments.has(id)) {
+    private createPoint(point: PointViewModel) {
 
-        }
+    }
+
+    private renderPenetrations() {
+        if (this.viewer === null)
+            return;
+
+        this.viewer.loadPenetration('dl62-01-28-2019-2');
     }
 
     private renderCompartments() {
@@ -35,6 +42,7 @@ export class Viewer3D extends React.Component {
     public componentDidMount() {
         this.createViewer();
         this.renderCompartments();
+        this.renderPenetrations();
     }
 
     public render() {

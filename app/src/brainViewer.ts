@@ -4,6 +4,13 @@ const THREE = require('three');
 require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
+const axios = require('axios');
+
+import { AVConstants } from './constants';
+import { IPoint } from './models/pointModel';
+import { IPenetration } from './models/penetrationModel';
+import { ICoordinateData } from './models/responses';
+
 export const SagittalLimit = 11400;
 export const HorizontalLimit = 8000;
 export const CoronalLimit = 13200;
@@ -13,9 +20,9 @@ export class BrainViewer {
     public WIDTH = window.innerWidth; // width of canvas
     public container = 'container';
     public flip = true; // flip y axis
-    public radius_scale_factor = 1;
+    public radiusScaleFactor = 1;
     
-    private centerpoint = [SagittalLimit / 2, HorizontalLimit / 2, CoronalLimit / 2];
+    private constants = new AVConstants();
     private backgroundColor = 0xffffff;
     private fov = 45;
 
@@ -25,10 +32,19 @@ export class BrainViewer {
 
     private trackControls: any = null;
 
+    private sphereMaterial = new THREE.MeshBasicMaterial({
+        color: 0x0080ff
+    });
+    private sphereGeometry = new THREE.SphereGeometry(40);
+
+    render = function () {
+        this.renderer.render(this.scene, this.camera);
+    };
+
     initialize = function() {
         // create a new renderer
         this.renderer = new THREE.WebGLRenderer({
-            antialias: true,	// to get smoother output
+            antialias: true, // to get smoother output
         });
 
         this.renderer.setClearColor(this.backgroundColor, 1);
@@ -63,13 +79,11 @@ export class BrainViewer {
         this.trackControls.addEventListener('change', this.render.bind(this));
     };
 
-    render = function () {
-        this.renderer.render(this.scene, this.camera);
-    };
-
     loadCompartment = function (id: string, cid: number, color: string) {
         const loader = new THREE.OBJLoader();    
-        const path = `http://localhost:3030/mesh/${cid}`;
+        const path = `${this.constants.apiEndpoint}/mesh/${cid}`;
+
+        const that = this;
     
         loader.load(path, (obj: Object3D) => {
             obj.traverse(function (child: any) {
@@ -77,34 +91,8 @@ export class BrainViewer {
                     uniforms: {
                         color: {type: 'c', value: new THREE.Color('#' + color)},
                     },
-                    vertexShader: `
-                    #line 585
-                    varying vec3 normal_in_camera;
-                    varying vec3 view_direction;
-    
-                    void main() {
-                        vec4 pos_in_camera = modelViewMatrix * vec4(position, 1.0);
-                        gl_Position = projectionMatrix * pos_in_camera;
-                        normal_in_camera = normalize(mat3(modelViewMatrix) * normal);
-                        view_direction = normalize(pos_in_camera.xyz);
-                    }
-                `,
-                    fragmentShader: `
-                    #line 597
-                    uniform vec3 color;
-                    varying vec3 normal_in_camera;
-                    varying vec3 view_direction;
-    
-                    void main() {
-                        // Make edges more opaque than center
-                        float edginess = 1.0 - abs(dot(normal_in_camera, view_direction));
-                        float opacity = clamp(edginess - 0.30, 0.0, 0.5);
-                        // Darken compartment at the very edge
-                        float blackness = pow(edginess, 4.0) - 0.3;
-                        vec3 c = mix(color, vec3(0,0,0), blackness);
-                        gl_FragColor = vec4(c, opacity);
-                    }
-                `,
+                    vertexShader: that.constants.compartmentVertexShader,
+                    fragmentShader: that.constants.compartmentFragmentShader,
                     transparent: true,
                     depthTest: true,
                     depthWrite: false,
@@ -113,10 +101,52 @@ export class BrainViewer {
             });
     
             obj.name = id;
-            obj.position.set(-this.centerpoint[0], -this.centerpoint[1], -this.centerpoint[2]);
+            let x, y, z;
+            [x, y, z] = this.constants.centerPoint.map((t: number) => -t);
+            obj.position.set(x, y, z);
     
             this.scene.add(obj);
         });
+    };
+
+    loadPenetration = function(id: string) {
+        const path = `${this.constants.apiEndpoint}/penetrations/${id}`;
+        const coordPath = `${path}/coordinates`;
+
+        
+
+        axios.get(coordPath).
+            then((res: any) => {
+                // load penetration coordinates
+                let response: ICoordinateData = res.data;
+                if (response.stride == 0) // errored out, abort
+                    return;
+
+                let x, y, z;
+                [x, y, z] = this.constants.centerPoint.map((t: number) => -t);
+
+                // populate penetration with loaded points
+                let penetration: IPenetration = {
+                    points: []
+                };
+        
+                for (let i=0; i<response.coordinates.length; i += response.stride) {
+                    penetration.points.push({
+                        id: response.ids[i/response.stride],
+                        penetrationId: id,
+                        x: response.coordinates[i],
+                        y: response.coordinates[i+1],
+                        z: response.coordinates[i+2]
+                    });
+
+                    // add point to scene
+                    let pointObj = this.createPoint(penetration.points[i/response.stride]);
+                    this.scene.add(pointObj);
+        
+                    pointObj.position.set(x, y, z);
+                }
+            }).
+            catch((err: any) => { console.error(err) });
     };
 
     setCompartmentVisible = function (id: string, visible: boolean) {
@@ -126,6 +156,19 @@ export class BrainViewer {
             compartment.visible = visible;
         }
     };
+
+    createPoint = function(point: IPoint) {
+        const pointObj = new THREE.Object3D();
+
+        let mesh = new THREE.Mesh(
+            this.sphereGeometry,
+            this.sphereMaterial
+        );
+        mesh.position.x = point.x;
+        mesh.position.y = point.y;
+        mesh.position.z = point.z;
+
+        pointObj.add(mesh);
+        return pointObj;
+    }
 }
-
-

@@ -63,16 +63,21 @@ def get_pseudocoronal_annotation_slice(penetration_id: str):
         return make_response(f"Penetration not found.", 404)
     
     plane = state.get_pseudocoronal_annotation_slice(penetration_id)
-    return {"voxels": plane.ravel().tolist(), "stride": coords.shape[0]}
+    return {"voxels": plane.ravel().tolist(), "stride": plane.shape[1]}
 
 
 @app.route("/penetrations/<penetration_id>/coordinates")
 def get_coordinates(penetration_id: str):
     if not state.has_penetration(penetration_id):
         return make_response(f"Penetration not found.", 404)
-    
+
+    ids = state.get_unit_ids(penetration_id)
     coords = state.get_coordinates(penetration_id)
-    return {"coordinates": coords.ravel().tolist(), "stride": coords.shape[0]}
+    return {
+        "ids": ids.ravel().tolist(),
+        "coordinates": coords.ravel().tolist(),
+        "stride": coords.shape[1]
+    }
 
 
 @app.route("/settings", methods=["GET", "POST"])
