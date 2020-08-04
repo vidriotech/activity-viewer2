@@ -26,35 +26,60 @@
  * ```
  */
 
+import { ipcRenderer } from 'electron';
+
 import React from 'react';
 import ReactDOM from 'react-dom';
-const THREE = require('three');
-import * as THREEM from 'three';
-require("three-obj-loader")(THREE);
 
-import {Viewer3D} from './components/Viewer3D';
+import { App, IAppProps } from './components/App';
 
 // Import CSS stylesheet
 import './css/index.css';
+import { APIClient } from './apiClient';
+import { AVConstants } from './constants';
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
 let root = document.createElement('div');
 root.id = 'root';
 document.body.appendChild(root);
 
-ReactDOM.render(
-    <Viewer3D />,
-    document.getElementById('root')
-);
+// get settings path and data file paths from main process
+const settingsPath = ipcRenderer.sendSync('settings-path');
+const dataPaths = ipcRenderer.sendSync('data-paths');
 
-console.log('👋 This message is being logged by "renderer.js", included via webpack and hey there\'s some React here too');
+console.log(dataPaths);
 
-const loader = new THREE.OBJLoader();
-const path = 'http://localhost:3030/mesh/1';
+const constants = new AVConstants();
+const apiClient = new APIClient(constants.apiEndpoint);
 
-loader.load(path, (obj: THREE.Group) => {
-    console.log(obj);
-    obj.traverse((child: any) => {
-        console.log(child);
+let props: IAppProps = {
+    compartmentTree: null,
+    constants: constants,
+    initialPenetrations: null,
+    settings: null
+}
+
+apiClient.setSettings(settingsPath)
+    .then((res: any) => {
+        props.settings = res.data;
+
+        return apiClient.addPenetrations(dataPaths);
+    })
+    .then((res: any) => {
+        props.initialPenetrations = res.data.penetrations;
+
+        return apiClient.fetchCompartmentTree();
+    })
+    .then((res: any) => {
+        props.compartmentTree = res.data;
+
+        ReactDOM.render(
+            <App {...props}/>,
+            document.getElementById('root')
+        );
+    })
+    .catch((err: any) => {
+        console.error(err);
     });
-});
+
+

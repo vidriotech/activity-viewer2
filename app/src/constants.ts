@@ -1,9 +1,11 @@
-import { SagittalLimit, HorizontalLimit, CoronalLimit } from "./brainViewer";
-
 export class AVConstants {
     private SagittalLimit = 11400;
     private HorizontalLimit = 8000;
     private CoronalLimit = 13200;
+    
+    private endpoint = 'http://localhost:3030';
+    private _rootId = 997;
+    private _rootColor = [135, 135, 135];
 
     private _compartmentVertexShader =  `
     #line 585
@@ -32,18 +34,16 @@ export class AVConstants {
         gl_FragColor = vec4(c, opacity);
     }`
 
-    private endpoint = 'http://localhost:3030';
+    public get apiEndpoint() {
+        return this.endpoint;
+    }
 
     public get centerPoint() {
         return [
-            this.SagittalLimit / 2,
-            this.HorizontalLimit / 2,
-            this.CoronalLimit / 2
-        ];
-    }
-
-    public get apiEndpoint() {
-        return this.endpoint;
+            this.SagittalLimit,
+            this.HorizontalLimit,
+            this.CoronalLimit
+        ].map(x => x / 2);
     }
 
     public get compartmentVertexShader() {
@@ -52,5 +52,13 @@ export class AVConstants {
 
     public get compartmentFragmentShader() {
         return this._compartmentFragmentShader;
+    }
+
+    public get rootColor() {
+        return this._rootColor;
+    }
+
+    public get rootId() {
+        return this._rootId;
     }
 }

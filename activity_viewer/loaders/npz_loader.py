@@ -62,7 +62,7 @@ class NpzLoader:
             raise KeyError("Data missing 'ccf_coord' field.")
 
         # numeric values
-        if not np.issubdtype(ccf_coord.dtype, np.integer) and not np.issubdtype(ccf_coord.dtype, np.float):
+        if not np.issubdtype(ccf_coord.dtype, np.integer) and not np.issubdtype(ccf_coord.dtype, np.floating):
             raise TypeError(f"Expecting numeric CCF coordinates, got {ccf_coord.dtype}.")
 
         # 3 coords for each unit
@@ -86,7 +86,7 @@ class NpzLoader:
             waveform = self._data["waveform"]
 
             # numeric values
-            if not np.issubdtype(waveform.dtype, np.integer) and not np.issubsctype(waveform.dtype, np.float):
+            if not np.issubdtype(waveform.dtype, np.integer) and not np.issubdtype(waveform.dtype, np.floating):
                 raise TypeError(f"Expecting numeric waveform values, got {waveform.dtype}.")
 
             # 3 coords for each unit

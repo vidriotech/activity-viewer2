@@ -1,6 +1,8 @@
+from collections import deque
 from pathlib import Path
 from typing import List, Optional, Union
 
+from allensdk.core.structure_tree import StructureTree
 from flask import Flask
 import numpy as np
 
@@ -81,13 +83,56 @@ class APIState:
         ----------
         file_path : str or Path
         """
+        print(f"loading penetration {file_path}")
         try:
             self._npz_loader.load_file(file_path)
-        except (FileNotFoundError, TypeError, ValueError, KeyError):
+        except (FileNotFoundError, TypeError, ValueError, KeyError) as e:
+            print(e)
             return
 
         probe_insertion = self._npz_loader.get("probe_insertion").reshape(-1)[0]
         self._penetrations[probe_insertion] = Path(file_path)
+
+    def get_compartment_tree(self):
+        """Get the entire compartment hierarchy."""
+        def populate_children(tr: StructureTree, node: dict):
+            for child in tr.children([node["id"]])[0]:
+                node["children"].append({
+                    "id": child["id"],
+                    "name": child["name"],
+                    "acronym": child["acronym"],
+                    "rgb_triplet": child["rgb_triplet"],
+                    "children": []
+                })
+                
+            for child in node["children"]:
+                populate_children(tr, child)
+
+        tree = StructureTree(self.cache.load_structure_graph())
+        root = {
+            "id": 997,
+            "name": "root",
+            "acronym": "root",
+            "rgb_triplet": [135, 135, 135],
+            "children": []
+        }
+        populate_children(tree, root)
+
+        return root
+
+    def get_compartments(self, penetration_id: str):
+        """Get compartments for each point in `penetration_id`."""
+        if not self.has_penetration(penetration_id):
+            return
+
+        ccf_coord = self.get_coordinates(penetration_id)  # loads this penetration
+        annotation_volume, _ = self.cache.load_annotation_volume()
+        tree = StructureTree(self.cache.load_structure_graph())
+
+        i,j,k = (ccf_coord.T / 100).astype(np.int)
+        cids = annotation_volume[i, j, k]
+
+        return tree.get_structures_by_id(cids)
 
     def get_coordinates(self, penetration_id: str):
         """Get CCF coordinates for `penetration_id`."""
@@ -133,6 +178,7 @@ class APIState:
 
     @property
     def cache(self) -> Cache:
+        """Cache object."""
         return self._cache
 
     @property

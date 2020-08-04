@@ -1,5 +1,6 @@
 import { IPoint } from './pointModel';
 
 export interface IPenetration {
-    points: IPoint[]
+    id: string,
+    points: IPoint[],
 }

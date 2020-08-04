@@ -1,4 +1,4 @@
-import { IPoint } from './models/pointModel';
+import { IPoint } from '../models/pointModel';
 
 export class PointViewModel {
     private visible: boolean;
@@ -23,6 +23,18 @@ export class PointViewModel {
             this.point.hasOwnProperty('radius') ? this.point.radius.length: 1
         );
         this.timestep = 0;
+    }
+
+    public get compartmentAcronym() {
+        return this.point.compartment.acronym;
+    }
+
+    public get compartmentId() {
+        return this.point.compartment.id;
+    }
+
+    public get compartmentName() {
+        return this.point.compartment.name;
     }
 
     public get isVisible() {

@@ -116,6 +116,8 @@ class System(DefaultSerializable):
             The version of the Allen Brain Atlas to use.
         data_directory : str or Path
             Directory where data is cached.
+        resolution : int
+            Volume per voxel, in microns. Only 100, 50, 25, or 10 are permitted.
         """
         super().__init__()
 

@@ -9,11 +9,7 @@ const axios = require('axios');
 import { AVConstants } from './constants';
 import { IPoint } from './models/pointModel';
 import { IPenetration } from './models/penetrationModel';
-import { ICoordinateData } from './models/responses';
-
-export const SagittalLimit = 11400;
-export const HorizontalLimit = 8000;
-export const CoronalLimit = 13200;
+import { IPenetrationData } from './models/api';
 
 export class BrainViewer {
     public HEIGHT = window.innerHeight; // height of canvas
@@ -79,10 +75,24 @@ export class BrainViewer {
         this.trackControls.addEventListener('change', this.render.bind(this));
     };
 
+    createPoint = function(point: IPoint) {
+        const pointObj = new THREE.Object3D();
+
+        let mesh = new THREE.Mesh(
+            this.sphereGeometry,
+            this.sphereMaterial
+        );
+        mesh.position.x = point.x;
+        mesh.position.y = point.y;
+        mesh.position.z = point.z;
+
+        pointObj.add(mesh);
+        return pointObj;
+    };
+
     loadCompartment = function (id: string, cid: number, color: string) {
         const loader = new THREE.OBJLoader();    
         const path = `${this.constants.apiEndpoint}/mesh/${cid}`;
-
         const that = this;
     
         loader.load(path, (obj: Object3D) => {
@@ -110,15 +120,12 @@ export class BrainViewer {
     };
 
     loadPenetration = function(id: string) {
-        const path = `${this.constants.apiEndpoint}/penetrations/${id}`;
-        const coordPath = `${path}/coordinates`;
+        const penPath = `${this.constants.apiEndpoint}/penetrations/${id}`;
 
-        
-
-        axios.get(coordPath).
+        axios.get(penPath).
             then((res: any) => {
                 // load penetration coordinates
-                let response: ICoordinateData = res.data;
+                let response: IPenetrationData = res.data;
                 if (response.stride == 0) // errored out, abort
                     return;
 
@@ -127,23 +134,35 @@ export class BrainViewer {
 
                 // populate penetration with loaded points
                 let penetration: IPenetration = {
+                    id: id,
                     points: []
                 };
         
                 for (let i=0; i<response.coordinates.length; i += response.stride) {
-                    penetration.points.push({
+                    const point: IPoint = {
                         id: response.ids[i/response.stride],
                         penetrationId: id,
                         x: response.coordinates[i],
                         y: response.coordinates[i+1],
-                        z: response.coordinates[i+2]
-                    });
+                        z: response.coordinates[i+2],
+                        compartment: response.compartments[i/response.stride]
+                    };
+
+                    // load compartment if not already loaded
+                    // const compartmentName = point.compartment.name;
+                    // const compartment = this.scene.getObjectByName(compartmentName);
+                    // if (!compartment) {
+                    //     const compartmentId = point.compartment.id;
+                    //     const compartmentColor = 0x888888;
+                    //     this.loadCompartment(compartmentName, compartmentId, compartmentColor);
+                    // }
 
                     // add point to scene
-                    let pointObj = this.createPoint(penetration.points[i/response.stride]);
+                    let pointObj = this.createPoint(point);
                     this.scene.add(pointObj);
         
                     pointObj.position.set(x, y, z);
+                    penetration.points.push(point);
                 }
             }).
             catch((err: any) => { console.error(err) });
@@ -156,19 +175,4 @@ export class BrainViewer {
             compartment.visible = visible;
         }
     };
-
-    createPoint = function(point: IPoint) {
-        const pointObj = new THREE.Object3D();
-
-        let mesh = new THREE.Mesh(
-            this.sphereGeometry,
-            this.sphereMaterial
-        );
-        mesh.position.x = point.x;
-        mesh.position.y = point.y;
-        mesh.position.z = point.z;
-
-        pointObj.add(mesh);
-        return pointObj;
-    }
 }

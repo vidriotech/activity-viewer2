@@ -1,4 +1,4 @@
-import { app, BrowserWindow } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 const axios = require('axios');
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
@@ -22,6 +22,9 @@ const createWindow = () => {
   const mainWindow = new BrowserWindow({
     width: 1024,
     height: 768,
+    webPreferences: {
+      nodeIntegration: true
+    }
   });
   
   // and load the index.html of the app.
@@ -62,22 +65,19 @@ if (devMode) {
   dotenv.config();
 }
 
-let dataPaths: string[] = [];
-Object.keys(process.env).forEach((key: string) => {
-  if (key.startsWith('AV_DATA_PATH')) {
-    dataPaths.push(process.env[key]);
-  }
-});
-
-axios({
-  'method': 'post',
-  'url': 'http://localhost:3030/configure',
-  'data': {
-    'settings_path': process.env.AV_SETTINGS_PATH,
-    'data_paths': dataPaths
-  },
-  'timeout': 5000
+// pass settings path to renderer process
+ipcMain.on('settings-path', (event, arg) => {
+  event.returnValue = process.env.AV_SETTINGS_PATH;
 })
-.catch((error: any) => {
-  console.error(error);
-});
+
+// pass initial data paths to renderer process
+ipcMain.on('data-paths', (event, arg) => {
+  let dataPaths: string[] = [];
+  Object.keys(process.env).forEach((key: string) => {
+    if (key.startsWith('AV_DATA_PATH')) {
+      dataPaths.push(process.env[key]);
+    }
+  });
+
+  event.returnValue = dataPaths;
+})
