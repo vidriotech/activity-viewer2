@@ -1,14 +1,13 @@
 import React from 'react';
 import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
-import { IPenetrationResponse, ISettingsResponse, ICompartmentNode } from '../models/api';
-import { Viewer3D } from './Viewer3D';
-import { IPenetration } from '../models/penetrationModel';
+import { ISettingsResponse } from '../models/api';
 import { MainView } from './MainView';
+import { CompartmentTree } from '../models/compartmentTree';
 
 
 export interface IAppProps {
-    compartmentTree: ICompartmentNode,
+    compartmentTree: CompartmentTree,
     constants: AVConstants,
     initialPenetrations: string[],
     settings: ISettingsResponse,
@@ -30,6 +29,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         };
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
+
+        // allow us to update compartments and penetrations from child components
+        // this.updateCompartments.bind(this);
     }
 
     public addPenetration(pen: string) {
@@ -56,23 +58,29 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.setState({displayCompartments: compartments});
     }
 
+    public updatePenetrations(penetrations: string[]) {
+        this.setState({availablePenetrations: penetrations});
+    }
+
     public render() {
         let mainViewProps = {
             availablePenetrations: this.state.availablePenetrations,
             compartmentTree: this.props.compartmentTree,
             constants: this.props.constants,
             settings: this.props.settings,
-            updateCompartments: this.updateCompartments,
+            updateCompartments: this.updateCompartments.bind(this),
+            updatePenetrations: this.updatePenetrations.bind(this),
         }
 
-        const penList = Array.from(this.state.availablePenetrations).map((pen: string) => {
-            <li>{pen}</li>
-        })
-        return <div>
+        const penList = this.state.availablePenetrations.map((pen: string) => {
+            return <li key={pen}>{pen}</li>
+        });
+        
+        return (<div>
             <h1>Mesoscale Activity Viewer</h1>
             <h2>Loaded penetrations:</h2>
             <ul>{penList}</ul>
             <MainView {...mainViewProps} />
-        </div>;
+        </div>);
     }
 }

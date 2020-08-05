@@ -36,6 +36,10 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/penetrations`);
     }
 
+    async fetchPenetrationVitals(penetrationId: string) {
+        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
+    }
+
     async fetchSettings() {
         return await axios.get(`${this.endpoint}/settings`);
     }

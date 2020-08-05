@@ -10,14 +10,16 @@ import { IPenetration } from '../models/penetrationModel';
 import { PointViewModel } from '../viewmodels/pointViewModel';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 import { APIClient } from '../apiClient';
+import { CompartmentTree } from '../models/compartmentTree';
 
 
 interface IViewer3DProps {
     availablePenetrations: string[],
     constants: AVConstants,
-    compartmentTree: ICompartmentNode,
+    compartmentTree: CompartmentTree,
     settings: ISettingsResponse,
     updateCompartments(compartments: string[]): void,
+    updatePenetrations(penetrations: string[]): void,
 }
 
 interface IViewer3DState {
@@ -29,117 +31,64 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     constructor(props: IViewer3DProps) {
         super(props);
 
-        this.apiClient = new APIClient(this.props.constants.apiEndpoint);
-
         this.state = {
             displayCompartments: [],
             loadedCompartments: new Set<number>(),
         };
     }
 
-    private apiClient: APIClient;
     private viewer: BrainViewer = null;
 
     private async createViewer() {
         if (this.viewer !== null)
             return;
 
-        const v = new BrainViewer();
+        const v = new BrainViewer(this.props.constants, this.props.compartmentTree);
         v.container = 'viewer-container'; // create this div in render()
         v.initialize();
         this.viewer = v;
     }
 
-    private createPoint(point: PointViewModel) {
-
-    }
-
     private populateCompartments() {
         let cSettings = this.props.settings.compartment;
-        let compartmentMap = new Map<number, ICompartment>();
-        let compartmentList: ICompartmentView[] = [];
-        let compartmentNames = new Set<string>();
 
-        // add root compartment
-        const rootCompartment = {
-            id: this.props.constants.rootId,
-            acronym: 'root',
-            name: 'root',
-            rgb_triplet: this.props.constants.rootColor
-        };
-
-        compartmentMap.set(
-            this.props.constants.rootId,
-            rootCompartment
-        );
-
-        compartmentList.push({
-            compartment: rootCompartment,
-            isVisible: true
-        });
-
-        compartmentNames.add('root');
-
-        // add compartments by maxDepth
-        let currentQueue = [this.props.compartmentTree];
-        let nextQueue: ICompartmentNode[] = [];
-        let node;
-
-        for (let depth=0; depth<cSettings.maxDepth; depth++) {
-            while (currentQueue.length > 0) {
-                node = currentQueue.splice(0, 1)[0];
-
-                compartmentNames.add(node.name);
-                compartmentMap.set(
-                    node.id,
-                    {
-                        id: node.id,
-                        acronym: node.acronym,
-                        name: node.name,
-                        rgb_triplet: node.rgb_triplet
-                    }
-                );
-                nextQueue = nextQueue.concat(node.children);
-            }
-
-            nextQueue = currentQueue;
-        }
+        let compartments = this.props.compartmentTree.getCompartmentsByDepth(cSettings.maxDepth);
+        let compartmentViews: ICompartmentView[] = [];
 
         // remove compartments in `exclude`
-        cSettings.exclude.forEach((el: string) => {
-            let comp = this.searchCompartmentsByString(el);
-            if (el !== null) {
-                compartmentNames.delete(comp.name);
-                compartmentMap.delete(comp.id);
+        cSettings.exclude.forEach((compId: string) => {
+            let idx = compartments.map((comp) => comp.name).indexOf(compId); // search names
+            if (idx === -1) {
+                idx = compartments.map((comp) => comp.acronym).indexOf(compId); // search acronyms
+            }
+
+            if (idx !== -1) {
+                compartments.splice(idx, 1);
             }
         });
 
         // add compartments in `include`
-        cSettings.include.forEach((el: string) => {
-            let comp = this.searchCompartmentsByString(el);
-            if (el !== null) {
-                compartmentNames.add(comp.name);
+        cSettings.include.forEach((compId: string) => {
+            let comp = this.props.compartmentTree.getCompartmentByName(compId);
+            if (comp === null) {
+                comp = this.props.compartmentTree.getCompartmentByAcronym(compId);
+            }
 
-                compartmentMap.set(comp.id, {
-                    id: comp.id,
-                    name: comp.name,
-                    acronym: comp.acronym,
-                    rgb_triplet: comp.rgb_triplet
-                });
+            if (comp !== null) {
+                compartments.push(comp);
             }
         });
-        compartmentMap.forEach((val, key) => {
-            if (key === this.props.constants.rootId)
-                return;
-
-            compartmentList.push({
-                compartment: val,
-                isVisible: false
+        
+        // create views for all compartments
+        compartments.forEach((comp) => {
+            compartmentViews.push({
+                compartment: comp,
+                isVisible: comp.id === this.props.constants.rootId
             });
         });
 
-        // this.props.updateCompartments(compartmentNames);
-        this.setState({displayCompartments: compartmentList}, () => {
+        this.setState({displayCompartments: compartmentViews}, () => {
+            this.props.updateCompartments(compartments.map((comp) => comp.name));
             this.createViewer();
             this.renderCompartments();
             this.renderPenetrations();
@@ -177,23 +126,6 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
 
             this.viewer.setCompartmentVisible(compName, true);
         });
-    }
-
-    private searchCompartmentsByString(cName: string): ICompartmentNode {
-        let root = this.props.compartmentTree;
-        let queue = [root];
-        let node = null;
-
-        while (queue.length > 0) {
-            node = queue.splice(0, 1)[0]; // pop from queue
-            if (node.name === cName || node.acronym === cName) {
-                return node;
-            }
-
-            queue = queue.concat(node.children);
-        }
-
-        return null;
     }
 
     public componentDidMount() {

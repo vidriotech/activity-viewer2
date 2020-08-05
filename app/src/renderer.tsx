@@ -37,6 +37,7 @@ import { App, IAppProps } from './components/App';
 import './css/index.css';
 import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
+import { CompartmentTree } from './models/compartmentTree';
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
 let root = document.createElement('div');
@@ -46,8 +47,6 @@ document.body.appendChild(root);
 // get settings path and data file paths from main process
 const settingsPath = ipcRenderer.sendSync('settings-path');
 const dataPaths = ipcRenderer.sendSync('data-paths');
-
-console.log(dataPaths);
 
 const constants = new AVConstants();
 const apiClient = new APIClient(constants.apiEndpoint);
@@ -71,7 +70,7 @@ apiClient.setSettings(settingsPath)
         return apiClient.fetchCompartmentTree();
     })
     .then((res: any) => {
-        props.compartmentTree = res.data;
+        props.compartmentTree = new CompartmentTree(res.data);
 
         ReactDOM.render(
             <App {...props}/>,

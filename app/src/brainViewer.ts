@@ -10,15 +10,28 @@ import { AVConstants } from './constants';
 import { IPoint } from './models/pointModel';
 import { IPenetration } from './models/penetrationModel';
 import { IPenetrationData } from './models/api';
+import { APIClient } from './apiClient';
+import { CompartmentTree } from './models/compartmentTree';
 
 export class BrainViewer {
+    constructor(constants: AVConstants, compartmentTree: CompartmentTree) {
+        this.constants = constants;
+        this.compartmentTree = compartmentTree;
+        this.apiClient = new APIClient(this.constants.apiEndpoint);
+    }
+
+    private apiClient: APIClient;
+    private compartmentTree: CompartmentTree;
+    private constants: AVConstants;
+
+    private loadedCompartments: string[] = [];
+    private visibleCompartments: string[] = [];
+
     public HEIGHT = window.innerHeight; // height of canvas
     public WIDTH = window.innerWidth; // width of canvas
     public container = 'container';
     public flip = true; // flip y axis
     public radiusScaleFactor = 1;
-    
-    private constants = new AVConstants();
     private backgroundColor = 0xffffff;
     private fov = 45;
 
@@ -32,6 +45,10 @@ export class BrainViewer {
         color: 0x0080ff
     });
     private sphereGeometry = new THREE.SphereGeometry(40);
+
+    private rgb2Hex(val: number[]): string {
+        return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
+    }
 
     render = function () {
         this.renderer.render(this.scene, this.camera);
@@ -119,11 +136,9 @@ export class BrainViewer {
         });
     };
 
-    loadPenetration = function(id: string) {
-        const penPath = `${this.constants.apiEndpoint}/penetrations/${id}`;
-
-        axios.get(penPath).
-            then((res: any) => {
+    loadPenetration = function(penetrationId: string) {
+        this.apiClient.fetchPenetrationVitals(penetrationId)
+            .then((res: any) => {
                 // load penetration coordinates
                 let response: IPenetrationData = res.data;
                 if (response.stride == 0) // errored out, abort
@@ -134,14 +149,14 @@ export class BrainViewer {
 
                 // populate penetration with loaded points
                 let penetration: IPenetration = {
-                    id: id,
+                    id: penetrationId,
                     points: []
                 };
         
                 for (let i=0; i<response.coordinates.length; i += response.stride) {
                     const point: IPoint = {
                         id: response.ids[i/response.stride],
-                        penetrationId: id,
+                        penetrationId: penetrationId,
                         x: response.coordinates[i],
                         y: response.coordinates[i+1],
                         z: response.coordinates[i+2],
@@ -149,13 +164,15 @@ export class BrainViewer {
                     };
 
                     // load compartment if not already loaded
-                    // const compartmentName = point.compartment.name;
-                    // const compartment = this.scene.getObjectByName(compartmentName);
-                    // if (!compartment) {
-                    //     const compartmentId = point.compartment.id;
-                    //     const compartmentColor = 0x888888;
-                    //     this.loadCompartment(compartmentName, compartmentId, compartmentColor);
-                    // }
+                    const compartmentName = point.compartment.name;
+                    const compartment = this.scene.getObjectByName(compartmentName);
+                    if (!compartment) {
+                        console.log(`loading compartment (was ${compartment})`);
+                        const compartmentId = point.compartment.id;
+                        const rgb_triplet = this.compartmentTree.getCompartmentById(compartmentId).rgb_triplet;
+                        const color = this.rgb2Hex(rgb_triplet);
+                        this.loadCompartment(compartmentName, compartmentId, color);
+                    }
 
                     // add point to scene
                     let pointObj = this.createPoint(point);
