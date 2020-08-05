@@ -65,6 +65,29 @@ After all the dependencies are installed, do a quick sanity check:
 
 Now you can start hacking.
 
+Running the viewer
+~~~~~~~~~~~~~~~~~~
+
+Paths to the settings file and data files are made available to the
+Electron process from the Python command ``viewer visualize ...`` by way of
+environment variables. For development purposes, the main Electron process is
+configured to source a ``.env`` file in the app/src/ directory so that the zombie
+process issue (see below) can be circumvented. **Rather than running**
+``viewer visualize ...``, **you should instead run** ``viewerd`` **in one terminal and**
+``cd`` **into the app/ directory in another terminal and run** ``npm start``.
+
+Here's what your ``.env`` file should look like:
+
+.. code-block:: dotenv
+
+    AV_SETTINGS_PATH=/path/to/settings.json
+    AV_DATA_PATH0=/path/to/data-file-1.npz
+    AV_DATA_PATH1=/path/to/data-file-2.npz
+
+You can specify additional data files with ``AV_DATA_PATH2``, ``AV_DATA_PATH3``, and
+so forth.
+**At this time it's not recommended to show more than one or two in one go unless you like long wait times.**
+
 Known issues
 ~~~~~~~~~~~~
 
