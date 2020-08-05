@@ -157,25 +157,25 @@
 <div class="section" id="module-activity_viewer.api.routes">
 <span id="activity-viewer-api-routes-module"></span><h2>activity_viewer.api.routes module<a class="headerlink" href="#module-activity_viewer.api.routes" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt id="activity_viewer.api.routes.configure">
-<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">configure</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.configure" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update settings and data files.</p>
-</dd></dl>
-
-<dl class="py function">
 <dt id="activity_viewer.api.routes.get_all_penetrations">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_all_penetrations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_all_penetrations" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="activity_viewer.api.routes.get_coordinates">
-<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_coordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_coordinates" title="Permalink to this definition">¶</a></dt>
+<dt id="activity_viewer.api.routes.get_compartment_tree">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_compartment_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_compartment_tree" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_mesh">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_mesh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">structure_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_mesh" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_penetration_vitals">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_penetration_vitals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_penetration_vitals" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get IDs, coordinates, and compartments for each point in <cite>penetration_id</cite>.</p>
+</dd></dl>
 
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_pseudocoronal_annotation_slice">
@@ -215,7 +215,20 @@
 <dl class="py method">
 <dt id="activity_viewer.api.state.APIState.cache">
 <em class="property">property </em><code class="sig-name descname">cache</code><a class="headerlink" href="#activity_viewer.api.state.APIState.cache" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Cache object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_compartment_tree">
+<code class="sig-name descname">get_compartment_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_compartment_tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the entire compartment hierarchy.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_compartments">
+<code class="sig-name descname">get_compartments</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_compartments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get compartments for each point in <cite>penetration_id</cite>.</p>
+</dd></dl>
 
 <dl class="py method">
 <dt id="activity_viewer.api.state.APIState.get_coordinates">
@@ -227,6 +240,12 @@
 <dt id="activity_viewer.api.state.APIState.get_pseudocoronal_annotation_slice">
 <code class="sig-name descname">get_pseudocoronal_annotation_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_pseudocoronal_annotation_slice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get voxel values for pseudocoronal plane of best fit for <cite>penetration_id</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_unit_ids">
+<code class="sig-name descname">get_unit_ids</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_unit_ids" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get point ids for <cite>penetration_id</cite>.</p>
 </dd></dl>
 
 <dl class="py method">

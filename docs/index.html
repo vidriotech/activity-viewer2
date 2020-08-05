@@ -201,6 +201,25 @@ activate a new virtual environment, then install dependencies:</p>
 </div>
 <p>Now you can start hacking.</p>
 </div>
+<div class="section" id="running-the-viewer">
+<h3>Running the viewer<a class="headerlink" href="#running-the-viewer" title="Permalink to this headline">¶</a></h3>
+<p>Paths to the settings file and data files are made available to the
+Electron process from the Python command <code class="docutils literal notranslate"><span class="pre">viewer</span> <span class="pre">visualize</span> <span class="pre">...</span></code> by way of
+environment variables. For development purposes, the main Electron process is
+configured to source a <code class="docutils literal notranslate"><span class="pre">.env</span></code> file in the app/src/ directory so that the zombie
+process issue (see below) can be circumvented. <strong>Rather than running</strong>
+<code class="docutils literal notranslate"><span class="pre">viewer</span> <span class="pre">visualize</span> <span class="pre">...</span></code>, <strong>you should instead run</strong> <code class="docutils literal notranslate"><span class="pre">viewerd</span></code> <strong>in one terminal and</strong>
+<code class="docutils literal notranslate"><span class="pre">cd</span></code> <strong>into the app/ directory in another terminal and run</strong> <code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">start</span></code>.</p>
+<p>Here’s what your <code class="docutils literal notranslate"><span class="pre">.env</span></code> file should look like:</p>
+<div class="highlight-dotenv notranslate"><div class="highlight"><pre><span></span>AV_SETTINGS_PATH=/path/to/settings.json
+AV_DATA_PATH0=/path/to/data-file-1.npz
+AV_DATA_PATH1=/path/to/data-file-2.npz
+</pre></div>
+</div>
+<p>You can specify additional data files with <code class="docutils literal notranslate"><span class="pre">AV_DATA_PATH2</span></code>, <code class="docutils literal notranslate"><span class="pre">AV_DATA_PATH3</span></code>, and
+so forth.
+<strong>At this time it’s not recommended to show more than one or two in one go unless you like long wait times.</strong></p>
+</div>
 <div class="section" id="known-issues">
 <h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>
 <div class="section" id="python-3-8">
