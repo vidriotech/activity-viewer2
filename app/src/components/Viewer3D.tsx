@@ -1,16 +1,15 @@
 import React from 'react';
 
-const axios = require('axios');
-
+import { APIClient } from '../apiClient';
 import { BrainViewer } from '../brainViewer';
 import { AVConstants } from '../constants';
-import { ICompartmentNode, IPenetrationData, ISettingsResponse } from '../models/api';
-import { ICompartment } from '../models/compartmentModel';
-import { IPenetration } from '../models/penetrationModel';
-import { PointViewModel } from '../viewmodels/pointViewModel';
-import { ICompartmentView } from '../viewmodels/compartmentViewModel';
-import { APIClient } from '../apiClient';
+
+import { ISettingsResponse, IPenetrationData, ICompartmentNode } from '../models/api';
 import { CompartmentTree } from '../models/compartmentTree';
+import { IPoint } from '../models/pointModel';
+import { IPenetration } from '../models/penetrationModel';
+
+import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
 
 interface IViewer3DProps {
@@ -18,30 +17,28 @@ interface IViewer3DProps {
     constants: AVConstants,
     compartmentTree: CompartmentTree,
     settings: ISettingsResponse,
-    updateCompartments(compartments: string[]): void,
+    visibleCompartments: ICompartmentView[],
+    updateCompartments(compartments: ICompartmentView[]): void,
     updatePenetrations(penetrations: string[]): void,
 }
 
-interface IViewer3DState {
-    displayCompartments: ICompartmentView[],
-    loadedCompartments: Set<number>,
-}
+interface IViewer3DState {}
 
 export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
+    private apiClient: APIClient;
+    private viewer: BrainViewer;
+
     constructor(props: IViewer3DProps) {
         super(props);
 
-        this.state = {
-            displayCompartments: [],
-            loadedCompartments: new Set<number>(),
-        };
+        this.apiClient = new APIClient(this.props.constants.apiEndpoint);
+        this.viewer = null;
     }
 
-    private viewer: BrainViewer = null;
-
     private async createViewer() {
-        if (this.viewer !== null)
+        if (this.viewer !== null) {
             return;
+        }
 
         const v = new BrainViewer(this.props.constants, this.props.compartmentTree);
         v.container = 'viewer-container'; // create this div in render()
@@ -52,87 +49,144 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     private populateCompartments() {
         let cSettings = this.props.settings.compartment;
 
-        let compartments = this.props.compartmentTree.getCompartmentsByDepth(cSettings.maxDepth);
-        let compartmentViews: ICompartmentView[] = [];
+        let compartmentNodes = this.props.compartmentTree.getCompartmentNodesByDepth(cSettings.maxDepth);
+        let visibleCompartments: ICompartmentView[] = [];
 
         // remove compartments in `exclude`
         cSettings.exclude.forEach((compId: string) => {
-            let idx = compartments.map((comp) => comp.name).indexOf(compId); // search names
+            let idx = compartmentNodes.map((comp) => comp.name).indexOf(compId); // search names
             if (idx === -1) {
-                idx = compartments.map((comp) => comp.acronym).indexOf(compId); // search acronyms
+                idx = compartmentNodes.map((comp) => comp.acronym).indexOf(compId); // search acronyms
             }
 
             if (idx !== -1) {
-                compartments.splice(idx, 1);
+                // remove child compartments
+                compartmentNodes.splice(idx, 1);
+                compartmentNodes.forEach((node) => {
+                    const childIdx = compartmentNodes.map((comp) => comp.name).indexOf(node.name);
+                    if (childIdx !== -1) {
+                        compartmentNodes.splice(childIdx, 1);
+                    }
+                });
             }
         });
 
         // add compartments in `include`
         cSettings.include.forEach((compId: string) => {
-            let comp = this.props.compartmentTree.getCompartmentByName(compId);
+            let comp = this.props.compartmentTree.getCompartmentNodeByName(compId);
             if (comp === null) {
-                comp = this.props.compartmentTree.getCompartmentByAcronym(compId);
+                comp = this.props.compartmentTree.getCompartmentNodeByAcronym(compId);
             }
 
             if (comp !== null) {
-                compartments.push(comp);
+                compartmentNodes.push(comp);
             }
         });
-        
+
         // create views for all compartments
-        compartments.forEach((comp) => {
-            compartmentViews.push({
-                compartment: comp,
+        compartmentNodes.forEach((comp: ICompartmentNode) => {
+            visibleCompartments.push({
+                compartment: {
+                    id: comp.id,
+                    name: comp.name,
+                    acronym: comp.acronym,
+                    rgb_triplet: comp.rgb_triplet,
+                },
                 isVisible: comp.id === this.props.constants.rootId
             });
         });
 
-        this.setState({displayCompartments: compartmentViews}, () => {
-            this.props.updateCompartments(compartments.map((comp) => comp.name));
-            this.createViewer();
-            this.renderCompartments();
-            this.renderPenetrations();
+        this.props.updateCompartments(visibleCompartments);
+    }
+
+    private loadPenetrations() {
+        if (this.viewer === null) {
+            return;
+        }
+
+        this.props.availablePenetrations.forEach((penetrationId: string) => {
+            this.apiClient.fetchPenetrationVitals(penetrationId)
+            .then((res: any) => res.data)
+            .then((response: IPenetrationData) => {
+                if (response.stride == 0) { // errored out, abort
+                    return;
+                }
+
+                let visibleCompartments = this.props.visibleCompartments.slice();
+                let vcNames = visibleCompartments.map(c => c.compartment.name);
+
+                // populate penetration with loaded points
+                let penetration: IPenetration ={
+                    id: penetrationId,
+                    points: []
+                };
+
+                // add each point to this penetration
+                for (let i = 0; i < response.coordinates.length; i += response.stride) {
+                    const idx = i / response.stride;
+                    const compartment = response.compartments[idx];
+
+                    if (!compartment) {
+                        console.log(response);
+                        continue;
+                    }
+
+                    const point: IPoint = {
+                        id: response.ids[idx],
+                        penetrationId: penetrationId,
+                        x: response.coordinates[i],
+                        y: response.coordinates[i+1],
+                        z: response.coordinates[i+2],
+                        compartment: compartment,
+                    };
+
+                    // make the compartment this point resides in visible
+                    const compartmentName = compartment.name;
+                    const vcIdx = vcNames.indexOf(compartmentName);
+                    if (vcIdx === -1) {
+                        visibleCompartments.push({
+                            compartment: compartment,
+                            isVisible: true
+                        });
+                    } else {
+                        visibleCompartments[idx].isVisible = true;
+                    }
+
+                    penetration.points.push(point);
+                }
+
+                this.viewer.loadPenetration(penetration);
+                this.props.updateCompartments(visibleCompartments);
+            });
         });
     }
 
     private renderPenetrations() {
-        if (this.viewer === null)
-            return;
-
-        this.props.availablePenetrations.forEach((penetrationId: string) => {
-            this.viewer.loadPenetration(penetrationId);
-        });
+        ;
     }
 
     private renderCompartments() {
-        if (this.viewer === null){
+        if (this.viewer === null) {
             return;
         }
 
-        this.state.displayCompartments.forEach((comp: ICompartmentView) => {
-            if (!comp.isVisible)
-                return;
-
-            let compName = comp.compartment.name;
-            let compId = comp.compartment.id;
-
-            // load if necessary
-            if (!this.state.loadedCompartments.has(compId)) {
-                let rgb = comp.compartment.rgb_triplet;
-                let color = `${rgb[0].toString(16)}${rgb[1].toString(16)}${rgb[2].toString(16)}`;
-                this.viewer.loadCompartment(compName, compId, color);
-                this.state.loadedCompartments.add(compId);
-            }
-
-            this.viewer.setCompartmentVisible(compName, true);
+        this.props.visibleCompartments.forEach((compartmentView: ICompartmentView) => {
+            this.viewer.setCompartmentVisible(compartmentView.compartment.name, compartmentView.isVisible);
         });
     }
 
     public componentDidMount() {
+        this.createViewer();
         this.populateCompartments();
+        this.loadPenetrations();
+    }
+
+    public componentDidUpdate() {
+        this.renderCompartments();
+        this.renderPenetrations();
     }
 
     public render() {
-        return <div id='viewer-container'/>
+        return <div id='viewer-container' />
     }
 }

@@ -4,14 +4,12 @@ const THREE = require('three');
 require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
-const axios = require('axios');
-
-import { AVConstants } from './constants';
-import { IPoint } from './models/pointModel';
-import { IPenetration } from './models/penetrationModel';
-import { IPenetrationData } from './models/api';
 import { APIClient } from './apiClient';
+import { IPenetrationData } from './models/api';
+import { AVConstants } from './constants';
 import { CompartmentTree } from './models/compartmentTree';
+import { IPenetration } from './models/penetrationModel';
+import { IPoint } from './models/pointModel';
 
 export class BrainViewer {
     constructor(constants: AVConstants, compartmentTree: CompartmentTree) {
@@ -25,10 +23,10 @@ export class BrainViewer {
     private constants: AVConstants;
 
     private loadedCompartments: string[] = [];
-    private visibleCompartments: string[] = [];
+    private _visibleCompartments: string[] = [];
 
-    public HEIGHT = window.innerHeight; // height of canvas
-    public WIDTH = window.innerWidth; // width of canvas
+    public HEIGHT = 0.4 * window.innerHeight; // height of canvas
+    public WIDTH = 0.5 * window.innerWidth; // width of canvas
     public container = 'container';
     public flip = true; // flip y axis
     public radiusScaleFactor = 1;
@@ -46,7 +44,7 @@ export class BrainViewer {
     });
     private sphereGeometry = new THREE.SphereGeometry(40);
 
-    private rgb2Hex(val: number[]): string {
+    public rgb2Hex(val: number[]): string {
         return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
     }
 
@@ -107,16 +105,29 @@ export class BrainViewer {
         return pointObj;
     };
 
-    loadCompartment = function (id: string, cid: number, color: string) {
+    loadCompartment = function (name: string) {
+        console.log(`loading ${name}`);
+        if (this.loadedCompartments.includes(name)) {
+            return;
+        }
+
+        let compartmentNode = this.compartmentTree.getCompartmentByName(name);
+        if (compartmentNode === null) {
+            return;
+        }
+
+        let compartmentId = compartmentNode.id;
+        let compartmentColor = '#' + this.rgb2Hex(compartmentNode.rgb_triplet);
+
         const loader = new THREE.OBJLoader();    
-        const path = `${this.constants.apiEndpoint}/mesh/${cid}`;
+        const path = `${this.constants.apiEndpoint}/mesh/${compartmentId}`;
         const that = this;
     
         loader.load(path, (obj: Object3D) => {
             obj.traverse(function (child: any) {
                 child.material = new THREE.ShaderMaterial({
                     uniforms: {
-                        color: {type: 'c', value: new THREE.Color('#' + color)},
+                        color: {type: 'c', value: new THREE.Color(compartmentColor)},
                     },
                     vertexShader: that.constants.compartmentVertexShader,
                     fragmentShader: that.constants.compartmentFragmentShader,
@@ -127,69 +138,50 @@ export class BrainViewer {
                 });
             });
     
-            obj.name = id;
+            obj.name = name;
             let x, y, z;
             [x, y, z] = this.constants.centerPoint.map((t: number) => -t);
             obj.position.set(x, y, z);
-    
+
+            this.loadedCompartments.push(name);
+            this._visibleCompartments.push(name);
             this.scene.add(obj);
         });
     };
 
-    loadPenetration = function(penetrationId: string) {
-        this.apiClient.fetchPenetrationVitals(penetrationId)
-            .then((res: any) => {
-                // load penetration coordinates
-                let response: IPenetrationData = res.data;
-                if (response.stride == 0) // errored out, abort
-                    return;
+    loadPenetration = function(penetration: IPenetration) {
+        const centerPoint = this.constants.centerPoint.map((t: number) => -t);
 
-                let x, y, z;
-                [x, y, z] = this.constants.centerPoint.map((t: number) => -t);
-
-                // populate penetration with loaded points
-                let penetration: IPenetration = {
-                    id: penetrationId,
-                    points: []
-                };
-        
-                for (let i=0; i<response.coordinates.length; i += response.stride) {
-                    const point: IPoint = {
-                        id: response.ids[i/response.stride],
-                        penetrationId: penetrationId,
-                        x: response.coordinates[i],
-                        y: response.coordinates[i+1],
-                        z: response.coordinates[i+2],
-                        compartment: response.compartments[i/response.stride]
-                    };
-
-                    // load compartment if not already loaded
-                    const compartmentName = point.compartment.name;
-                    const compartment = this.scene.getObjectByName(compartmentName);
-                    if (!compartment) {
-                        console.log(`loading compartment (was ${compartment})`);
-                        const compartmentId = point.compartment.id;
-                        const rgb_triplet = this.compartmentTree.getCompartmentById(compartmentId).rgb_triplet;
-                        const color = this.rgb2Hex(rgb_triplet);
-                        this.loadCompartment(compartmentName, compartmentId, color);
-                    }
-
-                    // add point to scene
-                    let pointObj = this.createPoint(point);
-                    this.scene.add(pointObj);
-        
-                    pointObj.position.set(x, y, z);
-                    penetration.points.push(point);
-                }
-            }).
-            catch((err: any) => { console.error(err) });
-    };
-
-    setCompartmentVisible = function (id: string, visible: boolean) {
-        const compartment = this.scene.getObjectByName(id);
-
-        if (compartment) {
-            compartment.visible = visible;
+        for (let i = 0; i < penetration.points.length; i++) {
+            const pointObj = this.createPoint(penetration.points[i]);
+            pointObj.position.set(...centerPoint);
+            this.scene.add(pointObj);
         }
     };
+
+    setCompartmentVisible = function (name: string, visible: boolean) {
+        // loading sets visible as a side effect
+        if (visible && !this.loadedCompartments.includes(name)) {
+            this.loadCompartment(name);
+        } else { // if not visible, don't bother loading, otherwise update an already-loaded compartment
+            const compartmentObj = this.scene.getObjectByName(name);
+
+            if (compartmentObj) {
+                compartmentObj.visible = visible;
+
+                if (visible) {
+                    this._visibleCompartments.push(name);
+                } else {
+                    const idx = this._visibleCompartments.indexOf(name);
+                    if (idx !== -1) {
+                        this._visibleCompartments.splice(idx, 1);
+                    }
+                }
+            }
+        }
+    };
+
+    public get visibleCompartments() {
+        return this._visibleCompartments;
+    }
 }
