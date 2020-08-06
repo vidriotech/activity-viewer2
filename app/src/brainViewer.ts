@@ -5,7 +5,6 @@ require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
 import { APIClient } from './apiClient';
-import { IPenetrationData } from './models/api';
 import { AVConstants } from './constants';
 import { CompartmentTree } from './models/compartmentTree';
 import { IPenetration } from './models/penetrationModel';

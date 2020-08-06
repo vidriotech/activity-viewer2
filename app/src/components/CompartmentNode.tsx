@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Icon, List, SemanticICONS } from 'semantic-ui-react';
+
 import { ICompartmentNode } from '../models/api';
-import { ICompartment } from '../models/compartmentModel';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
 export class CompartmentNode {

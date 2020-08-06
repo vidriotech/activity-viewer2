@@ -15,7 +15,7 @@ the next section to get started.
 .. _install-develop:
 
 Development
-----------
+-----------
 
 Prerequisites
 ~~~~~~~~~~~~~
@@ -78,7 +78,7 @@ process issue (see below) can be circumvented. **Rather than running**
 
 Here's what your ``.env`` file should look like:
 
-.. code-block:: dotenv
+.. code-block:: 
 
     AV_SETTINGS_PATH=/path/to/settings.json
     AV_DATA_PATH0=/path/to/data-file-1.npz
@@ -88,8 +88,41 @@ You can specify additional data files with ``AV_DATA_PATH2``, ``AV_DATA_PATH3``,
 so forth.
 **At this time it's not recommended to show more than one or two in one go unless you like long wait times.**
 
-Known issues
-~~~~~~~~~~~~
+Current limitations and known issues
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Choppy motion with dev tools engaged
+++++++++++++++++++++++++++++++++++++
+
+Camera motion is choppy when the dev tools panel is engaged. Closing the dev tools allows for
+smoother camera motion.
+
+Occasional incomplete load
+++++++++++++++++++++++++++
+
+Occasionally on loading, not all compartments or penetrations may appear. You should be able to
+hit refresh and they should load again.
+
+Preloaded compartments
+++++++++++++++++++++++
+
+Besides the root, compartments are displayed on load if and only if a point in a penetration is
+found in that compartment. This is for demonstration purposes and will change.
+
+Unfiltered compartment tree
++++++++++++++++++++++++++++
+
+Currently the compartment selection tree beneath the 3D viewer displays the entire tree,
+rather than the subset specified in settings.json. Compartments loaded by default are preselected
+in the tree. A second compartment selection widget will eventually show just the compartments
+specified in your settings file.
+
+Nonresponsive updates
++++++++++++++++++++++
+
+After loading, the canvas will appear black until you click and drag or scroll in the canvas.
+Selecting or deselecting a compartment in the selection tree may require a click in the canvas
+before you see an update.
 
 Python 3.8
 ++++++++++
@@ -169,3 +202,9 @@ expecting the following output:
     No type errors found
     Version: typescript 3.9.7
     Time: 4380ms
+
+Acknowledgments
+---------------
+
+Much of the UI code is based off of or otherwise inspired by work done previously by
+Patrick Edson for the `Mouselight Neuron Browser <https://ml-neuronbrowser.janelia.org/>`__.

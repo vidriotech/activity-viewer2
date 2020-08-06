@@ -1,4 +1,4 @@
-import { ICompartmentNode } from './api';
+import { ICompartmentNode, ISettingsResponse } from './api';
 import { ICompartment } from './compartmentModel';
 
 export class CompartmentTree {
@@ -35,6 +35,45 @@ export class CompartmentTree {
             name: c.name,
             rgb_triplet: c.rgb_triplet,
         }));
+    }
+
+    public getCompartmentSubset(settings: ISettingsResponse): ICompartmentNode[] {
+        const cSettings = settings.compartment;
+
+        let compartmentNodes = this.getCompartmentNodesByDepth(cSettings.maxDepth);
+
+        // remove compartments in `exclude`
+        cSettings.exclude.forEach((compId: string) => {
+            let idx = compartmentNodes.map((comp) => comp.name).indexOf(compId); // search names
+            if (idx === -1) {
+                idx = compartmentNodes.map((comp) => comp.acronym).indexOf(compId); // search acronyms
+            }
+
+            if (idx !== -1) {
+                // remove child compartments
+                compartmentNodes.splice(idx, 1);
+                compartmentNodes.forEach((node) => {
+                    const childIdx = compartmentNodes.map((comp) => comp.name).indexOf(node.name);
+                    if (childIdx !== -1) {
+                        compartmentNodes.splice(childIdx, 1);
+                    }
+                });
+            }
+        });
+
+        // add compartments in `include`
+        cSettings.include.forEach((compId: string) => {
+            let comp = this.getCompartmentNodeByName(compId);
+            if (comp === null) {
+                comp = this.getCompartmentNodeByAcronym(compId);
+            }
+
+            if (comp !== null) {
+                compartmentNodes.push(comp);
+            }
+        });
+
+        return compartmentNodes;
     }
 
     private getCompartmentNodesByAttr(attr: keyof(ICompartmentNode), vals: any[]) {

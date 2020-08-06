@@ -47,43 +47,11 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     }
 
     private populateCompartments() {
-        let cSettings = this.props.settings.compartment;
-
-        let compartmentNodes = this.props.compartmentTree.getCompartmentNodesByDepth(cSettings.maxDepth);
-        let visibleCompartments: ICompartmentView[] = [];
-
-        // remove compartments in `exclude`
-        cSettings.exclude.forEach((compId: string) => {
-            let idx = compartmentNodes.map((comp) => comp.name).indexOf(compId); // search names
-            if (idx === -1) {
-                idx = compartmentNodes.map((comp) => comp.acronym).indexOf(compId); // search acronyms
-            }
-
-            if (idx !== -1) {
-                // remove child compartments
-                compartmentNodes.splice(idx, 1);
-                compartmentNodes.forEach((node) => {
-                    const childIdx = compartmentNodes.map((comp) => comp.name).indexOf(node.name);
-                    if (childIdx !== -1) {
-                        compartmentNodes.splice(childIdx, 1);
-                    }
-                });
-            }
-        });
-
-        // add compartments in `include`
-        cSettings.include.forEach((compId: string) => {
-            let comp = this.props.compartmentTree.getCompartmentNodeByName(compId);
-            if (comp === null) {
-                comp = this.props.compartmentTree.getCompartmentNodeByAcronym(compId);
-            }
-
-            if (comp !== null) {
-                compartmentNodes.push(comp);
-            }
-        });
+        const compartmentNodes = this.props.compartmentTree
+            .getCompartmentSubset(this.props.settings);
 
         // create views for all compartments
+        let visibleCompartments: ICompartmentView[] = [];
         compartmentNodes.forEach((comp: ICompartmentNode) => {
             visibleCompartments.push({
                 compartment: {

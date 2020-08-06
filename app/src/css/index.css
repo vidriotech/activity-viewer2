@@ -50,9 +50,3 @@ ol, ul {
 .game-info {
   margin-left: 20px;
 } */
-
-#viewer-container {
-  width: 60%;
-  height: 40%;
-  border: 1px solid;
-}
