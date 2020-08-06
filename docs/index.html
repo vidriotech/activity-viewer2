@@ -211,17 +211,45 @@ process issue (see below) can be circumvented. <strong>Rather than running</stro
 <code class="docutils literal notranslate"><span class="pre">viewer</span> <span class="pre">visualize</span> <span class="pre">...</span></code>, <strong>you should instead run</strong> <code class="docutils literal notranslate"><span class="pre">viewerd</span></code> <strong>in one terminal and</strong>
 <code class="docutils literal notranslate"><span class="pre">cd</span></code> <strong>into the app/ directory in another terminal and run</strong> <code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">start</span></code>.</p>
 <p>Here’s what your <code class="docutils literal notranslate"><span class="pre">.env</span></code> file should look like:</p>
-<div class="highlight-dotenv notranslate"><div class="highlight"><pre><span></span>AV_SETTINGS_PATH=/path/to/settings.json
-AV_DATA_PATH0=/path/to/data-file-1.npz
-AV_DATA_PATH1=/path/to/data-file-2.npz
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">AV_SETTINGS_PATH</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">settings</span><span class="o">.</span><span class="n">json</span>
+<span class="n">AV_DATA_PATH0</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">data</span><span class="o">-</span><span class="n">file</span><span class="o">-</span><span class="mf">1.</span><span class="n">npz</span>
+<span class="n">AV_DATA_PATH1</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">data</span><span class="o">-</span><span class="n">file</span><span class="o">-</span><span class="mf">2.</span><span class="n">npz</span>
 </pre></div>
 </div>
 <p>You can specify additional data files with <code class="docutils literal notranslate"><span class="pre">AV_DATA_PATH2</span></code>, <code class="docutils literal notranslate"><span class="pre">AV_DATA_PATH3</span></code>, and
 so forth.
 <strong>At this time it’s not recommended to show more than one or two in one go unless you like long wait times.</strong></p>
 </div>
-<div class="section" id="known-issues">
-<h3>Known issues<a class="headerlink" href="#known-issues" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="current-limitations-and-known-issues">
+<h3>Current limitations and known issues<a class="headerlink" href="#current-limitations-and-known-issues" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="choppy-motion-with-dev-tools-engaged">
+<h4>Choppy motion with dev tools engaged<a class="headerlink" href="#choppy-motion-with-dev-tools-engaged" title="Permalink to this headline">¶</a></h4>
+<p>Camera motion is choppy when the dev tools panel is engaged. Closing the dev tools allows for
+smoother camera motion.</p>
+</div>
+<div class="section" id="occasional-incomplete-load">
+<h4>Occasional incomplete load<a class="headerlink" href="#occasional-incomplete-load" title="Permalink to this headline">¶</a></h4>
+<p>Occasionally on loading, not all compartments or penetrations may appear. You should be able to
+hit refresh and they should load again.</p>
+</div>
+<div class="section" id="preloaded-compartments">
+<h4>Preloaded compartments<a class="headerlink" href="#preloaded-compartments" title="Permalink to this headline">¶</a></h4>
+<p>Besides the root, compartments are displayed on load if and only if a point in a penetration is
+found in that compartment. This is for demonstration purposes and will change.</p>
+</div>
+<div class="section" id="unfiltered-compartment-tree">
+<h4>Unfiltered compartment tree<a class="headerlink" href="#unfiltered-compartment-tree" title="Permalink to this headline">¶</a></h4>
+<p>Currently the compartment selection tree beneath the 3D viewer displays the entire tree,
+rather than the subset specified in settings.json. Compartments loaded by default are preselected
+in the tree. A second compartment selection widget will eventually show just the compartments
+specified in your settings file.</p>
+</div>
+<div class="section" id="nonresponsive-updates">
+<h4>Nonresponsive updates<a class="headerlink" href="#nonresponsive-updates" title="Permalink to this headline">¶</a></h4>
+<p>After loading, the canvas will appear black until you click and drag or scroll in the canvas.
+Selecting or deselecting a compartment in the selection tree may require a click in the canvas
+before you see an update.</p>
+</div>
 <div class="section" id="python-3-8">
 <h4>Python 3.8<a class="headerlink" href="#python-3-8" title="Permalink to this headline">¶</a></h4>
 <p>On Windows (we haven’t tried on Linux or macOS), trying to install dependencies
@@ -291,6 +319,11 @@ Time: 4380ms
 </div>
 </div>
 </div>
+</div>
+<div class="section" id="acknowledgments">
+<h2>Acknowledgments<a class="headerlink" href="#acknowledgments" title="Permalink to this headline">¶</a></h2>
+<p>Much of the UI code is based off of or otherwise inspired by work done previously by
+Patrick Edson for the <a class="reference external" href="https://ml-neuronbrowser.janelia.org/">Mouselight Neuron Browser</a>.</p>
 </div>
 </div>
 <div class="section" id="quickstart">
