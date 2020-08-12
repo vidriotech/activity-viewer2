@@ -24,8 +24,8 @@ export class BrainViewer {
     private loadedCompartments: string[] = [];
     private _visibleCompartments: string[] = [];
 
-    public HEIGHT = 0.4 * window.innerHeight; // height of canvas
-    public WIDTH = 0.5 * window.innerWidth; // width of canvas
+    public HEIGHT = window.innerHeight; // height of canvas
+    public WIDTH = window.innerWidth; // width of canvas
     public container = 'container';
     public flip = true; // flip y axis
     public radiusScaleFactor = 1;
