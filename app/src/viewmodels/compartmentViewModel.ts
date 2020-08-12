@@ -1,6 +1,5 @@
-import { ICompartment } from '../models/compartmentModel';
+import { ICompartment } from '../models/apiModels';
 
-export interface ICompartmentView {
-    compartment: ICompartment;
+export interface ICompartmentView extends ICompartment {
     isVisible: boolean;
 }

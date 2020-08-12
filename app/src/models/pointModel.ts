@@ -1,4 +1,4 @@
-import { ICompartment } from './compartmentModel';
+import { ICompartment } from './apiModels';
 
 export interface IPoint {
     id: number,

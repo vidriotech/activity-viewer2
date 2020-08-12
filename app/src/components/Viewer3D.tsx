@@ -1,10 +1,11 @@
 import React from 'react';
+import * as _ from 'underscore';
 
 import { APIClient } from '../apiClient';
 import { BrainViewer } from '../brainViewer';
 import { AVConstants } from '../constants';
 
-import { ISettingsResponse, IPenetrationData, ICompartmentNode } from '../models/api';
+import { ISettingsResponse, IPenetrationData, ICompartmentNode, ICompartment } from '../models/apiModels';
 import { CompartmentTree } from '../models/compartmentTree';
 import { IPoint } from '../models/pointModel';
 import { IPenetration } from '../models/penetrationModel';
@@ -52,16 +53,13 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
 
         // create views for all compartments
         let visibleCompartments: ICompartmentView[] = [];
-        compartmentNodes.forEach((comp: ICompartmentNode) => {
-            visibleCompartments.push({
-                compartment: {
-                    id: comp.id,
-                    name: comp.name,
-                    acronym: comp.acronym,
-                    rgb_triplet: comp.rgb_triplet,
-                },
-                isVisible: comp.id === this.props.constants.rootId
-            });
+        compartmentNodes.forEach((node: ICompartmentNode) => {
+            visibleCompartments.push(
+                _.extend(
+                    _.pick(node, _.without(_.keys(node), 'children')) as ICompartment,
+                    {isVisible: node.id === this.props.constants.rootId}
+                )
+            );
         });
 
         this.props.updateCompartments(visibleCompartments);
@@ -81,7 +79,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
                 }
 
                 let visibleCompartments = this.props.visibleCompartments.slice();
-                let vcNames = visibleCompartments.map(c => c.compartment.name);
+                let vcNames = visibleCompartments.map(c => c.name);
 
                 // populate penetration with loaded points
                 let penetration: IPenetration ={
@@ -112,10 +110,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
                     const compartmentName = compartment.name;
                     const vcIdx = vcNames.indexOf(compartmentName);
                     if (vcIdx === -1) {
-                        visibleCompartments.push({
-                            compartment: compartment,
-                            isVisible: true
-                        });
+                        visibleCompartments.push(_.extend(compartment, {isVisible: true}));
                     } else {
                         visibleCompartments[idx].isVisible = true;
                     }
@@ -139,7 +134,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         }
 
         this.props.visibleCompartments.forEach((compartmentView: ICompartmentView) => {
-            this.viewer.setCompartmentVisible(compartmentView.compartment.name, compartmentView.isVisible);
+            this.viewer.setCompartmentVisible(compartmentView.name, compartmentView.isVisible);
         });
     }
 

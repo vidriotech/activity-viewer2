@@ -38,6 +38,7 @@ import './css/index.css';
 import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
 import { CompartmentTree } from './models/compartmentTree';
+import { ICompartmentNode } from './models/apiModels';
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
 let root = document.createElement('div');
@@ -69,8 +70,9 @@ apiClient.setSettings(settingsPath)
 
         return apiClient.fetchCompartmentTree();
     })
-    .then((res: any) => {
-        props.compartmentTree = new CompartmentTree(res.data);
+    .then((res: any) => res.data)
+    .then((root: ICompartmentNode) => {
+        props.compartmentTree = new CompartmentTree(root);
 
         ReactDOM.render(
             <App {...props}/>,

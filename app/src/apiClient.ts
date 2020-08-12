@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-import { ISettingsRequest, IPenetrationRequest } from './models/api';
+import { ISettingsRequest, IPenetrationRequest } from './models/apiModels';
 
 
 export class APIClient {

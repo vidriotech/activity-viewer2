@@ -1,7 +1,7 @@
 import React from 'react';
 import { List, Container } from 'semantic-ui-react';
 
-import { ICompartmentNode } from '../models/api';
+import { ICompartmentNode } from '../models/apiModels';
 import { CompartmentTree } from '../models/compartmentTree';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 import { CompartmentNodeView, CompartmentNode } from './CompartmentNode';

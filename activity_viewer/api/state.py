@@ -97,25 +97,16 @@ class APIState:
         """Get the entire compartment hierarchy."""
         def populate_children(tr: StructureTree, node: dict):
             for child in tr.children([node["id"]])[0]:
-                node["children"].append({
-                    "id": child["id"],
-                    "name": child["name"],
-                    "acronym": child["acronym"],
-                    "rgb_triplet": child["rgb_triplet"],
-                    "children": []
-                })
+                child["children"] = []
+                node["children"].append(child)
                 
             for child in node["children"]:
                 populate_children(tr, child)
 
         tree = StructureTree(self.cache.load_structure_graph())
-        root = {
-            "id": 997,
-            "name": "root",
-            "acronym": "root",
-            "rgb_triplet": [135, 135, 135],
-            "children": []
-        }
+        root = tree.get_structures_by_id([997])[0]
+        root["rgb_triplet"] = 3*[135]
+        root["children"] = []
         populate_children(tree, root)
 
         return root

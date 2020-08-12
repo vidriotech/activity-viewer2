@@ -1,5 +1,6 @@
-import { ICompartmentNode, ISettingsResponse } from './api';
-import { ICompartment } from './compartmentModel';
+import * as _ from 'underscore';
+
+import { ICompartment, ICompartmentNode, ISettingsResponse } from './apiModels';
 
 export class CompartmentTree {
     private root: ICompartmentNode;
@@ -29,12 +30,7 @@ export class CompartmentTree {
 
     public getCompartmentsByDepth(maxDepth: number): ICompartment[] {
         let compartments = this.getCompartmentNodesByDepth(maxDepth);
-        return compartments.map(c => ({
-            id: c.id,
-            acronym: c.acronym,
-            name: c.name,
-            rgb_triplet: c.rgb_triplet,
-        }));
+        return compartments.map((node: ICompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as ICompartment);
     }
 
     public getCompartmentSubset(settings: ISettingsResponse): ICompartmentNode[] {
@@ -52,7 +48,7 @@ export class CompartmentTree {
             if (idx !== -1) {
                 // remove child compartments
                 compartmentNodes.splice(idx, 1);
-                compartmentNodes.forEach((node) => {
+                compartmentNodes.forEach(node => {
                     const childIdx = compartmentNodes.map((comp) => comp.name).indexOf(node.name);
                     if (childIdx !== -1) {
                         compartmentNodes.splice(childIdx, 1);
@@ -76,13 +72,24 @@ export class CompartmentTree {
         return compartmentNodes;
     }
 
+    public getCompartmentSubsetTree(settings: ISettingsResponse): ICompartmentNode {
+        let rootNode: any = this.getCompartmentByName('root');
+        rootNode.children = [];
+
+        return rootNode;
+    }
+
     private getCompartmentNodesByAttr(attr: keyof(ICompartmentNode), vals: any[]) {
         let nodes: ICompartmentNode[] = [];
         let queue = [this.root];
 
         while (queue.length > 0) {
             let node = queue.splice(0, 1)[0];
-            queue = queue.concat(node.children);
+            if (node.hasOwnProperty('children')) {
+                queue = queue.concat(node.children);
+            } else {
+                console.log(node);
+            }
 
             if (vals.includes(node[attr])) {
                 nodes.push(node);
@@ -105,12 +112,7 @@ export class CompartmentTree {
     private getCompartmentsByAttr(attr: keyof(ICompartmentNode), vals: any[]): ICompartment[] {
         let nodes = this.getCompartmentNodesByAttr(attr, vals);
 
-        return nodes.map((node) => ({
-            id: node. id,
-            acronym: node.acronym,
-            name: node.name,
-            rgb_triplet: node.rgb_triplet
-        }));
+        return nodes.map((node: ICompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as ICompartment);
     }
 
     private getCompartmentByAttr(attr: keyof(ICompartmentNode), val: number | string): ICompartment {

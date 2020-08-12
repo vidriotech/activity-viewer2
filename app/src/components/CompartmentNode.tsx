@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Icon, List, SemanticICONS } from 'semantic-ui-react';
 
-import { ICompartmentNode } from '../models/api';
+import { ICompartmentNode } from '../models/apiModels';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
 export class CompartmentNode {
@@ -80,7 +80,7 @@ export class CompartmentNodeView extends React.Component<ICompartmentNodeViewPro
             );
         }
 
-        const isSelected = this.props.visibleCompartments.some(c => c.compartment.id === this.props.compartmentNode.compartmentId && c.isVisible);
+        const isSelected = this.props.visibleCompartments.some(c => c.id === this.props.compartmentNode.compartmentId && c.isVisible);
         if (this.props.compartmentNode.name === 'Frontal pole, layer 6a') {
             console.log(`${this.props.compartmentNode.name} is${isSelected ? '' : ' not'} selected`);
         }

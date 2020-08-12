@@ -15,8 +15,8 @@ export interface ICompartmentListContainerProps {
 export function CompartmentListContainer(props: ICompartmentListContainerProps) {
     const compartmentsProps = {
         compartmentTree: props.compartmentTree,
-        rootNode: props.rootNode,
         visibleCompartments: props.visibleCompartments,
+        rootNode: props.rootNode,
         onUpdateSelectedCompartments: props.onUpdateSelectedCompartments,
     };
 
@@ -39,3 +39,4 @@ export function CompartmentListContainer(props: ICompartmentListContainerProps) 
         </div>
     )
 }
+

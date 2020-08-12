@@ -1,7 +1,8 @@
 import React from 'react';
-import { APIClient } from '../apiClient';
+import * as _ from 'underscore';
+
 import { AVConstants } from '../constants';
-import { ISettingsResponse } from '../models/api';
+import { ISettingsResponse } from '../models/apiModels';
 import { MainView } from './MainView';
 import { CompartmentTree } from '../models/compartmentTree';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
@@ -20,19 +21,13 @@ export interface IAppState {
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
-    private apiClient: APIClient;
-
     constructor(props: IAppProps) {
         super(props)
         this.state = {
             availablePenetrations: this.props.initialPenetrations,
-            visibleCompartments: [{
-                compartment: this.props.compartmentTree.getCompartmentNodeByName('root'),
-                isVisible: true,
-            }],
+            visibleCompartments: [
+                _.extend(this.props.compartmentTree.getCompartmentNodeByName('root'), {isVisible: true})],
         };
-
-        this.apiClient = new APIClient(this.props.constants.apiEndpoint);
     }
 
     public addPenetration(pen: string) {
@@ -57,7 +52,7 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     private onUpdateSelectedCompartments(added: string[], removed: string[]) {
         let compartmentViews = this.state.visibleCompartments.slice();
-        const compartmentNames = compartmentViews.map((c: ICompartmentView) => c.compartment.name);
+        const compartmentNames = compartmentViews.map((c: ICompartmentView) => c.name);
 
         // add and make visible new compartments
         added.forEach((name: string) => {
@@ -67,10 +62,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             if (idx === -1) {
                 const compartment = this.props.compartmentTree.getCompartmentByName(name);
                 console.log(compartment);
-                compartmentViews.push({
-                    compartment: compartment,
-                    isVisible: true
-                });
+                compartmentViews.push(_.extend(compartment, {isVisible: true}));
             } else {
                 compartmentViews[idx].isVisible = true;
                 console.log(compartmentViews[idx]);
@@ -83,21 +75,17 @@ export class App extends React.Component<IAppProps, IAppState> {
             console.log(idx);
             if (idx === -1) {
                 const compartment = this.props.compartmentTree.getCompartmentByName(name);
-                console.log(compartment);
-                compartmentViews.push({
-                    compartment: this.props.compartmentTree.getCompartmentByName(name),
-                    isVisible: false
-                });
+                compartmentViews.push(_.extend(compartment, {isVisible: false}));
             } else {
                 compartmentViews[idx].isVisible = false;
                 console.log(compartmentViews[idx]);
             }
         });
 
-        this.updateCompartments(compartmentViews);
+        this.updateCompartmentViews(compartmentViews);
     }
 
-    public updateCompartments(compartmentViews: ICompartmentView[]) {
+    public updateCompartmentViews(compartmentViews: ICompartmentView[]) {
         this.setState({visibleCompartments: compartmentViews});
     }
 
@@ -113,7 +101,7 @@ export class App extends React.Component<IAppProps, IAppState> {
             constants: this.props.constants,
             settings: this.props.settings,
             onUpdateSelectedCompartments: this.onUpdateSelectedCompartments.bind(this),
-            updateCompartments: this.updateCompartments.bind(this),
+            updateCompartments: this.updateCompartmentViews.bind(this),
             updatePenetrations: this.updatePenetrations.bind(this),
         }
 

@@ -2,7 +2,7 @@ import React from 'react';
 import {Container, Input, List} from "semantic-ui-react";
 
 import { AVConstants } from '../constants';
-import { ISettingsResponse } from '../models/api';
+import { ISettingsResponse } from '../models/apiModels';
 import { CompartmentTree } from '../models/compartmentTree';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 

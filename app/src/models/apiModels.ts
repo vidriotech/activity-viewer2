@@ -1,18 +1,8 @@
-import { ICompartment } from "./compartmentModel";
-
-/*
- * Endpoint: /compartments
- * Allows to query the compartment tree.
- */
-export interface ICompartmentNode extends ICompartment {
-    children: ICompartmentNode[],
-}
-
 /*
  * Endpoint: /penetrations/<penetrationId>
  * Data pertinent to a given penetration may be queried from here.
  */
-export interface ICompartmentData {
+export interface ICompartment {
     acronym: string,
     rgb_triplet: number[],
     graph_id: number,
@@ -23,9 +13,17 @@ export interface ICompartmentData {
     structure_set_ids: number[],
 }
 
+/*
+ * Endpoint: /compartments
+ * Allows to query the compartment tree.
+ */
+export interface ICompartmentNode extends ICompartment {
+    children: ICompartmentNode[],
+}
+
 export interface IPenetrationData {
     ids: number[],
-    compartments: ICompartmentData[]
+    compartments: ICompartment[]
     coordinates: number[],
     stride: number,
 }

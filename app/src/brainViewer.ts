@@ -105,7 +105,7 @@ export class BrainViewer {
     };
 
     loadCompartment = function (name: string) {
-        console.log(`loading ${name}`);
+        // console.log(`loading ${name}`);
         if (this.loadedCompartments.includes(name)) {
             return;
         }
