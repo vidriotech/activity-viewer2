@@ -28,6 +28,10 @@ export class APIClient {
         return penetrations;
     }
 
+    async fetchAllTimeseries(penetrationId: string) {
+        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries`);
+    }
+
     async fetchCompartmentTree() {
         return await axios.get(`${this.endpoint}/compartments`);
     }
@@ -38,6 +42,10 @@ export class APIClient {
 
     async fetchPenetrationVitals(penetrationId: string) {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
+    }
+
+    async fetchTimeseries(penetrationId: string, timeseriesId: string) {
+        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries/${timeseriesId}`);
     }
 
     async fetchSettings() {

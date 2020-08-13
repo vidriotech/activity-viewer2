@@ -11,85 +11,44 @@ import { IPenetration } from './models/penetrationModel';
 import { IPoint } from './models/pointModel';
 
 export class BrainViewer {
-    constructor(constants: AVConstants, compartmentTree: CompartmentTree) {
-        this.constants = constants;
-        this.compartmentTree = compartmentTree;
-        this.apiClient = new APIClient(this.constants.apiEndpoint);
-    }
-
     private apiClient: APIClient;
     private compartmentTree: CompartmentTree;
     private constants: AVConstants;
 
     private loadedCompartments: string[] = [];
     private _visibleCompartments: string[] = [];
-
-    public HEIGHT = window.innerHeight; // height of canvas
-    public WIDTH = window.innerWidth; // width of canvas
-    public container = 'container';
-    public flip = true; // flip y axis
-    public radiusScaleFactor = 1;
     private backgroundColor = 0xffffff;
     private fov = 45;
 
     private renderer: THREE.WebGLRenderer = null;
     private scene: THREE.Scene = null;
     private camera: THREE.PerspectiveCamera = null;
-
     private trackControls: any = null;
+
+    private lastTimestamp: number = null;
 
     private sphereMaterial = new THREE.MeshBasicMaterial({
         color: 0x0080ff
     });
     private sphereGeometry = new THREE.SphereGeometry(40);
 
-    public rgb2Hex(val: number[]): string {
+    public HEIGHT = 0.5 * window.innerHeight;
+    public WIDTH = 0.5 * window.innerWidth;
+    public container = 'container';
+    public flip = true; // flip y axis
+    public radiusScaleFactor = 1;
+
+    constructor(constants: AVConstants, compartmentTree: CompartmentTree) {
+        this.constants = constants;
+        this.compartmentTree = compartmentTree;
+        this.apiClient = new APIClient(this.constants.apiEndpoint);
+    }
+
+    private rgb2Hex(val: number[]): string {
         return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
     }
 
-    render = function () {
-        this.renderer.render(this.scene, this.camera);
-    };
-
-    initialize = function() {
-        // create a new renderer
-        this.renderer = new THREE.WebGLRenderer({
-            antialias: true, // to get smoother output
-        });
-
-        this.renderer.setClearColor(this.backgroundColor, 1);
-        this.renderer.setSize(this.WIDTH, this.HEIGHT);
-
-        document.getElementById(this.container).appendChild(this.renderer.domElement);
-
-        // create a new scene
-        this.scene = new THREE.Scene();
-
-        // put a camera in scene
-        const cameraPosition = -20000;
-        this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, 1, cameraPosition * 5);
-        this.scene.add(this.camera);
-        this.camera.position.z = cameraPosition;
-
-        if (this.flip) {
-            this.camera.up.setY(-1);
-        }
-
-        // add lights
-        let light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(0, 0, 10000);
-        this.scene.add(light);
-
-        light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(0, 0, -10000);
-        this.scene.add(light);
-
-        // add controls
-        this.trackControls = new OrbitControls(this.camera, document.getElementById(this.container));
-        this.trackControls.addEventListener('change', this.render.bind(this));
-    };
-
-    createPoint = function(point: IPoint) {
+    private createPoint(point: IPoint) {
         const pointObj = new THREE.Object3D();
 
         let mesh = new THREE.Mesh(
@@ -102,9 +61,9 @@ export class BrainViewer {
 
         pointObj.add(mesh);
         return pointObj;
-    };
+    }
 
-    loadCompartment = function (name: string) {
+    private loadCompartment(name: string) {
         // console.log(`loading ${name}`);
         if (this.loadedCompartments.includes(name)) {
             return;
@@ -146,9 +105,61 @@ export class BrainViewer {
             this._visibleCompartments.push(name);
             this.scene.add(obj);
         });
-    };
+    }
 
-    loadPenetration = function(penetration: IPenetration) {
+    public animate(timestamp: number = null) {
+        // if (!this.lastTimestamp) {
+        //     this.lastTimestamp = timestamp;
+        //     this.render();
+        // } else if (timestamp - this.lastTimestamp > 50) {
+        //     this.lastTimestamp = timestamp;
+        //     this.trackControls.update();
+        //     this.render();
+        // }
+
+        window.requestAnimationFrame(this.animate.bind(this));
+        this.render();
+    }
+
+    public initialize() {
+        // create a new renderer
+        this.renderer = new THREE.WebGLRenderer({
+            antialias: true, // to get smoother output
+        });
+
+        this.renderer.setClearColor(this.backgroundColor, 1);
+        this.renderer.setSize(this.WIDTH, this.HEIGHT);
+
+        // create a new scene
+        this.scene = new THREE.Scene();
+
+        // put a camera in scene
+        const cameraPosition = -20000;
+        this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, 1, cameraPosition * 5);
+        this.scene.add(this.camera);
+        this.camera.position.z = cameraPosition;
+
+        if (this.flip) {
+            this.camera.up.setY(-1);
+        }
+
+        // add lights
+        let light = new THREE.DirectionalLight(0xffffff);
+        light.position.set(0, 0, 10000);
+        this.scene.add(light);
+
+        light = new THREE.DirectionalLight(0xffffff);
+        light.position.set(0, 0, -10000);
+        this.scene.add(light);
+
+        document.getElementById(this.container).appendChild(this.renderer.domElement);
+
+        // add controls
+        this.trackControls = new OrbitControls(this.camera, document.getElementById(this.container));
+        this.trackControls.addEventListener('change', this.render.bind(this));
+    }
+
+    public loadPenetration(penetration: IPenetration) {
         const centerPoint = this.constants.centerPoint.map((t: number) => -t);
 
         for (let i = 0; i < penetration.points.length; i++) {
@@ -156,9 +167,13 @@ export class BrainViewer {
             pointObj.position.set(...centerPoint);
             this.scene.add(pointObj);
         }
-    };
+    }
 
-    setCompartmentVisible = function (name: string, visible: boolean) {
+    public render() {
+        this.renderer.render(this.scene, this.camera);
+    }
+
+    public setCompartmentVisible(name: string, visible: boolean) {
         // loading sets visible as a side effect
         if (visible && !this.loadedCompartments.includes(name)) {
             this.loadCompartment(name);
@@ -178,7 +193,19 @@ export class BrainViewer {
                 }
             }
         }
-    };
+    }
+
+    public setSize(width: number, height: number) {
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+
+        this.renderer.setSize(width, height);
+
+        this.HEIGHT = height;
+        this.WIDTH = width;
+
+        this.render();
+    }
 
     public get visibleCompartments() {
         return this._visibleCompartments;

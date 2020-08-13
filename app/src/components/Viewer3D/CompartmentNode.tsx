@@ -1,8 +1,9 @@
-import * as React from 'react';
+import React from 'react';
+
 import { Icon, List, SemanticICONS } from 'semantic-ui-react';
 
-import { ICompartmentNode } from '../models/apiModels';
-import { ICompartmentView } from '../viewmodels/compartmentViewModel';
+import { ICompartmentNode } from '../../models/apiModels';
+import { ICompartmentView } from '../../viewmodels/compartmentViewModel';
 
 export class CompartmentNode {
     public constructor(compartment: ICompartmentNode, toggled: boolean) {
@@ -56,7 +57,7 @@ export class CompartmentNodeView extends React.Component<ICompartmentNodeViewPro
             return "file";
         }
 
-        if (this.props.compartmentNode.toggled) {
+        if (this.props.compartmentNode.toggled && this.props.compartmentNode.children.length > 0) {
             return "folder open";
         }
 
@@ -69,8 +70,9 @@ export class CompartmentNodeView extends React.Component<ICompartmentNodeViewPro
         if (this.props.compartmentNode.toggled && !this.props.compartmentOnly && this.props.compartmentNode.children.length > 0) {
             items = (
                 <List.List>
-                    {this.props.compartmentNode.children.map(c => (
-                        <CompartmentNodeView key={c.name} compartmentNode={c}
+                    {this.props.compartmentNode.children.map(child => (
+                        <CompartmentNodeView key={child.name}
+                                             compartmentNode={child}
                                              compartmentOnly={this.props.compartmentOnly}
                                              visibleCompartments={this.props.visibleCompartments}
                                              onSelect={this.props.onSelect}

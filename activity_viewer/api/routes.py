@@ -51,10 +51,39 @@ def get_penetration_vitals(penetration_id: str):
     compartments = state.get_compartments(penetration_id)
 
     return {
+        "penetration": penetration_id,
         "ids": ids.ravel().tolist(),
         "compartments": compartments,
         "coordinates": coords.ravel().tolist(),
         "stride": coords.shape[1]
+    }
+
+
+@app.route("/penetrations/<penetration_id>/timeseries")
+def get_all_timeseries(penetration_id: str):
+    if not state.has_penetration(penetration_id):
+        return make_response(f"Penetration not found.", 404)
+
+    timeseries = state.get_all_timeseries(penetration_id).tolist()
+    return {
+        "penetration": penetration_id,
+        "timeseries": timeseries,
+    }
+
+
+@app.route("/penetrations/<penetration_id>/timeseries/<timeseries_id>")
+def get_timeseries(penetration_id: str, timeseries_id: str):
+    if not state.has_penetration(penetration_id):
+        return make_response(f"Penetration not found.", 404)
+
+    timeseries = state.get_timeseries(penetration_id, timeseries_id)
+    if timeseries is None:
+        return make_response(f"Timeseries '{timeseries_id}' not found.", 404)
+
+    return {
+        "penetration": penetration_id,
+        "data": timeseries.ravel().tolist(),
+        "stride": timeseries.shape[1],
     }
 
 
@@ -64,7 +93,11 @@ def get_pseudocoronal_annotation_slice(penetration_id: str):
         return make_response(f"Penetration not found.", 404)
 
     plane = state.get_pseudocoronal_annotation_slice(penetration_id)
-    return {"voxels": plane.ravel().tolist(), "stride": plane.shape[1]}
+    return {
+        "penetration": penetration_id,
+        "voxels": plane.ravel().tolist(),
+        "stride": plane.shape[1]
+    }
 
 
 @app.route("/settings", methods=["GET", "POST"])

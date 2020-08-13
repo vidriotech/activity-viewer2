@@ -1,9 +1,9 @@
 import React from 'react';
 import { List, Container } from 'semantic-ui-react';
 
-import { ICompartmentNode } from '../models/apiModels';
-import { CompartmentTree } from '../models/compartmentTree';
-import { ICompartmentView } from '../viewmodels/compartmentViewModel';
+import { CompartmentTree } from '../../models/compartmentTree';
+import { ICompartmentView } from '../../viewmodels/compartmentViewModel';
+
 import { CompartmentNodeView, CompartmentNode } from './CompartmentNode';
 
 export interface ICompartmentProps {
@@ -29,9 +29,6 @@ export class Compartments extends React.Component<ICompartmentProps, ICompartmen
     public onSelect(node: CompartmentNode, selected: boolean) {
         const added = selected ? [node.compartmentName] : [];
         const removed = selected ? [] : [node.compartmentName];
-
-        console.log(added);
-        console.log(removed);
 
         this.props.onUpdateSelectedCompartments(added, removed);
     }

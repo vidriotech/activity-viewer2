@@ -31,14 +31,15 @@ import { ipcRenderer } from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-import { App, IAppProps } from './components/App';
-
 // Import CSS stylesheet
 import './css/index.css';
+
 import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
 import { CompartmentTree } from './models/compartmentTree';
 import { ICompartmentNode } from './models/apiModels';
+
+import { App, IAppProps } from './components/App';
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
 let root = document.createElement('div');

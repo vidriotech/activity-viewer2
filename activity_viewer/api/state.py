@@ -93,6 +93,14 @@ class APIState:
         probe_insertion = self._npz_loader.get("probe_insertion").reshape(-1)[0]
         self._penetrations[probe_insertion] = Path(file_path)
 
+    def get_all_timeseries(self, penetration_id: str):
+        """Get a list of timeseries for `penetration_id`"""
+        if not self.has_penetration(penetration_id):
+            return
+
+        self.load_penetration(penetration_id)
+        return self.npz_loader.get("timeseries")
+
     def get_compartment_tree(self):
         """Get the entire compartment hierarchy."""
         def populate_children(tr: StructureTree, node: dict):
@@ -154,6 +162,14 @@ class APIState:
         ref_slice = volume[indices, np.arange(volume.shape[1]), :].squeeze()
 
         return ref_slice
+
+    def get_timeseries(self, penetration_id: str, timeseries_id: str):
+        """Get a specific timeseries' values for a specific penetration."""
+        if not self.has_penetration(penetration_id):
+            return
+
+        self.load_penetration(penetration_id)
+        return self.npz_loader.get(timeseries_id)
 
     def has_penetration(self, penetration_id: str) -> bool:
         """Return true if and only if `penetration_id` exists."""

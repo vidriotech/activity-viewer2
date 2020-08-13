@@ -91,38 +91,11 @@ so forth.
 Current limitations and known issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Choppy motion with dev tools engaged
-++++++++++++++++++++++++++++++++++++
-
-Camera motion is choppy when the dev tools panel is engaged. Closing the dev tools allows for
-smoother camera motion.
-
 Occasional incomplete load
 ++++++++++++++++++++++++++
 
 Occasionally on loading, not all compartments or penetrations may appear. You should be able to
 hit refresh and they should load again.
-
-Preloaded compartments
-++++++++++++++++++++++
-
-Besides the root, compartments are displayed on load if and only if a point in a penetration is
-found in that compartment. This is for demonstration purposes and will change.
-
-Unfiltered compartment tree
-+++++++++++++++++++++++++++
-
-Currently the compartment selection tree beneath the 3D viewer displays the entire tree,
-rather than the subset specified in settings.json. Compartments loaded by default are preselected
-in the tree. A second compartment selection widget will eventually show just the compartments
-specified in your settings file.
-
-Nonresponsive updates
-+++++++++++++++++++++
-
-After loading, the canvas will appear black until you click and drag or scroll in the canvas.
-Selecting or deselecting a compartment in the selection tree may require a click in the canvas
-before you see an update.
 
 Python 3.8
 ++++++++++

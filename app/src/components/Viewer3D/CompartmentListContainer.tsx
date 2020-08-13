@@ -1,6 +1,8 @@
 import React from 'react';
-import { CompartmentTree } from '../models/compartmentTree';
-import { ICompartmentView } from '../viewmodels/compartmentViewModel';
+
+import { CompartmentTree } from '../../models/compartmentTree';
+import { ICompartmentView } from '../../viewmodels/compartmentViewModel';
+
 import { Compartments } from './Compartments';
 import { CompartmentNode } from './CompartmentNode';
 
@@ -9,6 +11,7 @@ export interface ICompartmentListContainerProps {
     compartmentTree: CompartmentTree,
     visibleCompartments: ICompartmentView[],
     rootNode: CompartmentNode,
+    onToggleSubsetOnly(): void,
     onUpdateSelectedCompartments(added: string[], removed: string[]): void,
 }
 
@@ -22,13 +25,11 @@ export function CompartmentListContainer(props: ICompartmentListContainerProps) 
 
     return (
         <div style={{
-            opacity: 1.0,
-            flexDirection: "column",
+            flexDirection: "row",
             flexWrap: "nowrap",
             alignItems: "flex-start",
             alignContent: "flex-start",
             order: 3,
-            width: "400px",
             height: "100%",
             flexGrow: 0,
             flexShrink: 0,

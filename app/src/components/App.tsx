@@ -57,15 +57,13 @@ export class App extends React.Component<IAppProps, IAppState> {
         // add and make visible new compartments
         added.forEach((name: string) => {
             const idx = compartmentNames.indexOf(name);
-            console.log(name);
-            console.log(idx);
             if (idx === -1) {
                 const compartment = this.props.compartmentTree.getCompartmentByName(name);
-                console.log(compartment);
-                compartmentViews.push(_.extend(compartment, {isVisible: true}));
+                if (compartment !== null) {
+                    compartmentViews.push(_.extend(compartment, {isVisible: true}));
+                }
             } else {
                 compartmentViews[idx].isVisible = true;
-                console.log(compartmentViews[idx]);
             }
         });
 
@@ -104,15 +102,9 @@ export class App extends React.Component<IAppProps, IAppState> {
             updateCompartments: this.updateCompartmentViews.bind(this),
             updatePenetrations: this.updatePenetrations.bind(this),
         }
-
-        const penList = this.state.availablePenetrations.map((pen: string) => {
-            return <li key={pen}>{pen}</li>
-        });
         
         return (<div>
-            <h1>Mesoscale Activity Viewer</h1>
-            <h2>Loaded penetrations:</h2>
-            <ul>{penList}</ul>
+            <h1>MAP Viewer</h1>
             <MainView {...mainViewProps} />
         </div>);
     }
