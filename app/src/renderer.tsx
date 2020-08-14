@@ -33,6 +33,7 @@ import ReactDOM from 'react-dom';
 
 // Import CSS stylesheet
 import './css/index.css';
+import 'fomantic-ui-css/semantic.css';
 
 import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
