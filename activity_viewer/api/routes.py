@@ -30,8 +30,12 @@ def get_mesh(structure_id: int):
 
 @app.route("/penetrations", methods=["GET", "POST", "PUT", "DELETE"])
 def get_all_penetrations():
-    if hasattr(request, "data"):
-        data = json.loads(request.data)
+    if request.method != "GET" and hasattr(request, "data"):
+        try:
+            data = json.loads(request.data)
+        except json.JSONDecodeError as e:
+            print(e)
+            data = None
     else:
         data = None
 

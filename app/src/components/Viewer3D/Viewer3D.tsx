@@ -93,50 +93,12 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     }
 
     private renderPenetrations() {
-        this.props.availablePenetrations.forEach((pen: IPenetrationData) => {
-            if (pen.stride == 0) { // errored out, abort
+        this.props.availablePenetrations.forEach((penetration: IPenetrationData) => {
+            if (this.viewer.hasPenetration(penetration.penetrationId) || penetration.stride == 0) {
                 return;
             }
 
-            let visibleCompartments = this.props.visibleCompartments.slice();
-
-            // populate penetration with loaded points
-            let penetration: IPenetration = {
-                id: pen.penetrationId,
-                points: []
-            };
-
-            // add each point to this penetration
-            for (let i = 0; i < pen.coordinates.length; i += pen.stride) {
-                const idx = i / pen.stride;
-                const compartment = pen.compartments[idx];
-
-                if (!compartment) {
-                    console.log(pen);
-                    continue;
-                }
-
-                const point: IPoint = {
-                    id: pen.ids[idx],
-                    penetrationId: pen.penetrationId,
-                    x: pen.coordinates[i],
-                    y: pen.coordinates[i+1],
-                    z: pen.coordinates[i+2],
-                    compartment: compartment,
-                };
-
-                // make visible the compartment this point resides in
-                // const compartmentName = compartment.name;
-                // const vcIdx = vcNames.indexOf(compartmentName);
-                // if (vcIdx === -1) {
-                //     visibleCompartments.push(_.extend(compartment, {isVisible: true}));
-                // } else {
-                //     visibleCompartments[idx].isVisible = true;
-                // }
-
-                penetration.points.push(point);
-            }
-
+            // let visibleCompartments = this.props.visibleCompartments.slice();
             this.viewer.loadPenetration(penetration);
             // this.props.updateCompartments(visibleCompartments);
         })

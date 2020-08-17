@@ -1,8 +1,9 @@
 import React from 'react';
 import * as _ from 'underscore';
 
+import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
-import { ISettingsResponse, IPenetrationData } from '../models/apiModels';
+import { ISettingsResponse, IPenetrationData, IPenetrationResponse } from '../models/apiModels';
 import { MainView, IMainViewProps } from './MainView';
 import { CompartmentTree } from '../models/compartmentTree';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
@@ -11,7 +12,6 @@ import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 export interface IAppProps {
     compartmentTree: CompartmentTree,
     constants: AVConstants,
-    initialPenetrations: IPenetrationData[],
     settings: ISettingsResponse,
 }
 
@@ -21,13 +21,17 @@ export interface IAppState {
 }
 
 export class App extends React.Component<IAppProps, IAppState> {
+    private apiClient: APIClient;
+
     constructor(props: IAppProps) {
         super(props)
         this.state = {
-            availablePenetrations: this.props.initialPenetrations,
+            availablePenetrations: [],
             visibleCompartments: [
                 _.extend(this.props.compartmentTree.getCompartmentNodeByName('root'), {isVisible: true})],
         };
+
+        this.apiClient = new APIClient(this.props.constants.apiEndpoint);
     }
 
     private onUpdateSelectedCompartments(added: string[], removed: string[]) {
@@ -62,6 +66,18 @@ export class App extends React.Component<IAppProps, IAppState> {
 
     public updateCompartmentViews(compartmentViews: ICompartmentView[]) {
         this.setState({visibleCompartments: compartmentViews});
+    }
+
+    public componentDidMount() {
+        this.apiClient.fetchPenetrations()
+            .then((res: any) => res.data)
+            .then((data: IPenetrationResponse) => {
+                this.setState({availablePenetrations: data.penetrations});
+            })
+            .catch((err: Error) => {
+                window.alert(err.message);
+                console.error(err);
+            });
     }
 
     public render() {

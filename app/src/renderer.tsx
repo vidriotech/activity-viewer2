@@ -58,7 +58,6 @@ const apiClient = new APIClient(constants.apiEndpoint);
 let props: IAppProps = {
     compartmentTree: null,
     constants: constants,
-    initialPenetrations: null,
     settings: null
 }
 
@@ -69,10 +68,7 @@ apiClient.setSettings(settingsPath)
 
         return apiClient.setPenetrations(dataPaths);
     })
-    .then((res: any) => res.data)
-    .then((res: IPenetrationResponse) => {
-        props.initialPenetrations = res.penetrations;
-
+    .then((_res:any) => {
         return apiClient.fetchCompartmentTree();
     })
     .then((res: any) => res.data)

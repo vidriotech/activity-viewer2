@@ -9,7 +9,7 @@ import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
 import { CompartmentTree } from './models/compartmentTree';
 import { IPenetration } from './models/penetrationModel';
-import { IPoint } from './models/pointModel';
+import { IPenetrationData } from './models/apiModels';
 
 export class BrainViewer {
     private apiClient: APIClient;
@@ -37,7 +37,7 @@ export class BrainViewer {
     public container = 'container';
     public flip = true; // flip y axis
 
-    private penetrations: Map<string, Object3D[]>;
+    private penetrations: Map<string, THREE.Points>;
 
     constructor(constants: AVConstants, compartmentTree: CompartmentTree) {
         this.constants = constants;
@@ -60,7 +60,7 @@ export class BrainViewer {
             vertexColors: true
         });
 
-        this.penetrations = new Map<string, Object3D[]>();
+        this.penetrations = new Map<string, THREE.Points>();
     }
 
     private rgb2Hex(val: number[]): string {
@@ -166,32 +166,31 @@ export class BrainViewer {
         this.trackControls.addEventListener('change', this.render.bind(this));
     }
 
-    public loadPenetration(penetrationData: IPenetration) {
+    public loadPenetration(penetrationData: IPenetrationData) {
         const centerPoint = this.constants.centerPoint.map((t: number) => -t);
 
-        let geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
-        let positions = [];
-        let colors = [];
-        let sizes = [];
-        let color: THREE.Color = new THREE.Color();
+        let positions = new Float32Array(penetrationData.coordinates.map(t => t + 10 * (Math.random() - 0.5)));
+        let colors = new Float32Array(positions.length);
+        let sizes = new Float32Array(positions.length / 3);
 
-        for (let i = 0; i < penetrationData.points.length; i++) {
-            const pointObj = penetrationData.points[i];
-            positions.push(pointObj.x + 10 * (Math.random() - 0.5),
-                           pointObj.y + 10 * (Math.random() - 0.5),
-                           pointObj.z + 10 * (Math.random() - 0.5));
-            
-            color.setRGB(0, 128/255, 1);
-            colors.push(color.r, color.g, color.b);
-            sizes.push(350);
+        // fill with a pleasing light blue
+        let color: THREE.Color = new THREE.Color(this.constants.defaultColor);
+        for (let i = 0; i < positions.length; i += 3) {
+            colors[i] = color.r;
+            colors[i+1] = color.g;
+            colors[i+2] = color.b;
         }
 
+        sizes.fill(350);
+
+        let geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage));
 
         let penetration: THREE.Points = new THREE.Points(geometry, this.pointsMaterial);
         penetration.position.set(centerPoint[0], centerPoint[1], centerPoint[2]);
+
         this.scene.add(penetration);
     }
 
@@ -219,6 +218,15 @@ export class BrainViewer {
                 }
             }
         }
+    }
+
+    public setPenetrationVisible(name: string, visible: boolean) {
+        if (!this.penetrations.has(name)) {
+            return;
+        }
+
+        const pen = this.penetrations.get(name);
+        pen.visible = visible;
     }
 
     public setSize(width: number, height: number) {

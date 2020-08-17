@@ -21,7 +21,7 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
         super(props);
 
         this.state = {
-            activePenetration: this.props.availablePenetrations[0],
+            activePenetration: this.props.availablePenetrations.length > 0 ? this.props.availablePenetrations[0] : null,
         };
     }
 
@@ -31,6 +31,12 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
         this.setState({ activePenetration: this.props.availablePenetrations[idx] });
     }
 
+    public componentDidUpdate(_prevProps: Readonly<IPenetrationControlPanelProps>, prevState: Readonly<IPenetrationControlPanelState>) {
+        if (prevState.activePenetration === null && this.props.availablePenetrations.length > 0) {
+            this.setState({activePenetration: this.props.availablePenetrations[0]});
+        }
+    }
+
     public render() {
         const penetrationOptions = this.props.availablePenetrations.map(pen => ({
             key: pen.penetrationId,
@@ -38,31 +44,38 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
             text: pen.penetrationId,
         }));
 
-        const editDropdown = (
-            <Dropdown defaultValue={this.state.activePenetration.penetrationId}
-                      search
-                      selection
-                      options={penetrationOptions}
-                      onChange={this.handleChange.bind(this)}
-            />
-        );
+        let controls = null;
 
-        const penetrationControlProps: IPenetrationControlsProps = {
-            penetration: this.state.activePenetration,
-            constants: this.props.constants,
+        if (this.state.activePenetration !== null) {
+            const editDropdown = (
+                <Dropdown defaultValue={this.state.activePenetration.penetrationId}
+                          search
+                          selection
+                          options={penetrationOptions}
+                          onChange={this.handleChange.bind(this)}
+                />
+            );
+    
+            const penetrationControlProps: IPenetrationControlsProps = {
+                penetration: this.state.activePenetration,
+                constants: this.props.constants,
+            }
+    
+            const penetrationControls = <PenetrationControls {...penetrationControlProps}/>;
+            controls = (<Grid>
+                <Grid.Column width={4}>
+                    <p>Select a penetration to edit</p>
+                    {editDropdown}</Grid.Column>
+                <Grid.Column width={12}>{penetrationControls}</Grid.Column>
+            </Grid>);
         }
 
-        const penetrationControls = <PenetrationControls {...penetrationControlProps}/>
+        
 
         return (
             <Container>
                 <Header as='h2'>Penetration controls</Header>
-                <Grid>
-                    <Grid.Column width={4}>
-                        <p>Select a penetration to edit</p>
-                        {editDropdown}</Grid.Column>
-                    <Grid.Column width={12}>{penetrationControls}</Grid.Column>
-                </Grid>
+                {controls}
             </Container>
         );
     }

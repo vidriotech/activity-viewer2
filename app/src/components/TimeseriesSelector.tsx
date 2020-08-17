@@ -36,11 +36,6 @@ export class TimeseriesSelector extends React.Component<ITimeseriesSelectorProps
         };
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
-        this.defaults = {
-            radius: 40,
-            opacity: 1.,
-            color: 0x0080ff,
-        };
     }
 
     private fetchData() {
