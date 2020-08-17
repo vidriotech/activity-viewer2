@@ -10,22 +10,17 @@ export class APIClient {
         this.endpoint = endpoint;
     }
 
-    async addPenetrations(dataPaths: string[]) {
+    async setPenetrations(dataPaths: string[]) {
         let penReqData: IPenetrationRequest = {
             data_paths: dataPaths,
         };
 
-        let penetrations = await axios({
+        return await axios({
             'method': 'post',
             'url': `${this.endpoint}/penetrations`,
             'data': penReqData,
             'timeout': 5000
-        })
-        .catch((error: any) => {
-            console.error(error);
         });
-
-        return penetrations;
     }
 
     async fetchAllTimeseries(penetrationId: string) {

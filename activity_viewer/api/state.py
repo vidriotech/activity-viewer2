@@ -53,8 +53,7 @@ class APIState:
         self._settings = None
         self._cache = Cache(self.settings)
         self._npz_loader = NpzLoader()
-        self._penetrations = {}
-        self._active_penetration = None
+        self.clear_penetrations()
 
     def _find_pseudocoronal_indices(self, coords: np.ndarray):
         X = np.asmatrix(np.hstack((np.ones((coords.shape[0], 1)), coords[:, 1][:, np.newaxis])))
@@ -76,22 +75,27 @@ class APIState:
 
         return np.array(X2 * b).flatten().astype(np.int)
 
-    def add_penetration(self, file_path: PathType):
-        """Add a penetration to the set of current penetrations.
+    def add_penetrations(self, file_paths: List[PathType]):
+        """Add one or more penetrations to the set of current penetrations.
 
         Parameters
         ----------
-        file_path : str or Path
+        file_paths : list of str or Path
         """
-        print(f"loading penetration {file_path}")
-        try:
-            self._npz_loader.load_file(file_path)
-        except (FileNotFoundError, TypeError, ValueError, KeyError) as e:
-            print(e)
-            return
+        for file_path in file_paths:
+            try:
+                self._npz_loader.load_file(file_path)
+            except (FileNotFoundError, TypeError, ValueError, KeyError) as e:
+                print(e)
+                continue
 
-        probe_insertion = self._npz_loader.get("probe_insertion").reshape(-1)[0]
-        self._penetrations[probe_insertion] = Path(file_path)
+            probe_insertion = self._npz_loader.get("probe_insertion").reshape(-1)[0]
+            self._penetrations[probe_insertion] = Path(file_path)
+
+    def clear_penetrations(self):
+        """Remove all penetrations from state."""
+        self._penetrations = {}
+        self._active_penetration = None
 
     def get_all_timeseries(self, penetration_id: str):
         """Get a list of timeseries for `penetration_id`"""
@@ -141,14 +145,6 @@ class APIState:
         self.load_penetration(penetration_id)
         return self.npz_loader.get("ccf_coord")
 
-    def get_unit_ids(self, penetration_id: str):
-        """Get point ids for `penetration_id`."""
-        if not self.has_penetration(penetration_id):
-            return
-
-        self.load_penetration(penetration_id)
-        return self.npz_loader.get("unit_id")
-
     def get_pseudocoronal_annotation_slice(self, penetration_id: str):
         """Get voxel values for pseudocoronal plane of best fit for `penetration_id`."""
         if not self.has_penetration(penetration_id):
@@ -171,6 +167,14 @@ class APIState:
         self.load_penetration(penetration_id)
         return self.npz_loader.get(timeseries_id)
 
+    def get_unit_ids(self, penetration_id: str):
+        """Get point ids for `penetration_id`."""
+        if not self.has_penetration(penetration_id):
+            return
+
+        self.load_penetration(penetration_id)
+        return self.npz_loader.get("unit_id")
+
     def has_penetration(self, penetration_id: str) -> bool:
         """Return true if and only if `penetration_id` exists."""
         return penetration_id in self._penetrations
@@ -182,6 +186,16 @@ class APIState:
 
         # load once without validation (validation has already been performed at the add step)
         self.npz_loader.load_file(self._penetrations[penetration_id], validate=False)
+
+    def rm_penetrations(self, penetration_ids: List[str]):
+        """Remove a penetration from state."""
+        for penetration_id in penetration_ids:
+            if not self.has_penetration(penetration_id):
+                continue
+
+            self._penetrations.pop(penetration_id)
+            if self._active_penetration == penetration_id:
+                self._active_penetration = None
 
     @property
     def cache(self) -> Cache:

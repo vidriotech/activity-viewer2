@@ -1,8 +1,8 @@
 import React from 'react';
-import {Container, Grid, Input, List} from "semantic-ui-react";
+import { Grid } from "semantic-ui-react";
 
 import { AVConstants } from '../constants';
-import { ISettingsResponse } from '../models/apiModels';
+import { ISettingsResponse, IPenetrationData } from '../models/apiModels';
 import { CompartmentTree } from '../models/compartmentTree';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
@@ -11,15 +11,14 @@ import { CompartmentNode } from './Viewer3D/CompartmentNode';
 import { Viewer3D, IViewer3DProps } from './Viewer3D/Viewer3D';
 import { PenetrationControlPanel, IPenetrationControlPanelProps } from './PenetrationControlPanel';
 
-interface IMainViewProps {
-    availablePenetrations: string[],
+export interface IMainViewProps {
+    availablePenetrations: IPenetrationData[],
     compartmentTree: CompartmentTree,
     visibleCompartments: ICompartmentView[],
     constants: AVConstants,
     settings: ISettingsResponse,
     onUpdateSelectedCompartments(added: string[], removed: string[]): void,
     updateCompartments(compartments: ICompartmentView[]): void,
-    updatePenetrations(penetrations: string[]): void,
 }
 
 interface IMainViewState {
@@ -59,7 +58,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             settings: this.props.settings,
             visibleCompartments: this.props.visibleCompartments,
             updateCompartments: this.props.updateCompartments,
-            updatePenetrations: this.props.updatePenetrations,
         };
 
         const compartmentListContainerProps: ICompartmentListContainerProps = {

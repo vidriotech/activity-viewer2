@@ -14,13 +14,12 @@ import { ICompartmentView } from '../../viewmodels/compartmentViewModel';
 
 
 export interface IViewer3DProps {
-    availablePenetrations: string[],
+    availablePenetrations: IPenetrationData[],
     constants: AVConstants,
     compartmentTree: CompartmentTree,
     settings: ISettingsResponse,
     visibleCompartments: ICompartmentView[],
     updateCompartments(compartments: ICompartmentView[]): void,
-    updatePenetrations(penetrations: string[]): void,
 }
 
 interface IViewer3DState {
@@ -75,64 +74,6 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         this.viewer = v;
     }
 
-    private loadPenetrations() {
-        if (this.viewer === null) {
-            return;
-        }
-
-        this.props.availablePenetrations.forEach((penetrationId: string) => {
-            this.apiClient.fetchPenetrationVitals(penetrationId)
-            .then((res: any) => res.data)
-            .then((response: IPenetrationData) => {
-                if (response.stride == 0) { // errored out, abort
-                    return;
-                }
-
-                let visibleCompartments = this.props.visibleCompartments.slice();
-
-                // populate penetration with loaded points
-                let penetration: IPenetration = {
-                    id: penetrationId,
-                    points: []
-                };
-
-                // add each point to this penetration
-                for (let i = 0; i < response.coordinates.length; i += response.stride) {
-                    const idx = i / response.stride;
-                    const compartment = response.compartments[idx];
-
-                    if (!compartment) {
-                        console.log(response);
-                        continue;
-                    }
-
-                    const point: IPoint = {
-                        id: response.ids[idx],
-                        penetrationId: penetrationId,
-                        x: response.coordinates[i],
-                        y: response.coordinates[i+1],
-                        z: response.coordinates[i+2],
-                        compartment: compartment,
-                    };
-
-                    // make visible the compartment this point resides in
-                    // const compartmentName = compartment.name;
-                    // const vcIdx = vcNames.indexOf(compartmentName);
-                    // if (vcIdx === -1) {
-                    //     visibleCompartments.push(_.extend(compartment, {isVisible: true}));
-                    // } else {
-                    //     visibleCompartments[idx].isVisible = true;
-                    // }
-
-                    penetration.points.push(point);
-                }
-
-                this.viewer.loadPenetration(penetration);
-                this.props.updateCompartments(visibleCompartments);
-            });
-        });
-    }
-
     private populateCompartments() {
         const compartmentNodes = this.props.compartmentTree
             .getCompartmentSubset(this.props.settings);
@@ -152,7 +93,53 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     }
 
     private renderPenetrations() {
-        ;
+        this.props.availablePenetrations.forEach((pen: IPenetrationData) => {
+            if (pen.stride == 0) { // errored out, abort
+                return;
+            }
+
+            let visibleCompartments = this.props.visibleCompartments.slice();
+
+            // populate penetration with loaded points
+            let penetration: IPenetration = {
+                id: pen.penetrationId,
+                points: []
+            };
+
+            // add each point to this penetration
+            for (let i = 0; i < pen.coordinates.length; i += pen.stride) {
+                const idx = i / pen.stride;
+                const compartment = pen.compartments[idx];
+
+                if (!compartment) {
+                    console.log(pen);
+                    continue;
+                }
+
+                const point: IPoint = {
+                    id: pen.ids[idx],
+                    penetrationId: pen.penetrationId,
+                    x: pen.coordinates[i],
+                    y: pen.coordinates[i+1],
+                    z: pen.coordinates[i+2],
+                    compartment: compartment,
+                };
+
+                // make visible the compartment this point resides in
+                // const compartmentName = compartment.name;
+                // const vcIdx = vcNames.indexOf(compartmentName);
+                // if (vcIdx === -1) {
+                //     visibleCompartments.push(_.extend(compartment, {isVisible: true}));
+                // } else {
+                //     visibleCompartments[idx].isVisible = true;
+                // }
+
+                penetration.points.push(point);
+            }
+
+            this.viewer.loadPenetration(penetration);
+            // this.props.updateCompartments(visibleCompartments);
+        })
     }
 
     private renderCompartments() {
@@ -180,7 +167,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         this.createViewer()
             .then(() => {
                 this.populateCompartments();
-                this.loadPenetrations();
+                this.renderPenetrations();
             });
     }
 

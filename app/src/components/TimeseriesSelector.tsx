@@ -22,7 +22,6 @@ interface ITimeseriesSelectorState {
 
 export class TimeseriesSelector extends React.Component<ITimeseriesSelectorProps, ITimeseriesSelectorState> {
     private apiClient: APIClient;
-    private defaults: any;
 
     constructor(props: ITimeseriesSelectorProps) {
         super(props);

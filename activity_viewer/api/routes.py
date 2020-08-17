@@ -28,16 +28,25 @@ def get_mesh(structure_id: int):
     return state.cache.load_structure_mesh(structure_id)
 
 
-@app.route("/penetrations", methods=["GET", "POST"])
+@app.route("/penetrations", methods=["GET", "POST", "PUT", "DELETE"])
 def get_all_penetrations():
-    if request.method == "POST":
+    if hasattr(request, "data"):
         data = json.loads(request.data)
+    else:
+        data = None
 
-        if "data_paths" in data:
-            for data_path in data["data_paths"]:
-                state.add_penetration(data_path)
+    if request.method == "POST":  # reset all penetrations
+        if data is not None and "data_paths" in data:
+            state.clear_penetrations()
+            state.add_penetrations(data["data_paths"])
+    elif request.method == "PUT":  # add one or more penetration
+        if data is not None and "data_paths" in data:
+            state.add_penetrations(data["data_paths"])
+    elif request.method == "DELETE":
+        if data is not None and "penetrations" in data:
+            state.rm_penetrations(data["penetrations"])        
 
-    return {"penetrations": state.penetrations}
+    return {"penetrations": [get_penetration_vitals(pen) for pen in state.penetrations]}
 
 
 @app.route("/penetrations/<penetration_id>")
@@ -51,7 +60,7 @@ def get_penetration_vitals(penetration_id: str):
     compartments = state.get_compartments(penetration_id)
 
     return {
-        "penetration": penetration_id,
+        "penetrationId": penetration_id,
         "ids": ids.ravel().tolist(),
         "compartments": compartments,
         "coordinates": coords.ravel().tolist(),

@@ -1,9 +1,9 @@
 import React from 'react';
-import { Container, Header, List} from 'semantic-ui-react';
+import { Container, List} from 'semantic-ui-react';
 
 import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
-import { IPenetrationTimeseriesResponse } from '../models/apiModels';
+import { IPenetrationTimeseriesResponse, IPenetrationData } from '../models/apiModels';
 
 import { TimeseriesSelector, ITimeseriesSelectorProps } from './TimeseriesSelector';
 
@@ -15,7 +15,7 @@ interface ITimeseriesAesthetics {
 
 export interface IPenetrationControlsProps {
     constants: AVConstants,
-    penetrationId: string,
+    penetration: IPenetrationData,
 }
 
 interface IPenetrationControlsState {
@@ -42,7 +42,7 @@ export class PenetrationControls extends React.Component<IPenetrationControlsPro
     }
 
     private fetchTimeseries() {
-        this.apiClient.fetchAllTimeseries(this.props.penetrationId)
+        this.apiClient.fetchAllTimeseries(this.props.penetration.penetrationId)
             .then((res: any) => res.data)
             .then((res: IPenetrationTimeseriesResponse) => {
                 this.setState({timeseries: res.timeseries});
@@ -62,7 +62,7 @@ export class PenetrationControls extends React.Component<IPenetrationControlsPro
                 {this.state.timeseries.map(t => {
                     const timeseriesSelectorProps: ITimeseriesSelectorProps = {
                         timeseriesId: t,
-                        penetrationId: this.props.penetrationId,
+                        penetrationId: this.props.penetration.penetrationId,
                         constants: this.props.constants,
                     };
                     return <List.Item key={t}>{<TimeseriesSelector {...timeseriesSelectorProps} />}</List.Item>

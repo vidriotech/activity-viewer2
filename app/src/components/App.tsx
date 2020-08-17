@@ -2,8 +2,8 @@ import React from 'react';
 import * as _ from 'underscore';
 
 import { AVConstants } from '../constants';
-import { ISettingsResponse } from '../models/apiModels';
-import { MainView } from './MainView';
+import { ISettingsResponse, IPenetrationData } from '../models/apiModels';
+import { MainView, IMainViewProps } from './MainView';
 import { CompartmentTree } from '../models/compartmentTree';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
@@ -11,12 +11,12 @@ import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 export interface IAppProps {
     compartmentTree: CompartmentTree,
     constants: AVConstants,
-    initialPenetrations: string[],
+    initialPenetrations: IPenetrationData[],
     settings: ISettingsResponse,
 }
 
 export interface IAppState {
-    availablePenetrations: string[],
+    availablePenetrations: IPenetrationData[],
     visibleCompartments: ICompartmentView[],
 }
 
@@ -28,26 +28,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             visibleCompartments: [
                 _.extend(this.props.compartmentTree.getCompartmentNodeByName('root'), {isVisible: true})],
         };
-    }
-
-    public addPenetration(pen: string) {
-        let penetrations = this.state.availablePenetrations.slice();
-        let idx = penetrations.indexOf(pen);
-
-        if (idx === -1) {
-            penetrations.push(pen);
-            this.setState({availablePenetrations: penetrations})
-        }
-    }
-
-    public removePenetration(pen: string) {
-        let penetrations = this.state.availablePenetrations.slice();
-        let idx = penetrations.indexOf(pen)
-
-        if (idx !== -1) {
-            penetrations.splice(idx, 1);
-            this.setState({availablePenetrations: penetrations})
-        }
     }
 
     private onUpdateSelectedCompartments(added: string[], removed: string[]) {
@@ -84,12 +64,8 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.setState({visibleCompartments: compartmentViews});
     }
 
-    public updatePenetrations(penetrations: string[]) {
-        this.setState({availablePenetrations: penetrations});
-    }
-
     public render() {
-        let mainViewProps = {
+        let mainViewProps: IMainViewProps = {
             availablePenetrations: this.state.availablePenetrations,
             compartmentTree: this.props.compartmentTree,
             visibleCompartments: this.state.visibleCompartments,
@@ -97,7 +73,6 @@ export class App extends React.Component<IAppProps, IAppState> {
             settings: this.props.settings,
             onUpdateSelectedCompartments: this.onUpdateSelectedCompartments.bind(this),
             updateCompartments: this.updateCompartmentViews.bind(this),
-            updatePenetrations: this.updatePenetrations.bind(this),
         }
         
         return (<div>

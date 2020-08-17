@@ -5,14 +5,15 @@ import { Dropdown, List, SemanticICONS, Container, Grid, DropdownProps, Header }
 import { AVConstants } from '../constants';
 import { IPenetration } from '../models/penetrationModel';
 import { PenetrationControls, IPenetrationControlsProps } from './PenetrationControls';
+import { IPenetrationResponse, IPenetrationData } from '../models/apiModels';
 
 export interface IPenetrationControlPanelProps {
-    availablePenetrations: string[],
+    availablePenetrations: IPenetrationData[],
     constants: AVConstants,
 }
 
 interface IPenetrationControlPanelState {
-    activePenetration: string,
+    activePenetration: IPenetrationData,
 }
 
 export class PenetrationControlPanel extends React.Component<IPenetrationControlPanelProps, IPenetrationControlPanelState> {
@@ -26,18 +27,19 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
 
     private handleChange(e: React.SyntheticEvent, data: DropdownProps) {
         const selectedPenetration = data.value as string;
-        this.setState({ activePenetration: selectedPenetration });
+        const idx = this.props.availablePenetrations.map(pen => pen.penetrationId).indexOf(selectedPenetration);
+        this.setState({ activePenetration: this.props.availablePenetrations[idx] });
     }
 
     public render() {
-        const penetrationOptions = this.props.availablePenetrations.map(penetrationId => ({
-            key: penetrationId,
-            value: penetrationId,
-            text: penetrationId,
+        const penetrationOptions = this.props.availablePenetrations.map(pen => ({
+            key: pen.penetrationId,
+            value: pen.penetrationId,
+            text: pen.penetrationId,
         }));
 
         const editDropdown = (
-            <Dropdown defaultValue={this.props.availablePenetrations[0]}
+            <Dropdown defaultValue={this.state.activePenetration.penetrationId}
                       search
                       selection
                       options={penetrationOptions}
@@ -46,7 +48,7 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
         );
 
         const penetrationControlProps: IPenetrationControlsProps = {
-            penetrationId: this.state.activePenetration,
+            penetration: this.state.activePenetration,
             constants: this.props.constants,
         }
 

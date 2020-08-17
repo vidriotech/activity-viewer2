@@ -38,9 +38,10 @@ import 'fomantic-ui-css/semantic.css';
 import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
 import { CompartmentTree } from './models/compartmentTree';
-import { ICompartmentNode } from './models/apiModels';
+import { ICompartmentNode, ISettingsResponse, IPenetrationResponse } from './models/apiModels';
 
 import { App, IAppProps } from './components/App';
+import { IPenetration } from './models/penetrationModel';
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
 let root = document.createElement('div');
@@ -62,13 +63,15 @@ let props: IAppProps = {
 }
 
 apiClient.setSettings(settingsPath)
-    .then((res: any) => {
-        props.settings = res.data;
+    .then((res: any) => res.data)
+    .then((data: ISettingsResponse) => {
+        props.settings = data;
 
-        return apiClient.addPenetrations(dataPaths);
+        return apiClient.setPenetrations(dataPaths);
     })
-    .then((res: any) => {
-        props.initialPenetrations = res.data.penetrations;
+    .then((res: any) => res.data)
+    .then((res: IPenetrationResponse) => {
+        props.initialPenetrations = res.penetrations;
 
         return apiClient.fetchCompartmentTree();
     })

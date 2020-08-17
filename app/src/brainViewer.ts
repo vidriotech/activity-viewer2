@@ -177,9 +177,9 @@ export class BrainViewer {
 
         for (let i = 0; i < penetrationData.points.length; i++) {
             const pointObj = penetrationData.points[i];
-            positions.push(pointObj.x + 10 * Math.random(),
-                           pointObj.y + 10 * Math.random(),
-                           pointObj.z + 10 * Math.random());
+            positions.push(pointObj.x + 10 * (Math.random() - 0.5),
+                           pointObj.y + 10 * (Math.random() - 0.5),
+                           pointObj.z + 10 * (Math.random() - 0.5));
             
             color.setRGB(0, 128/255, 1);
             colors.push(color.r, color.g, color.b);

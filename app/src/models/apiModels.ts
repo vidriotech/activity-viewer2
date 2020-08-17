@@ -1,11 +1,3 @@
-export interface IPenetrationData {
-    penetrationId: string,
-    ids: number[],
-    compartments: ICompartment[]
-    coordinates: number[],
-    stride: number,
-}
-
 /*
  * Endpoint: /settings
  * Settings may be queried and updated from this endpoint.
@@ -31,12 +23,20 @@ export interface ISettingsResponse {
  * Endpoint: /penetrations
  * Penetrations may be added and queried from this endpoint.
  */
+export interface IPenetrationData {
+    penetrationId: string,
+    ids: number[],
+    compartments: ICompartment[]
+    coordinates: number[],
+    stride: number,
+}
+
 export interface IPenetrationRequest {
     data_paths: string[],
 }
 
 export interface IPenetrationResponse {
-    penetrations: string[],
+    penetrations: IPenetrationData[],
 }
 
 /*
