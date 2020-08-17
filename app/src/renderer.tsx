@@ -32,7 +32,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 
 // Import CSS stylesheet
-import './css/index.css';
+import './assets/css/index.css';
 import 'fomantic-ui-css/semantic.css';
 
 import { APIClient } from './apiClient';

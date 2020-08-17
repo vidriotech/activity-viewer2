@@ -81,7 +81,6 @@ export class CompartmentTree {
         Pop root node off and emplace.
         For each node, traverse the structure id path array and emplace ancestors as necessary.
         */
-        // console.log(settings);
         let subset = this.getCompartmentSubset(settings);
         if (subset.length === 0) {
             return this.root;
@@ -120,8 +119,6 @@ export class CompartmentTree {
                 levelNode = levelNode.children[idx];
             }
         }
-
-        // console.log(rootNode);
 
         return rootNode;
     }

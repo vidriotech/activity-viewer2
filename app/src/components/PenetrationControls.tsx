@@ -7,6 +7,12 @@ import { IPenetrationTimeseriesResponse } from '../models/apiModels';
 
 import { TimeseriesSelector, ITimeseriesSelectorProps } from './TimeseriesSelector';
 
+interface ITimeseriesAesthetics {
+    color: number | number[],
+    opacity: number | number[],
+    radius: number | number[],
+}
+
 export interface IPenetrationControlsProps {
     constants: AVConstants,
     penetrationId: string,
@@ -14,6 +20,7 @@ export interface IPenetrationControlsProps {
 
 interface IPenetrationControlsState {
     timeseries: string[],
+    aesthetic: ITimeseriesAesthetics,
 }
 
 export class PenetrationControls extends React.Component<IPenetrationControlsProps, IPenetrationControlsState> {
@@ -23,7 +30,12 @@ export class PenetrationControls extends React.Component<IPenetrationControlsPro
         super(props);
 
         this.state = {
-            timeseries: []
+            timeseries: [],
+            aesthetic: {
+                color: this.props.constants.defaultColor,
+                opacity: this.props.constants.defaultOpacity,
+                radius: this.props.constants.defaultRadius,
+            }
         };
         
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);

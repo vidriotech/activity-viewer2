@@ -69,14 +69,11 @@ export class App extends React.Component<IAppProps, IAppState> {
 
         removed.forEach((name: string) => {
             const idx = compartmentNames.indexOf(name);
-            console.log(name);
-            console.log(idx);
             if (idx === -1) {
                 const compartment = this.props.compartmentTree.getCompartmentByName(name);
                 compartmentViews.push(_.extend(compartment, {isVisible: false}));
             } else {
                 compartmentViews[idx].isVisible = false;
-                console.log(compartmentViews[idx]);
             }
         });
 

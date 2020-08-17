@@ -368,6 +368,11 @@
     global-agent "^2.0.2"
     global-tunnel-ng "^2.7.1"
 
+"@kassellabs/react-semantic-ui-range@^1.0.0":
+  version "1.0.0"
+  resolved "https://registry.yarnpkg.com/@kassellabs/react-semantic-ui-range/-/react-semantic-ui-range-1.0.0.tgz#bfecde1289be2cb19c405555d20d887621433e14"
+  integrity sha512-x5XSM1lV9MfZtBP2t9mtd9aSBV7ukqzoTaIeUOOCaZ/Xc1LqmXWgykv7TADqTqu8M7P+mNHTS5b64Wd6zhjGrQ==
+
 "@malept/cross-spawn-promise@^1.0.0", "@malept/cross-spawn-promise@^1.1.0":
   version "1.1.0"
   resolved "https://registry.yarnpkg.com/@malept/cross-spawn-promise/-/cross-spawn-promise-1.1.0.tgz#258fde4098f5004a56db67c35f33033af64810f6"

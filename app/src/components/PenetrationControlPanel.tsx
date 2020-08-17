@@ -59,9 +59,9 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
                     <Grid.Column width={4}>
                         <p>Select a penetration to edit</p>
                         {editDropdown}</Grid.Column>
-                    <Grid.Column width={6}>{penetrationControls}</Grid.Column>
+                    <Grid.Column width={12}>{penetrationControls}</Grid.Column>
                 </Grid>
             </Container>
-        )
+        );
     }
 }

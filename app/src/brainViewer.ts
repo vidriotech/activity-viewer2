@@ -1,5 +1,6 @@
 import * as THREEM from 'three';
 import { Object3D } from 'three';
+
 const THREE = require('three');
 require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
@@ -27,44 +28,46 @@ export class BrainViewer {
 
     private lastTimestamp: number = null;
 
-    private sphereMaterial = new THREE.MeshBasicMaterial({
-        color: 0x0080ff
-    });
-    private sphereGeometry = new THREE.SphereGeometry(40);
+    private sphereMaterial: THREE.MeshBasicMaterial;
+    private sphereGeometry: THREE.SphereGeometry;
+    private pointsMaterial: THREE.PointsMaterial;
 
     public HEIGHT = 0.5 * window.innerHeight;
     public WIDTH = 0.5 * window.innerWidth;
     public container = 'container';
     public flip = true; // flip y axis
-    public radiusScaleFactor = 1;
+
+    private penetrations: Map<string, Object3D[]>;
 
     constructor(constants: AVConstants, compartmentTree: CompartmentTree) {
         this.constants = constants;
         this.compartmentTree = compartmentTree;
         this.apiClient = new APIClient(this.constants.apiEndpoint);
+
+        this.sphereMaterial = new THREE.MeshBasicMaterial({
+            color: constants.defaultColor
+        });
+        this.sphereGeometry = new THREE.SphereGeometry(40);
+        this.pointsMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                // color: { value: new THREE.Color(this.constants.defaultColor), },
+                pointTexture: { value: new THREE.TextureLoader().load(this.constants.ballTexture) }
+            },
+            vertexShader: this.constants.pointVertexShader,
+            fragmentShader: this.constants.pointFragmentShader,
+            depthTest: false,
+            transparent: true,
+            vertexColors: true
+        });
+
+        this.penetrations = new Map<string, Object3D[]>();
     }
 
     private rgb2Hex(val: number[]): string {
         return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
     }
 
-    private createPoint(point: IPoint) {
-        const pointObj = new THREE.Object3D();
-
-        let mesh = new THREE.Mesh(
-            this.sphereGeometry,
-            this.sphereMaterial
-        );
-        mesh.position.x = point.x;
-        mesh.position.y = point.y;
-        mesh.position.z = point.z;
-
-        pointObj.add(mesh);
-        return pointObj;
-    }
-
     private loadCompartment(name: string) {
-        // console.log(`loading ${name}`);
         if (this.loadedCompartments.includes(name)) {
             return;
         }
@@ -121,6 +124,10 @@ export class BrainViewer {
         this.render();
     }
 
+    public hasPenetration(penetrationId: string) {
+        return this.penetrations.has(penetrationId);
+    }
+
     public initialize() {
         // create a new renderer
         this.renderer = new THREE.WebGLRenderer({
@@ -159,14 +166,33 @@ export class BrainViewer {
         this.trackControls.addEventListener('change', this.render.bind(this));
     }
 
-    public loadPenetration(penetration: IPenetration) {
+    public loadPenetration(penetrationData: IPenetration) {
         const centerPoint = this.constants.centerPoint.map((t: number) => -t);
 
-        for (let i = 0; i < penetration.points.length; i++) {
-            const pointObj = this.createPoint(penetration.points[i]);
-            pointObj.position.set(...centerPoint);
-            this.scene.add(pointObj);
+        let geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
+        let positions = [];
+        let colors = [];
+        let sizes = [];
+        let color: THREE.Color = new THREE.Color();
+
+        for (let i = 0; i < penetrationData.points.length; i++) {
+            const pointObj = penetrationData.points[i];
+            positions.push(pointObj.x + 10 * Math.random(),
+                           pointObj.y + 10 * Math.random(),
+                           pointObj.z + 10 * Math.random());
+            
+            color.setRGB(0, 128/255, 1);
+            colors.push(color.r, color.g, color.b);
+            sizes.push(350);
         }
+
+        geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+        geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
+        geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage));
+
+        let penetration: THREE.Points = new THREE.Points(geometry, this.pointsMaterial);
+        penetration.position.set(centerPoint[0], centerPoint[1], centerPoint[2]);
+        this.scene.add(penetration);
     }
 
     public render() {
