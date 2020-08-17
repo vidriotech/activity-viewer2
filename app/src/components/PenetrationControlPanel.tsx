@@ -3,9 +3,8 @@ import React from 'react';
 import { Dropdown, List, SemanticICONS, Container, Grid, DropdownProps, Header } from 'semantic-ui-react';
 
 import { AVConstants } from '../constants';
-import { IPenetration } from '../models/penetrationModel';
 import { PenetrationControls, IPenetrationControlsProps } from './PenetrationControls';
-import { IPenetrationResponse, IPenetrationData } from '../models/apiModels';
+import { IPenetrationData } from '../models/apiModels';
 
 export interface IPenetrationControlPanelProps {
     availablePenetrations: IPenetrationData[],

@@ -8,7 +8,6 @@ const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
 import { CompartmentTree } from './models/compartmentTree';
-import { IPenetration } from './models/penetrationModel';
 import { IPenetrationData } from './models/apiModels';
 
 export class BrainViewer {

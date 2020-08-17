@@ -41,7 +41,6 @@ import { CompartmentTree } from './models/compartmentTree';
 import { ICompartmentNode, ISettingsResponse, IPenetrationResponse } from './models/apiModels';
 
 import { App, IAppProps } from './components/App';
-import { IPenetration } from './models/penetrationModel';
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
 let root = document.createElement('div');

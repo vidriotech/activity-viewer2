@@ -7,8 +7,6 @@ import { AVConstants } from '../../constants';
 
 import { ISettingsResponse, IPenetrationData, ICompartmentNode, ICompartment } from '../../models/apiModels';
 import { CompartmentTree } from '../../models/compartmentTree';
-import { IPoint } from '../../models/pointModel';
-import { IPenetration } from '../../models/penetrationModel';
 
 import { ICompartmentView } from '../../viewmodels/compartmentViewModel';
 
