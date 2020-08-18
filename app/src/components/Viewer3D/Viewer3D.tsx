@@ -8,10 +8,12 @@ import { AVConstants } from '../../constants';
 import { ISettingsResponse, IPenetrationData, ICompartmentNode, ICompartment } from '../../models/apiModels';
 import { CompartmentTree } from '../../models/compartmentTree';
 
+import { IAesthetics } from '../../viewmodels/aestheticMapping';
 import { ICompartmentView } from '../../viewmodels/compartmentViewModel';
 
 
 export interface IViewer3DProps {
+    aestheticMappings: IAesthetics[],
     availablePenetrations: IPenetrationData[],
     constants: AVConstants,
     compartmentTree: CompartmentTree,
@@ -92,13 +94,23 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
 
     private renderPenetrations() {
         this.props.availablePenetrations.forEach((penetration: IPenetrationData) => {
-            if (this.viewer.hasPenetration(penetration.penetrationId) || penetration.stride == 0) {
+            if (penetration.stride == 0) {
                 return;
             }
 
-            // let visibleCompartments = this.props.visibleCompartments.slice();
-            this.viewer.loadPenetration(penetration);
-            // this.props.updateCompartments(visibleCompartments);
+            let aestheticMappings: IAesthetics[] = [];
+            for (let i = 0; i < this.props.aestheticMappings.length; i++) {
+                let mapping = this.props.aestheticMappings[i];
+                if (mapping.penetrationId == penetration.penetrationId) {
+                    aestheticMappings.push(mapping);
+                }
+            }
+
+            if (!this.viewer.hasPenetration(penetration.penetrationId)) {
+                this.viewer.loadPenetration(penetration);
+            }
+
+            this.viewer.setAesthetics(aestheticMappings);
         })
     }
 
@@ -137,7 +149,8 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     }
 
     public render() {
-        return <div id={this.containerId} />
-                    // style={{border: '1px solid'}}/>
+        return (<div id={this.containerId}>
+            <div id="timestep">t = 0</div>
+            </div>)
     }
 }

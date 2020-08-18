@@ -1,26 +1,23 @@
 import React from 'react';
+import * as _ from 'underscore';
 import { Container, List} from 'semantic-ui-react';
 
 import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
 import { IPenetrationTimeseriesResponse, IPenetrationData } from '../models/apiModels';
+import { IAestheticMapping, IAesthetics } from '../viewmodels/aestheticMapping';
 
 import { TimeseriesSelector, ITimeseriesSelectorProps } from './TimeseriesSelector';
-
-interface ITimeseriesAesthetics {
-    color: number | number[],
-    opacity: number | number[],
-    radius: number | number[],
-}
 
 export interface IPenetrationControlsProps {
     constants: AVConstants,
     penetration: IPenetrationData,
+    onUpdateTimeseriesAesthetic(mapping: IAesthetics): void,
 }
 
 interface IPenetrationControlsState {
+    aesthetics: IAesthetics,
     timeseries: string[],
-    aesthetic: ITimeseriesAesthetics,
 }
 
 export class PenetrationControls extends React.Component<IPenetrationControlsProps, IPenetrationControlsState> {
@@ -30,14 +27,15 @@ export class PenetrationControls extends React.Component<IPenetrationControlsPro
         super(props);
 
         this.state = {
+            aesthetics: {
+                penetrationId: this.props.penetration.penetrationId,
+                color: null,
+                opacity: null,
+                radius: null,
+            },
             timeseries: [],
-            aesthetic: {
-                color: this.props.constants.defaultColor,
-                opacity: this.props.constants.defaultOpacity,
-                radius: this.props.constants.defaultRadius,
-            }
         };
-        
+
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
     }
 
@@ -52,6 +50,27 @@ export class PenetrationControls extends React.Component<IPenetrationControlsPro
             });
     }
 
+    private handleAestheticChange(aesthetic: string, aestheticMapping: IAestheticMapping) {
+        const otherAesthetics = _.without(_.keys(this.state.aesthetics), 'penetrationId', aesthetic);
+
+        let aesthetics: IAesthetics = _.extend(
+            _.pick(this.state.aesthetics, otherAesthetics),
+            { 'penetrationId': this.props.penetration.penetrationId, [aesthetic]: aestheticMapping }
+        );
+
+        // check the other two aesthetics to see if this one is already represented
+        otherAesthetics.forEach((aes: keyof(IAesthetics)) => {
+            const otherMapping: IAestheticMapping = aesthetics[aes] as IAestheticMapping;
+            if (otherMapping !== null && otherMapping.timeseriesId === aestheticMapping.timeseriesId) {
+                aesthetics[aes] = null;
+            }
+        })
+
+        this.setState({aesthetics: aesthetics}, () => {
+            this.props.onUpdateTimeseriesAesthetic(this.state.aesthetics);
+        });
+    }
+
     public componentDidMount() {
         this.fetchTimeseries();
     }
@@ -61,9 +80,10 @@ export class PenetrationControls extends React.Component<IPenetrationControlsPro
             <List>
                 {this.state.timeseries.map(t => {
                     const timeseriesSelectorProps: ITimeseriesSelectorProps = {
-                        timeseriesId: t,
-                        penetrationId: this.props.penetration.penetrationId,
                         constants: this.props.constants,
+                        penetrationId: this.props.penetration.penetrationId,
+                        timeseriesId: t,
+                        onAestheticChange: this.handleAestheticChange.bind(this)
                     };
                     return <List.Item key={t}>{<TimeseriesSelector {...timeseriesSelectorProps} />}</List.Item>
                 })}

@@ -42,10 +42,13 @@ export class AVConstants {
 
     private _pointVertexShader = `
     attribute float size;
+    attribute float opacity;
     varying vec3 vColor;
+    varying float vOpacity;
 
     void main() {
         vColor = color;
+        vOpacity = opacity;
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
         gl_PointSize = size * ( 300.0 / -mvPosition.z );
         gl_Position = projectionMatrix * mvPosition;
@@ -53,9 +56,10 @@ export class AVConstants {
     private _pointFragmentShader = `
     uniform sampler2D pointTexture;
     varying vec3 vColor;
+    varying float vOpacity;
 
     void main() {
-        gl_FragColor = vec4( vColor, 1.0 );
+        gl_FragColor = vec4( vColor, vOpacity );
         gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
     }`;
 

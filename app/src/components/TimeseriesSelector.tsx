@@ -1,14 +1,17 @@
 import React from 'react';
-import { Form, Dropdown, DropdownProps, Grid, Input, InputProps } from 'semantic-ui-react';
+import { Container, Form, Header, DropdownProps, Grid, Input, InputProps } from 'semantic-ui-react';
+import * as _ from 'underscore';
 
 import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
 import { IPenetrationTimeseriesValuesResponse } from '../models/apiModels';
+import { IAestheticMapping } from '../viewmodels/aestheticMapping';
 
 export interface ITimeseriesSelectorProps {
     constants: AVConstants,
     penetrationId: string,
     timeseriesId: string,
+    onAestheticChange(aesthetic: string, aestheticMapping: IAestheticMapping): void,
 }
 
 interface ITimeseriesSelectorState {
@@ -51,16 +54,20 @@ export class TimeseriesSelector extends React.Component<ITimeseriesSelectorProps
                 stride: res.stride
             });
         })
+        .then(() => {
+            this.propagateAesthetic();
+        })
         .catch((err: Error) => {
             console.error(err);
         });
     }
 
-    private handleAestheticChange(e: React.SyntheticEvent, data: DropdownProps) {
+    private handleAestheticSelectionChange(e: React.SyntheticEvent, data: DropdownProps) {
         let transformMin = this.state.transformMin;
         let transformMax = this.state.transformMax;
+        const aesthetic = data.value as string;
 
-        switch (data.value) {
+        switch (aesthetic) {
             case 'Radius':
                 transformMin = 5;
                 transformMax = 500;
@@ -76,8 +83,11 @@ export class TimeseriesSelector extends React.Component<ITimeseriesSelectorProps
         }
 
         this.setState({
-            transformMin,
-            transformMax,
+            aesthetic: aesthetic,
+            transformMin: transformMin,
+            transformMax: transformMax,
+        }, () => {
+            this.propagateAesthetic();
         });
     }
 
@@ -90,6 +100,16 @@ export class TimeseriesSelector extends React.Component<ITimeseriesSelectorProps
         // if (data.value < this.state.transformMinAllowable
         console.log(e);
         console.log(data);
+    }
+
+    private propagateAesthetic() {
+        let mapping: IAestheticMapping = {
+            timeseriesId: this.props.timeseriesId,
+            times: this.state.dataTimes,
+            values: this.transform(),
+        }
+
+        this.props.onAestheticChange(this.state.aesthetic.toLowerCase(), mapping);
     }
 
     private transform() {
@@ -131,7 +151,7 @@ export class TimeseriesSelector extends React.Component<ITimeseriesSelectorProps
                                     {key: 'col', value: 'Color', text: 'Color'},
                                     {key: 'opa', value: 'Opacity', text: 'Opacity'},
                                 ]}
-                                   onChange={this.handleAestheticChange.bind(this)} />
+                                   onChange={this.handleAestheticSelectionChange.bind(this)} />
                     {/* <Form.Input fluid
                                 label='Min'
                                 type='number'
@@ -202,6 +222,10 @@ export class TimeseriesSelector extends React.Component<ITimeseriesSelectorProps
         //     </Grid.Row>
         // </Grid>;
 
-        return form;
+        return (<Container>
+            <Header as='h2'>Aesthetic mapping</Header>
+            <p>Using "{this.props.timeseriesId}"</p>
+            {form}
+        </Container>);
     }
 }

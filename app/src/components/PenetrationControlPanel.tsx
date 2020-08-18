@@ -3,12 +3,15 @@ import React from 'react';
 import { Dropdown, List, SemanticICONS, Container, Grid, DropdownProps, Header } from 'semantic-ui-react';
 
 import { AVConstants } from '../constants';
-import { PenetrationControls, IPenetrationControlsProps } from './PenetrationControls';
 import { IPenetrationData } from '../models/apiModels';
+import { IAesthetics } from '../viewmodels/aestheticMapping';
+
+import { PenetrationControls, IPenetrationControlsProps } from './PenetrationControls';
 
 export interface IPenetrationControlPanelProps {
     availablePenetrations: IPenetrationData[],
     constants: AVConstants,
+    onUpdateTimeseriesAesthetic(mapping: IAesthetics): void,
 }
 
 interface IPenetrationControlPanelState {
@@ -24,9 +27,10 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
         };
     }
 
-    private handleChange(e: React.SyntheticEvent, data: DropdownProps) {
+    private handleSelectionChange(e: React.SyntheticEvent, data: DropdownProps) {
         const selectedPenetration = data.value as string;
         const idx = this.props.availablePenetrations.map(pen => pen.penetrationId).indexOf(selectedPenetration);
+
         this.setState({ activePenetration: this.props.availablePenetrations[idx] });
     }
 
@@ -51,13 +55,14 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
                           search
                           selection
                           options={penetrationOptions}
-                          onChange={this.handleChange.bind(this)}
+                          onChange={this.handleSelectionChange.bind(this)}
                 />
             );
     
             const penetrationControlProps: IPenetrationControlsProps = {
-                penetration: this.state.activePenetration,
                 constants: this.props.constants,
+                penetration: this.state.activePenetration,
+                onUpdateTimeseriesAesthetic: this.props.onUpdateTimeseriesAesthetic,
             }
     
             const penetrationControls = <PenetrationControls {...penetrationControlProps}/>;
@@ -68,8 +73,6 @@ export class PenetrationControlPanel extends React.Component<IPenetrationControl
                 <Grid.Column width={12}>{penetrationControls}</Grid.Column>
             </Grid>);
         }
-
-        
 
         return (
             <Container>

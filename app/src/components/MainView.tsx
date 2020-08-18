@@ -5,6 +5,7 @@ import { AVConstants } from '../constants';
 import { ISettingsResponse, IPenetrationData } from '../models/apiModels';
 import { CompartmentTree } from '../models/compartmentTree';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
+import { IAesthetics } from '../viewmodels/aestheticMapping';
 
 import { CompartmentListContainer, ICompartmentListContainerProps } from './Viewer3D/CompartmentListContainer';
 import { CompartmentNode } from './Viewer3D/CompartmentNode';
@@ -22,8 +23,9 @@ export interface IMainViewProps {
 }
 
 interface IMainViewState {
+    aestheticMappings: IAesthetics[],
     rootNode: CompartmentNode,
-    subsetOnly: boolean
+    subsetOnly: boolean,
 }
 
 export class MainView extends React.Component<IMainViewProps, IMainViewState> {
@@ -33,6 +35,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         // const rootNode = this.props.compartmentTree.getCompartmentNodeByName('root');
         const rootNode = this.props.compartmentTree.getCompartmentSubsetTree(this.props.settings);
         this.state = {
+            aestheticMappings: [],
             rootNode: new CompartmentNode(rootNode, true),
             subsetOnly: true,
         }
@@ -50,8 +53,31 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         this.setState({subsetOnly: subsetOnly, rootNode: rootNode});
     }
 
+    private handleTimeseriesAestheticChange(mapping: IAesthetics) {
+        console.log(mapping);
+        let mappings = this.state.aestheticMappings.slice();
+
+        let idx = -1;
+        for (let i = 0; i < mappings.length; i++) {
+            let m = mappings[i];
+            if (m.penetrationId === mapping.penetrationId) {
+                idx = i;
+                break;
+            }
+        }
+
+        if (idx === -1) {
+            mappings.push(mapping);
+        } else {
+            mappings[idx] = mapping;
+        }
+
+        this.setState({aestheticMappings: mappings});
+    }
+
     public render() {
         const viewer3DProps: IViewer3DProps = {
+            aestheticMappings: this.state.aestheticMappings,
             availablePenetrations: this.props.availablePenetrations,
             constants: this.props.constants,
             compartmentTree: this.props.compartmentTree,
@@ -71,6 +97,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         const penetrationControlPanelProps: IPenetrationControlPanelProps = {
             availablePenetrations: this.props.availablePenetrations,
             constants: this.props.constants,
+            onUpdateTimeseriesAesthetic: this.handleTimeseriesAestheticChange.bind(this),
         }
 
         const style = {width: "100%", height: "100%"};
