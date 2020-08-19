@@ -1,7 +1,7 @@
 import React from 'react';
 import * as _ from 'underscore';
 
-import { Grid, Slider } from '@material-ui/core';
+import { Grid, Input, Slider, Typography } from '@material-ui/core';
 
 import { APIClient } from '../../apiClient';
 import { BrainViewer } from '../../brainViewer';
@@ -30,6 +30,7 @@ interface IViewer3DState {
     renderHeight: number,
     timeMin: number,
     timeMax: number,
+    timeVal: number,
 }
 
 export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
@@ -46,6 +47,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
             renderHeight: 0,
             timeMin: 0,
             timeMax: 0,
+            timeVal: 0,
         };
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -83,8 +85,20 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         this.viewer = v;
     }
 
-    private handleSliderChange(_event: any, newValue: number) {
-        this.viewer.timeVal = newValue;
+    // private handleBlur() {
+    //     this.timeVal = Math.min(Math.max(this.state.timeMin, this.timeVal), this.state.timeMax);
+    // }
+
+    private handleInputChange(_event: any, timeVal: number) {
+        this.setState({ timeVal }, () => {
+            this.viewer.timeVal = this.state.timeVal
+        });
+    }
+
+    private handleSliderChange(_event: any, timeVal: number) {
+        this.setState({ timeVal }, () => {
+            this.viewer.timeVal = this.state.timeVal
+        });
     }
 
     private populateCompartments() {
@@ -155,7 +169,11 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         });
 
         if (timeMin !== this.state.timeMin || timeMax !== this.state.timeMax) {
-            this.setState({ timeMin, timeMax });
+            this.setState({
+                timeMin: timeMin,
+                timeVal: timeMin,
+                timeMax: timeMax
+            });
         }
     }
 
@@ -203,33 +221,59 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         }];
 
         if (this.state.timeMin < this.state.timeMax) {
-            marks[0].label = this.state.timeMin.toFixed(2);
+            marks[0].label = this.state.timeMin.toFixed(2) + ' s';
             marks.push({
-                label: this.state.timeMax.toFixed(2),
+                label: this.state.timeMax.toFixed(2) + ' s',
                 value: this.state.timeMax
             });
 
             if (this.state.timeMin < 0 && 0 < this.state.timeMax) {
                 marks.push({
-                    label: '0',
+                    label: '0 s',
                     value: 0,
                 });
             }
         }
 
         return (<Grid container
+                      item
                       direction='column'
-                      item xs={8}
+                      xs={8}
                       spacing={3}
-                      style={{ padding: 20 }}>
+                      style={{ padding: 40 }}>
             <Grid item id={this.containerId} xs />
-            <Grid item xs>
-                <Slider min={this.state.timeMin}
-                        max={this.state.timeMax}
-                        step={(this.state.timeMax - this.state.timeMin) / 1000}
-                        marks={marks}
-                        onChange={this.handleSliderChange.bind(this)}
-                />
+            <Grid item>
+                <Typography gutterBottom>
+                    Timestep
+                </Typography>
+            </Grid>
+            <Grid container item xs={12} spacing={3}>
+                <Grid item xs={10}>
+                    <Slider min={this.state.timeMin}
+                            max={this.state.timeMax}
+                            step={0.02}
+                            marks={marks}
+                            onChange={this.handleSliderChange.bind(this)}
+                            value={this.state.timeVal}
+                    />
+                </Grid>
+                <Grid item xs={2}>
+                    {/* <Input
+                        value={this.state.timeVal}
+                        onChange={this.handleInputChange.bind(this)}
+                        // onBlur={handleBlur}
+                        inputProps={{
+                            step: 0.02,
+                            min: this.state.timeMin,
+                            max: this.state.timeMax,
+                            type: 'number',
+                            'aria-labelledby': 'input-slider',
+                        }}
+                    /> */}
+                    <Typography>
+                        {`${this.state.timeVal.toFixed(2)} s`}
+                    </Typography>
+                </Grid>
             </Grid>
         </Grid>)
     }

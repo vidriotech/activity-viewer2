@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { Dropdown, List, SemanticICONS, Container, Grid, DropdownProps, Header } from 'semantic-ui-react';
+import { Dropdown, Container, Grid, DropdownProps, Header } from 'semantic-ui-react';
 
 import { AVConstants } from '../constants';
 import { IPenetrationData } from '../models/apiModels';
