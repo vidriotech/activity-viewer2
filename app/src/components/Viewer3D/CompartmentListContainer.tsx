@@ -34,7 +34,6 @@ export function CompartmentListContainer(props: ICompartmentListContainerProps) 
             flexGrow: 0,
             flexShrink: 0,
             display: "flex",
-            border: "1px solid"
         }}>
             <Compartments {...compartmentsProps} />
         </div>

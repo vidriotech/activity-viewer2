@@ -91,12 +91,6 @@ so forth.
 Current limitations and known issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
-Occasional incomplete load
-++++++++++++++++++++++++++
-
-Occasionally on loading, not all compartments or penetrations may appear. You should be able to
-hit refresh and they should load again.
-
 Python 3.8
 ++++++++++
 

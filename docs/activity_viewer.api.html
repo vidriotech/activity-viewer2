@@ -162,6 +162,11 @@
 <dd></dd></dl>
 
 <dl class="py function">
+<dt id="activity_viewer.api.routes.get_all_timeseries">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_all_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_all_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="activity_viewer.api.routes.get_compartment_tree">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_compartment_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_compartment_tree" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -180,6 +185,11 @@
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_pseudocoronal_annotation_slice">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_pseudocoronal_annotation_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_pseudocoronal_annotation_slice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_timeseries">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_timeseries" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -202,12 +212,12 @@
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class representing state of the HTTP API.</p>
 <dl class="py method">
-<dt id="activity_viewer.api.state.APIState.add_penetration">
-<code class="sig-name descname">add_penetration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_path</span><span class="p">:</span> <span class="n">Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.add_penetration" title="Permalink to this definition">¶</a></dt>
-<dd><p>Add a penetration to the set of current penetrations.</p>
+<dt id="activity_viewer.api.state.APIState.add_penetrations">
+<code class="sig-name descname">add_penetrations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">file_paths</span><span class="p">:</span> <span class="n">List<span class="p">[</span>Union<span class="p">[</span>str<span class="p">, </span>pathlib.Path<span class="p">]</span><span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.add_penetrations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add one or more penetrations to the set of current penetrations.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><p><strong>file_path</strong> (<em>str</em><em> or </em><em>Path</em>) – </p>
+<dd class="field-odd"><p><strong>file_paths</strong> (<em>list of str</em><em> or </em><em>Path</em>) – </p>
 </dd>
 </dl>
 </dd></dl>
@@ -216,6 +226,18 @@
 <dt id="activity_viewer.api.state.APIState.cache">
 <em class="property">property </em><code class="sig-name descname">cache</code><a class="headerlink" href="#activity_viewer.api.state.APIState.cache" title="Permalink to this definition">¶</a></dt>
 <dd><p>Cache object.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.clear_penetrations">
+<code class="sig-name descname">clear_penetrations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.clear_penetrations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove all penetrations from state.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_all_timeseries">
+<code class="sig-name descname">get_all_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_all_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of timeseries for <cite>penetration_id</cite></p>
 </dd></dl>
 
 <dl class="py method">
@@ -240,6 +262,12 @@
 <dt id="activity_viewer.api.state.APIState.get_pseudocoronal_annotation_slice">
 <code class="sig-name descname">get_pseudocoronal_annotation_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_pseudocoronal_annotation_slice" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get voxel values for pseudocoronal plane of best fit for <cite>penetration_id</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_timeseries">
+<code class="sig-name descname">get_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a specific timeseries’ values for a specific penetration.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -270,6 +298,12 @@
 <dt id="activity_viewer.api.state.APIState.penetrations">
 <em class="property">property </em><code class="sig-name descname">penetrations</code><a class="headerlink" href="#activity_viewer.api.state.APIState.penetrations" title="Permalink to this definition">¶</a></dt>
 <dd><p>List of loaded and valid penetrations.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.rm_penetrations">
+<code class="sig-name descname">rm_penetrations</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_ids</span><span class="p">:</span> <span class="n">List<span class="p">[</span>str<span class="p">]</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.rm_penetrations" title="Permalink to this definition">¶</a></dt>
+<dd><p>Remove a penetration from state.</p>
 </dd></dl>
 
 <dl class="py method">

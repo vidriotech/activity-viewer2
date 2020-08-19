@@ -3,6 +3,7 @@ import * as _ from 'underscore';
 
 import { AVConstants } from '../constants';
 import { IAesthetics } from './aestheticMapping';
+import { isNaN } from 'underscore';
 
 
 export class PenetrationViewModel {
@@ -21,6 +22,27 @@ export class PenetrationViewModel {
 
     private radToPx(radius: number) {
         return radius * (35/4);
+    }
+
+    private interpValues(times: number[], values: number[], t: number, idx: number, stride: number, newValues: Float32Array) {
+        const t0 = times[idx-1];
+        const t1 = times[idx];
+        const denom = t1 - t0;
+
+        for (let i = idx - 1; i < values.length; i += stride) {
+            let wt1, wt2;
+
+            if (denom === 0) {
+                wt1 = 1;
+                wt2 = 0;
+            } else {
+                wt1 = (t - t0) / denom;
+                wt2 = (t1 - t) / denom;
+            }
+
+            const val = wt1*values[i - 1] + wt2*values[i];
+            newValues[(i - (idx - 1))/stride] = val;
+        }
     }
 
     public getColor(t: number) {
@@ -64,21 +86,7 @@ export class PenetrationViewModel {
                     opacities[(i - idx) / stride] = values[i];
                 }
             } else { // interpolate
-                for (let i = idx; i < values.length; i += stride) {
-                    let wt1, wt2;
-                    const denom = times[i] - times[i-1];
-
-                    if (denom === 0) {
-                        wt1 = 1;
-                        wt2 = 0;
-                    } else {
-                        wt1 = (t - times[i-1]) / denom;
-                        wt2 = (times[i] - t) / denom;
-                    }
-
-                    const val = wt1*values[i - 1] + wt2*values[i];
-                    opacities[(i - idx - 1)/stride] = val;
-                }
+                this.interpValues(times, values, t, idx, stride, opacities);
             }
         }
 
@@ -104,21 +112,8 @@ export class PenetrationViewModel {
                     sizes[(i - idx) / stride] = this.radToPx(values[i]);
                 }
             } else { // interpolate
-                for (let i = idx; i < values.length; i += stride) {
-                    let wt1, wt2;
-                    const denom = times[i] - times[i-1];
-
-                    if (denom === 0) {
-                        wt1 = 1;
-                        wt2 = 0;
-                    } else {
-                        wt1 = (t - times[i-1]) / denom;
-                        wt2 = (times[i] - t) / denom;
-                    }
-
-                    const val = wt1*values[i - 1] + wt2*values[i];
-                    sizes[(i - idx - 1)/stride] = this.radToPx(val);
-                }
+                this.interpValues(times, values, t, idx, stride, sizes);
+                sizes = sizes.map(x => this.radToPx(x));
             }
         }
 

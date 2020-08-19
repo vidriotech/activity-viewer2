@@ -113,16 +113,24 @@ export class TimeseriesSelector extends React.Component<ITimeseriesSelectorProps
     }
 
     private transform() {
-        const dataMin = Math.min(...this.state.dataValues);
-        const dataRange = Math.max(...this.state.dataValues) - dataMin;
-        const transformRange = this.state.transformMax - this.state.transformMin;
+        let dataMin = this.state.dataValues[0];
+        let dataMax = this.state.dataValues[0];
+        this.state.dataValues.forEach(x => {
+            dataMin = Math.min(x, dataMin);
+            dataMax = Math.max(x, dataMax);
+        });
+        const dataRange = dataMax - dataMin;
+
+        const transformMin = this.state.transformMin;
+        const transformMax = this.state.transformMax;
+        const transformRange = transformMax - transformMin;
 
         let transformedValues;
-        if (dataRange === 0) {
-            transformedValues = this.state.dataValues.map(x => transformRange / 2);
+        if (dataMin === dataMax) {
+            transformedValues = this.state.dataValues.map(_x => (transformMax - transformMin) / 2);
         } else {
             transformedValues = this.state.dataValues.map(x =>
-                (x - this.state.transformMin)/dataRange * transformRange + this.state.transformMin
+                transformMin + transformRange*(x - dataMin)/dataRange
             );
         }
 

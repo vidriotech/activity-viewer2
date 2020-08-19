@@ -1,5 +1,5 @@
 import React from 'react';
-import { Grid } from "semantic-ui-react";
+import { Grid } from '@material-ui/core';
 
 import { AVConstants } from '../constants';
 import { ISettingsResponse, IPenetrationData } from '../models/apiModels';
@@ -54,7 +54,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     }
 
     private handleTimeseriesAestheticChange(mapping: IAesthetics) {
-        console.log(mapping);
         let mappings = this.state.aestheticMappings.slice();
 
         let idx = -1;
@@ -103,22 +102,16 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         const style = {width: "100%", height: "100%"};
         return (
             <div style={style}>
-                <Grid>
-                    <Grid.Row>
-                        <Grid.Column width={16}>
-                            <PenetrationControlPanel {...penetrationControlPanelProps}/>
-                        </Grid.Column>
-                    </Grid.Row>
-                    <Grid.Row>
-                        <Grid.Column width={8}>
-                            <Grid.Row>
-                                <Viewer3D {...viewer3DProps} />
-                                <Grid.Column width={4}>
-                                    <CompartmentListContainer {...compartmentListContainerProps}/>
-                                </Grid.Column>
-                            </Grid.Row>
-                        </Grid.Column>
-                    </Grid.Row>
+                <Grid container spacing={3}>
+                    <Grid item xs={12}>
+                        <PenetrationControlPanel {...penetrationControlPanelProps}/>
+                    </Grid>
+                    <Grid item xs={8}>
+                        <Viewer3D {...viewer3DProps} />
+                    </Grid>
+                    <Grid item xs={4}>
+                        <CompartmentListContainer {...compartmentListContainerProps}/>
+                    </Grid>
                 </Grid>
             </div>
         );

@@ -39,8 +39,9 @@ export class BrainViewer {
 
     private penetrationPointsMap: Map<string, THREE.Points>;
     private penetrationViewModelsMap: Map<string, PenetrationViewModel>;
-    private timeIdx: number = NaN;
-    private animTimes: number[] = [];
+
+    //animation
+    private _timeVal: number = 0;
 
     constructor(constants: AVConstants, compartmentTree: CompartmentTree) {
         this.constants = constants;
@@ -59,39 +60,6 @@ export class BrainViewer {
 
         this.penetrationPointsMap = new Map<string, THREE.Points>();
         this.penetrationViewModelsMap = new Map<string, PenetrationViewModel>();
-    }
-
-    private advanceAnimation() {
-        if (this.animTimes.length === 0) {
-            return;
-        }
-
-        if (!isNaN(this.timeIdx)) {
-            this.timeIdx = (this.timeIdx + 1) % this.animTimes.length;
-        } else {
-            this.timeIdx = 0;
-        }
-
-        const t = this.animTimes[this.timeIdx];
-        this.penetrationPointsMap.forEach((pointObj, penetrationId, _map) => {
-            const viewModel = this.penetrationViewModelsMap.get(penetrationId);
-            const colors = viewModel.getColor(t);
-            const opacities = viewModel.getOpacity(t);
-            const sizes = viewModel.getRadius(t);
-
-            const geom = pointObj.geometry as BufferGeometry;
-            geom.attributes.color = new Float32BufferAttribute(colors, 3);
-            geom.attributes.color.needsUpdate = true;
-
-            geom.attributes.opacity = new Float32BufferAttribute(opacities, 1);
-            geom.attributes.opacity.needsUpdate = true;
-
-            geom.attributes.size = new Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage);
-            geom.attributes.size.needsUpdate = true;
-        });
-
-        let timestepElem = document.getElementById('timestep');
-        timestepElem.innerText = `t = ${t.toFixed(2)}`;
     }
 
     private loadCompartment(name: string) {
@@ -137,41 +105,40 @@ export class BrainViewer {
         });
     }
 
-    private mergeSorted(arr1: number[], arr2: number[]): number[] {
-        let pos1 = 0, pos2 = 0, k = 0;
-
-        let merged = new Array(arr1.length + arr2.length);
-        while (k < merged.length) {
-            if (pos1 < arr1.length && pos2 < arr2.length) {
-                if (arr2[pos2] < arr1[pos1]) {
-                    merged[k] = arr2[pos2++];
-                } else {
-                    merged[k] = arr1[pos1++];
-                }
-            } else if (pos1 < arr1.length) {
-                merged[k] = arr1[pos1++];
-            } else {
-                merged[k] = arr2[pos2++];
-            }
-
-            k++;
-        }
-
-        return merged;
-    }
-
     private rgb2Hex(val: number[]): string {
         return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
+    }
+
+    private updatePenetrationAesthetics() {
+        const t = this._timeVal;
+
+        this.penetrationPointsMap.forEach((pointObj, penetrationId, _map) => {
+            const viewModel = this.penetrationViewModelsMap.get(penetrationId);
+            const colors = viewModel.getColor(t);
+            const opacities = viewModel.getOpacity(t);
+            const sizes = viewModel.getRadius(t);
+
+            const geom = pointObj.geometry as BufferGeometry;
+            geom.attributes.color = new Float32BufferAttribute(colors, 3);
+            geom.attributes.color.needsUpdate = true;
+
+            geom.attributes.opacity = new Float32BufferAttribute(opacities, 1);
+            geom.attributes.opacity.needsUpdate = true;
+
+            geom.attributes.size = new Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage);
+            geom.attributes.size.needsUpdate = true;
+        });
+
+        this.render();
     }
 
     public animate(timestamp: number = null) {
         if (!this.lastTimestamp) {
             this.lastTimestamp = timestamp;
             this.render();
-        } else if (timestamp - this.lastTimestamp > 100) {
+        } else if (timestamp - this.lastTimestamp > 75) {
             this.lastTimestamp = timestamp;
             this.trackControls.update();
-            this.advanceAnimation();
             this.render();
         }
 
@@ -255,56 +222,11 @@ export class BrainViewer {
         this.renderer.render(this.scene, this.camera);
     }
 
-    public setAesthetics(aesthetics: IAesthetics[]) {
-        let times: number[] = [];
-
-        aesthetics.forEach(aes => {
-            const penetrationId = aes.penetrationId;
-
-            if (!this.hasPenetration(penetrationId)) {
-                return;
-            }
-
-            // first get all times
-            if (aes.radius !== null) {
-                times = this.mergeSorted(times, aes.radius.times);
-            }
-
-            if (aes.color !== null) {
-                times = this.mergeSorted(times, aes.color.times);
-            }
-
-            if (aes.opacity !== null) {
-                times = this.mergeSorted(times, aes.opacity.times);
-            }
-
-            times = _.uniq(times, true); // dedupe
-
-            const penetrationGeom = this.penetrationPointsMap.get(penetrationId).geometry as BufferGeometry;
-            const nPoints = penetrationGeom.attributes.position.count;
-
-            this.penetrationViewModelsMap.set(
-                penetrationId, new PenetrationViewModel(aes, nPoints)
-            );
-        });
-
-        if (times.length === 0) {
-            return;
-        }
-
-        this.animTimes = [];
-
-        let dt = Infinity;
-        for (let i = 0; i < times.length - 1; i++) {
-            const diff = times[i+1] - times[i]
-            dt = Math.min(dt, diff);
-        }
-
-        let t = times[0];
-        while (t < times[times.length - 1] + dt/2) {
-            this.animTimes.push(t);
-            t += dt;
-        }
+    // public setAesthetics(aesthetics: IAesthetics[]) {
+    public setAesthetics(penetrationId: string, aesthetics: PenetrationViewModel) {
+        this.penetrationViewModelsMap.set(
+            penetrationId, aesthetics // new PenetrationViewModel(aes, nPoints)
+        );
     }
 
     public setCompartmentVisible(name: string, visible: boolean) {
@@ -348,6 +270,15 @@ export class BrainViewer {
         this.WIDTH = width;
 
         this.render();
+    }
+
+    public get timeVal() {
+        return this._timeVal;
+    }
+
+    public set timeVal(t: number) {
+        this._timeVal = t;
+        this.updatePenetrationAesthetics();
     }
 
     public get visibleCompartments() {

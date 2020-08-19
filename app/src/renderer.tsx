@@ -31,14 +31,15 @@ import { ipcRenderer } from 'electron';
 import React from 'react';
 import ReactDOM from 'react-dom';
 
-// Import CSS stylesheet
+// Import styling
 import './assets/css/index.css';
 import 'fomantic-ui-css/semantic.css';
+import 'fontsource-roboto';
 
 import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
 import { CompartmentTree } from './models/compartmentTree';
-import { ICompartmentNode, ISettingsResponse, IPenetrationResponse } from './models/apiModels';
+import { ICompartmentNode, ISettingsResponse } from './models/apiModels';
 
 import { App, IAppProps } from './components/App';
 
