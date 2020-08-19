@@ -1,7 +1,7 @@
 import React from 'react';
 import * as _ from 'underscore';
 
-import { Grid, Input, Slider, Typography } from '@material-ui/core';
+import { Grid, Slider, Typography } from '@material-ui/core';
 
 import { APIClient } from '../../apiClient';
 import { BrainViewer } from '../../brainViewer';
@@ -258,18 +258,6 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
                     />
                 </Grid>
                 <Grid item xs={2}>
-                    {/* <Input
-                        value={this.state.timeVal}
-                        onChange={this.handleInputChange.bind(this)}
-                        // onBlur={handleBlur}
-                        inputProps={{
-                            step: 0.02,
-                            min: this.state.timeMin,
-                            max: this.state.timeMax,
-                            type: 'number',
-                            'aria-labelledby': 'input-slider',
-                        }}
-                    /> */}
                     <Typography>
                         {`${this.state.timeVal.toFixed(2)} s`}
                     </Typography>
