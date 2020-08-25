@@ -26,8 +26,6 @@
  * ```
  */
 
-import { ipcRenderer } from 'electron';
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 
@@ -48,10 +46,6 @@ let root = document.createElement('div');
 root.id = 'root';
 document.body.appendChild(root);
 
-// get settings path and data file paths from main process
-const settingsPath = ipcRenderer.sendSync('settings-path');
-const dataPaths = ipcRenderer.sendSync('data-paths');
-
 const constants = new AVConstants();
 const apiClient = new APIClient(constants.apiEndpoint);
 
@@ -61,12 +55,12 @@ let props: IAppProps = {
     settings: null
 }
 
-apiClient.setSettings(settingsPath)
+apiClient.fetchSettings()
     .then((res: any) => res.data)
     .then((data: ISettingsResponse) => {
         props.settings = data;
 
-        return apiClient.setPenetrations(dataPaths);
+        return apiClient.setPenetrations(data.system.dataFiles);
     })
     .then((_res:any) => {
         return apiClient.fetchCompartmentTree();

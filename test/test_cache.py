@@ -8,7 +8,7 @@ from activity_viewer.cache import Cache
 
 @pytest.fixture(scope="function")
 def temp_settings(tmp_path):
-    system = System(data_directory=tmp_path, resolution=100)
+    system = System(cache_directory=tmp_path, resolution=100)
     yield AVSettings(system=system)
 
 

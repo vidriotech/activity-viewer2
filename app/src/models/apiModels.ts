@@ -14,7 +14,8 @@ export interface ISettingsResponse {
     },
     system: {
         atlasVersion: string,
-        dataDirectory: string,
+        cacheDirectory: string,
+        dataFiles: string[],
         resolution: number,
     }
 }

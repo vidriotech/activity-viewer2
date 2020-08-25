@@ -242,5 +242,6 @@ dmypy.json
 # Sphinx documentation
 docsrc/_build/
 
-# Data files
+# Settings and ata files
+settings.json
 *.npz

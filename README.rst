@@ -61,35 +61,40 @@ After all the dependencies are installed, do a quick sanity check:
 
 .. code-block:: shell
 
-    (venv) > $ tox # or pytest if you prefer
+    (venv) > $ pytest # or tox (slower, but sets up a self-contained environment) if you prefer
 
 Now you can start hacking.
 
 Running the viewer
 ~~~~~~~~~~~~~~~~~~
 
-Paths to the settings file and data files are made available to the
-Electron process from the Python command ``viewer visualize ...`` by way of
-environment variables. For development purposes, the main Electron process is
-configured to source a ``.env`` file in the app/src/ directory so that the zombie
-process issue (see below) can be circumvented. **Rather than running**
-``viewer visualize ...``, **you should instead run** ``viewerd`` **in one terminal and**
-``cd`` **into the app/ directory in another terminal and run** ``npm start``.
+Paths to the settings file and data files are made available to the frontend
+(Electron) process by way of a GET request to the ``/settings`` endpoint. In
+order to circumvent the zombie process issue (see below), the frontend and
+backend processes should currently be run in two separate terminals.
 
-Here's what your ``.env`` file should look like:
+First, with the virtualenv activated, simply run ``viewer start-daemon`` if
+your settings file is in the current directory, or if you want to use the
+default settings. Otherwise, run
+``viewer start-daemon /path/to/settings.json``. **Ensure that you have set**
+**your data files in the** ``dataFiles`` **field in your settings.json**.
 
-.. code-block:: 
+Next, ``cd`` into the app/ directory and run ``npm start``. The frontend
+process will send a GET request to the viewer daemon to fetch the currently
+loaded settings.
 
-    AV_SETTINGS_PATH=/path/to/settings.json
-    AV_DATA_PATH0=/path/to/data-file-1.npz
-    AV_DATA_PATH1=/path/to/data-file-2.npz
-
-You can specify additional data files with ``AV_DATA_PATH2``, ``AV_DATA_PATH3``, and
-so forth.
-**At this time it's not recommended to show more than one or two in one go unless you like long wait times.**
+We have tested the viewer with up to 20 penetrations and performance is
+adequate so far.
 
 Current limitations and known issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Choppy camera motion when dev tools are engaged
++++++++++++++++++++++++++++++++++++++++++++++++
+
+Moving the brain about in the viewer window may lag a bit when the dev tools
+are being displayed. If you don't care about console output, simply close the
+dev tools.
 
 Python 3.8
 ++++++++++

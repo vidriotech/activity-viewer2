@@ -321,6 +321,8 @@
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.cache">cache() (activity_viewer.api.state.APIState property)</a>
 </li>
+      <li><a href="activity_viewer.settings.html#activity_viewer.settings.sections.System.cache_directory">cache_directory() (activity_viewer.settings.sections.System property)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.clear_penetrations">clear_penetrations() (activity_viewer.api.state.APIState method)</a>
@@ -337,7 +339,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.loaders.html#activity_viewer.loaders.npz_loader.NpzLoader.data">data() (activity_viewer.loaders.npz_loader.NpzLoader property)</a>
 </li>
-      <li><a href="activity_viewer.settings.html#activity_viewer.settings.sections.System.data_directory">data_directory() (activity_viewer.settings.sections.System property)</a>
+      <li><a href="activity_viewer.settings.html#activity_viewer.settings.sections.System.data_files">data_files() (activity_viewer.settings.sections.System property)</a>
 </li>
       <li><a href="activity_viewer.html#activity_viewer.base.DefaultSerializable.DEFAULTS">DEFAULTS (activity_viewer.base.DefaultSerializable attribute)</a>
 
@@ -413,12 +415,6 @@
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_all_penetrations">get_all_penetrations() (in module activity_viewer.api.routes)</a>
 </li>
-      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_all_timeseries">get_all_timeseries() (activity_viewer.api.state.APIState method)</a>
-
-      <ul>
-        <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_all_timeseries">(in module activity_viewer.api.routes)</a>
-</li>
-      </ul></li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_compartment_tree">get_compartment_tree() (activity_viewer.api.state.APIState method)</a>
 
       <ul>
@@ -427,8 +423,6 @@
       </ul></li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_compartments">get_compartments() (activity_viewer.api.state.APIState method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_coordinates">get_coordinates() (activity_viewer.api.state.APIState method)</a>
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_mesh">get_mesh() (in module activity_viewer.api.routes)</a>
@@ -441,14 +435,38 @@
         <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_pseudocoronal_annotation_slice">(in module activity_viewer.api.routes)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_timeseries">get_timeseries() (activity_viewer.api.state.APIState method)</a>
 
       <ul>
         <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_timeseries">(in module activity_viewer.api.routes)</a>
 </li>
       </ul></li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_timeseries_by_id">get_timeseries_by_id() (in module activity_viewer.api.routes)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_timeseries_list">get_timeseries_list() (activity_viewer.api.state.APIState method)</a>
+
+      <ul>
+        <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_timeseries_list">(in module activity_viewer.api.routes)</a>
+</li>
+      </ul></li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_unit_ids">get_unit_ids() (activity_viewer.api.state.APIState method)</a>
 </li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_unit_stat">get_unit_stat() (activity_viewer.api.state.APIState method)</a>
+
+      <ul>
+        <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_unit_stat">(in module activity_viewer.api.routes)</a>
+</li>
+      </ul></li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_unit_stat_by_id">get_unit_stat_by_id() (in module activity_viewer.api.routes)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_unit_stats_list">get_unit_stats_list() (activity_viewer.api.state.APIState method)</a>
+
+      <ul>
+        <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_unit_stats_list">(in module activity_viewer.api.routes)</a>
+</li>
+      </ul></li>
   </ul></td>
 </tr></table>
 
@@ -604,10 +622,17 @@
         <li><a href="activity_viewer.api.html#activity_viewer.api.routes.settings">(in module activity_viewer.api.routes)</a>
 </li>
       </ul></li>
-      <li><a href="activity_viewer.settings.html#activity_viewer.settings.validate.SettingsValidator">SettingsValidator (class in activity_viewer.settings.validate)</a>
+      <li>
+    SETTINGS_FILE
+
+      <ul>
+        <li><a href="usage.html#cmdoption-viewer-start-daemon-arg-SETTINGS_FILE">viewer-start-daemon command line option</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="activity_viewer.settings.html#activity_viewer.settings.validate.SettingsValidator">SettingsValidator (class in activity_viewer.settings.validate)</a>
+</li>
       <li><a href="activity_viewer.html#activity_viewer.base.sha256sum_file">sha256sum_file() (in module activity_viewer.base)</a>
 </li>
       <li><a href="activity_viewer.html#activity_viewer.base.slugify">slugify() (in module activity_viewer.base)</a>
@@ -660,7 +685,7 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.validate.SettingsValidator.validate">validate() (activity_viewer.settings.validate.SettingsValidator method)</a>
 </li>
-      <li><a href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings.versioned_data_directory">versioned_data_directory() (activity_viewer.settings.avsettings.AVSettings property)</a>
+      <li><a href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings.versioned_cache_directory">versioned_cache_directory() (activity_viewer.settings.avsettings.AVSettings property)</a>
 </li>
       <li>
     viewer-download command line option
@@ -673,6 +698,13 @@
       </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
+    viewer-start-daemon command line option
+
+      <ul>
+        <li><a href="usage.html#cmdoption-viewer-start-daemon-arg-SETTINGS_FILE">SETTINGS_FILE</a>
+</li>
+      </ul></li>
       <li>
     viewer-validate command line option
 

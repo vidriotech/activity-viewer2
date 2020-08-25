@@ -17,6 +17,10 @@ Using the Activity Viewer
 Input files
 -----------
 
+.. _settings-file:
+
 .. include:: settings-file.rst
+
+.. _input-data:
 
 .. include:: input-data.rst

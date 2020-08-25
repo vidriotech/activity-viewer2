@@ -162,11 +162,6 @@
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="activity_viewer.api.routes.get_all_timeseries">
-<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_all_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_all_timeseries" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
 <dt id="activity_viewer.api.routes.get_compartment_tree">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_compartment_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_compartment_tree" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -190,6 +185,31 @@
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_timeseries">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_timeseries_by_id">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_timeseries_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_timeseries_by_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_timeseries_list">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_timeseries_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_timeseries_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_unit_stat">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_unit_stat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">stat_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_unit_stat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_unit_stat_by_id">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_unit_stat_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">stat_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_unit_stat_by_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_unit_stats_list">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_unit_stats_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_unit_stats_list" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -235,12 +255,6 @@
 </dd></dl>
 
 <dl class="py method">
-<dt id="activity_viewer.api.state.APIState.get_all_timeseries">
-<code class="sig-name descname">get_all_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_all_timeseries" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get a list of timeseries for <cite>penetration_id</cite></p>
-</dd></dl>
-
-<dl class="py method">
 <dt id="activity_viewer.api.state.APIState.get_compartment_tree">
 <code class="sig-name descname">get_compartment_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_compartment_tree" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get the entire compartment hierarchy.</p>
@@ -271,9 +285,27 @@
 </dd></dl>
 
 <dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_timeseries_list">
+<code class="sig-name descname">get_timeseries_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_timeseries_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of timeseries for a specific penetration.</p>
+</dd></dl>
+
+<dl class="py method">
 <dt id="activity_viewer.api.state.APIState.get_unit_ids">
 <code class="sig-name descname">get_unit_ids</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_unit_ids" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get point ids for <cite>penetration_id</cite>.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_unit_stat">
+<code class="sig-name descname">get_unit_stat</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">stat_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_unit_stat" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a specific unit statistic for a given penetration.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_unit_stats_list">
+<code class="sig-name descname">get_unit_stats_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_unit_stats_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get a list of unit stats for a specific penetration.</p>
 </dd></dl>
 
 <dl class="py method">

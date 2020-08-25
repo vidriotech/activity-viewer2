@@ -19,20 +19,22 @@ program. There are two main sections, namely:
     compartments or parent compartments. **If this is defined it takes
     precedence over** ``exclude``.
 
-- ``system``, containing fields related to the fetching and storage of data.
-  Those fields are:
+- ``system``, containing fields related to the fetching, storage, and display
+  of data. Those fields are:
 
   - ``atlasVersion``: the version of the Allen Brain Atlas to use. Options are:
 
     - "ccf_2017" (October 2017) (the default value)
     - "ccf_2016" (October 2016)
     - "ccf_2015" (May 2015).
-  - ``dataDirectory``: the directory where large data files are cached. If you
-    don't specify a data directory, this defaults to a subdirectory of your
+  - ``cacheDirectory``: the directory where large data files are cached. If you
+    don't specify a cache directory, this defaults to a subdirectory of your
     system's user cache directory (a dot folder on a Unix-like OS, or
-    C:\Users\me\AppData\Local on Windows).
+    C:\\Users\\me\\AppData\\Local on Windows).
+  - ``dataFiles``: a list of :ref:`data files <input-data>` to visualize in the
+    current session.
   - ``resolution``: the voxel resolution of the template and annotation volumes
-    to use, in μm^3. Options are:
+    to use, in μm\ :sup:`3`. Options are:
 
     - 10 (results in very large data files)
     - 25
@@ -42,7 +44,7 @@ program. There are two main sections, namely:
 If you don't have a settings file in the current working directory, the
 activity viewer will try to use a default settings file, installed in a
 system-dependent user config directory (a dot folder on a Unix-like OS, or
-C:\Users\me\AppData\Local on Windows). If that file can't be found, it will be
+C:\\Users\\me\\AppData\\Local on Windows). If that file can't be found, it will be
 created and populated with default values (see below).
 
 The default settings file

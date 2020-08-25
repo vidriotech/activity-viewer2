@@ -168,9 +168,9 @@ class AVSettings(DefaultSerializable):
         self._system = val
 
     @property
-    def versioned_data_directory(self):
+    def versioned_cache_directory(self):
         """Subdirectory of data directory containing data for a specific CCF version."""
-        return self.system.data_directory / self.system.atlas_version
+        return self.system.cache_directory / self.system.atlas_version
 
 
 def make_default_settings() -> AVSettings:

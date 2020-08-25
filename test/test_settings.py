@@ -68,14 +68,14 @@ def test_compartment_constructor(kwargs, error, emsg):
 
 
 @pytest.mark.parametrize(("kwargs", "error", "emsg"), [
-    ({"atlas_version": 1, "data_directory": ""}, TypeError, "Expected one of 'str', but got 'int'."),  # atlas_version should be a string
-    ({"atlas_version": "ccf_2015", "data_directory": 0.}, TypeError, "Expected one of 'str', 'Path', but got 'float'."),  # atlas_version should be a string or Path
-    ({"atlas_version": "ccf_2015", "data_directory": "/foo/bar", "extra_arg": None}, ValueError, "Unrecognized argument: 'extra_arg'."),  # argument not recognized
-    ({"atlas_version": "ccf_2014", "data_directory": "/foo/bar"}, ValueError,
+    ({"atlas_version": 1, "cache_directory": ""}, TypeError, "Expected one of 'str', but got 'int'."),  # atlas_version should be a string
+    ({"atlas_version": "ccf_2015", "cache_directory": 0.}, TypeError, "Expected one of 'str', 'Path', but got 'float'."),  # atlas_version should be a string or Path
+    ({"atlas_version": "ccf_2015", "cache_directory": "/foo/bar", "extra_arg": None}, ValueError, "Unrecognized argument: 'extra_arg'."),  # argument not recognized
+    ({"atlas_version": "ccf_2014", "cache_directory": "/foo/bar"}, ValueError,
      "Expecting one of 'ccf_2017', 'ccf_2016', 'ccf_2015' for atlas_version, got 'ccf_2014'."),  # unknown atlas version
-    ({"atlas_version": "ccf_2015", "data_directory": "/foo/bar"}, None, None),  # ok
+    ({"atlas_version": "ccf_2015", "cache_directory": "/foo/bar"}, None, None),  # ok
     ({}, None, None),  # empty kwargs, all defaults used
-    ({"atlas_version": "ccf_2016"}, None, None),  # data_directory not given
+    ({"atlas_version": "ccf_2016"}, None, None),  # cache_directory not given
 ])
 def test_system_constructor(kwargs, error, emsg):
     if error is not None:
@@ -91,21 +91,21 @@ def test_system_constructor(kwargs, error, emsg):
         else:
             assert system.atlas_version == kwargs["atlas_version"]
 
-        if "data_directory" not in kwargs:
-            assert system.data_directory == System.DEFAULTS["data_directory"]
+        if "cache_directory" not in kwargs:
+            assert system.cache_directory == System.DEFAULTS["cache_directory"]
         else:
-            assert system.data_directory == Path(kwargs["data_directory"]).resolve()
+            assert system.cache_directory == Path(kwargs["cache_directory"]).resolve()
 
 
 @pytest.mark.parametrize(("filename", "kwargs", "error", "emsg"), [
     (1, {"compartment": {"exclude": [], "include": [], "max_depth": 0},
-            "system": {"atlas_version": "", "data_directory": "/foo/bar"}}, TypeError,
+            "system": {"atlas_version": "", "cache_directory": "/foo/bar"}}, TypeError,
      "Expected one of 'str', 'Path', but got 'int'."),  # filename should be a string or Path
     ("/foo/bar/baz", {}, None, None),
     ("/foo/bar/baz", {"compartment": {"exclude": [], "include": [], "max_depth": 0}},
      None, None),
     ("/foo/bar/baz", {"compartment": {"exclude": [], "include": [], "max_depth": 0},
-                      "system": {"atlas_version": "ccf_2017", "data_directory": "/foo/bar"}},
+                      "system": {"atlas_version": "ccf_2017", "cache_directory": "/foo/bar"}},
      None, None)
 
 ])
@@ -143,7 +143,7 @@ def test_avsettings_constructor(filename, kwargs, error, emsg):
             "include": []
         },
         "system": {
-            "dataDirectory": "/foo/bar/baz",
+            "cacheDirectory": "/foo/bar/baz",
             "atlasVersion": "ccf_2017",
         }
     }, ),
@@ -189,10 +189,10 @@ def test_avsettings_from_file(tmp_path, settings_dict):
         else:
             assert settings.system.atlas_version == settings_dict["system"]["atlasVersion"]
 
-        if "dataDirectory" not in settings_dict["system"]:
-            assert settings.system.data_directory == System.DEFAULTS["data_directory"]
+        if "cacheDirectory" not in settings_dict["system"]:
+            assert settings.system.cache_directory == System.DEFAULTS["cache_directory"]
         else:
-            assert settings.system.data_directory == Path(settings_dict["system"]["dataDirectory"]).resolve()
+            assert settings.system.cache_directory == Path(settings_dict["system"]["cacheDirectory"]).resolve()
 
         if "resolution" not in settings_dict["system"]:
             assert settings.system.resolution == System.DEFAULTS["resolution"]
@@ -208,9 +208,10 @@ def test_avsettings_from_file(tmp_path, settings_dict):
             "include": []
         },
         "system": {
-            "data_directory": "/foo/bar/baz",
+            "cache_directory": "/foo/bar/baz",
             "atlas_version": "ccf_2017",
-            "resolution": 100
+            "resolution": 100,
+            "data_files": ["/foo/bar/qux"]
         }
     },),
 ])

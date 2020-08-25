@@ -196,32 +196,36 @@ activate a new virtual environment, then install dependencies:</p>
 </pre></div>
 </div>
 <p>After all the dependencies are installed, do a quick sanity check:</p>
-<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>venv<span class="o">)</span> &gt; $ tox <span class="c1"># or pytest if you prefer</span>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span><span class="o">(</span>venv<span class="o">)</span> &gt; $ pytest <span class="c1"># or tox (slower, but sets up a self-contained environment) if you prefer</span>
 </pre></div>
 </div>
 <p>Now you can start hacking.</p>
 </div>
 <div class="section" id="running-the-viewer">
 <h3>Running the viewer<a class="headerlink" href="#running-the-viewer" title="Permalink to this headline">¶</a></h3>
-<p>Paths to the settings file and data files are made available to the
-Electron process from the Python command <code class="docutils literal notranslate"><span class="pre">viewer</span> <span class="pre">visualize</span> <span class="pre">...</span></code> by way of
-environment variables. For development purposes, the main Electron process is
-configured to source a <code class="docutils literal notranslate"><span class="pre">.env</span></code> file in the app/src/ directory so that the zombie
-process issue (see below) can be circumvented. <strong>Rather than running</strong>
-<code class="docutils literal notranslate"><span class="pre">viewer</span> <span class="pre">visualize</span> <span class="pre">...</span></code>, <strong>you should instead run</strong> <code class="docutils literal notranslate"><span class="pre">viewerd</span></code> <strong>in one terminal and</strong>
-<code class="docutils literal notranslate"><span class="pre">cd</span></code> <strong>into the app/ directory in another terminal and run</strong> <code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">start</span></code>.</p>
-<p>Here’s what your <code class="docutils literal notranslate"><span class="pre">.env</span></code> file should look like:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">AV_SETTINGS_PATH</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">settings</span><span class="o">.</span><span class="n">json</span>
-<span class="n">AV_DATA_PATH0</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">data</span><span class="o">-</span><span class="n">file</span><span class="o">-</span><span class="mf">1.</span><span class="n">npz</span>
-<span class="n">AV_DATA_PATH1</span><span class="o">=/</span><span class="n">path</span><span class="o">/</span><span class="n">to</span><span class="o">/</span><span class="n">data</span><span class="o">-</span><span class="n">file</span><span class="o">-</span><span class="mf">2.</span><span class="n">npz</span>
-</pre></div>
-</div>
-<p>You can specify additional data files with <code class="docutils literal notranslate"><span class="pre">AV_DATA_PATH2</span></code>, <code class="docutils literal notranslate"><span class="pre">AV_DATA_PATH3</span></code>, and
-so forth.
-<strong>At this time it’s not recommended to show more than one or two in one go unless you like long wait times.</strong></p>
+<p>Paths to the settings file and data files are made available to the frontend
+(Electron) process by way of a GET request to the <code class="docutils literal notranslate"><span class="pre">/settings</span></code> endpoint. In
+order to circumvent the zombie process issue (see below), the frontend and
+backend processes should currently be run in two separate terminals.</p>
+<p>First, with the virtualenv activated, simply run <code class="docutils literal notranslate"><span class="pre">viewer</span> <span class="pre">start-daemon</span></code> if
+your settings file is in the current directory, or if you want to use the
+default settings. Otherwise, run
+<code class="docutils literal notranslate"><span class="pre">viewer</span> <span class="pre">start-daemon</span> <span class="pre">/path/to/settings.json</span></code>. <strong>Ensure that you have set</strong>
+<strong>your data files in the</strong> <code class="docutils literal notranslate"><span class="pre">dataFiles</span></code> <strong>field in your settings.json</strong>.</p>
+<p>Next, <code class="docutils literal notranslate"><span class="pre">cd</span></code> into the app/ directory and run <code class="docutils literal notranslate"><span class="pre">npm</span> <span class="pre">start</span></code>. The frontend
+process will send a GET request to the viewer daemon to fetch the currently
+loaded settings.</p>
+<p>We have tested the viewer with up to 20 penetrations and performance is
+adequate so far.</p>
 </div>
 <div class="section" id="current-limitations-and-known-issues">
 <h3>Current limitations and known issues<a class="headerlink" href="#current-limitations-and-known-issues" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="choppy-camera-motion-when-dev-tools-are-engaged">
+<h4>Choppy camera motion when dev tools are engaged<a class="headerlink" href="#choppy-camera-motion-when-dev-tools-are-engaged" title="Permalink to this headline">¶</a></h4>
+<p>Moving the brain about in the viewer window may lag a bit when the dev tools
+are being displayed. If you don’t care about console output, simply close the
+dev tools.</p>
+</div>
 <div class="section" id="python-3-8">
 <h4>Python 3.8<a class="headerlink" href="#python-3-8" title="Permalink to this headline">¶</a></h4>
 <p>On Windows (we haven’t tried on Linux or macOS), trying to install dependencies

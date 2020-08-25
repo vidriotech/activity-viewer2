@@ -101,10 +101,10 @@ class Compartment(DefaultSerializable):
 
 
 class System(DefaultSerializable):
-    ATTRS = ["atlas_version", "data_directory", "resolution"]
+    ATTRS = ["atlas_version", "data_files", "cache_directory", "resolution"]
     DEFAULTS = {"atlas_version": ReferenceSpaceApi.CCF_2017.replace("annotation/", ""),
-                "data_directory": Path(appdirs.user_cache_dir(), "activity-viewer"),
-                "resolution": 100}
+                "cache_directory": Path(appdirs.user_cache_dir(), "activity-viewer"),
+                "resolution": 100, "data_files": []}
 
     def __init__(self, **kwargs):
         """A class representation of the system section in the settings file. It is meant to be used as a
@@ -114,7 +114,7 @@ class System(DefaultSerializable):
         ----------
         atlas_version : str
             The version of the Allen Brain Atlas to use.
-        data_directory : str or Path
+        cache_directory : str or Path
             Directory where data is cached.
         resolution : int
             Volume per voxel, in microns. Only 100, 50, 25, or 10 are permitted.
@@ -122,7 +122,8 @@ class System(DefaultSerializable):
         super().__init__()
 
         self._atlas_version = None
-        self._data_directory = None
+        self._cache_directory = None
+        self._data_files = None
         self._resolution = None
 
         try:
@@ -131,9 +132,14 @@ class System(DefaultSerializable):
             self.atlas_version = self.DEFAULTS["atlas_version"]
 
         try:
-            self.data_directory = kwargs.pop("data_directory")
+            self.cache_directory = kwargs.pop("cache_directory")
         except KeyError:
-            self.data_directory = self.DEFAULTS["data_directory"]
+            self.cache_directory = self.DEFAULTS["cache_directory"]
+
+        try:
+            self.data_files = kwargs.pop("data_files")
+        except KeyError:
+            self.data_files = self.DEFAULTS["data_files"]
 
         try:
             self.resolution = kwargs.pop("resolution")
@@ -162,14 +168,29 @@ class System(DefaultSerializable):
         self._atlas_version = val
 
     @property
-    def data_directory(self) -> Path:
+    def cache_directory(self) -> Path:
         """Directory where data is cached."""
-        return self._data_directory
+        return self._cache_directory
 
-    @data_directory.setter
-    def data_directory(self, val: PathType):
+    @cache_directory.setter
+    def cache_directory(self, val: PathType):
         type_check(val, PathType.__args__)
-        self._data_directory = Path(val).resolve()
+        self._cache_directory = Path(val).resolve()
+
+    @property
+    def data_files(self) -> List[Path]:
+        return self._data_files
+
+    @data_files.setter
+    def data_files(self, val: List[PathType]):
+        type_check(val, list)
+        files = []
+
+        for v in val:
+            type_check(v, PathType.__args__)
+            files.append(Path(v).resolve())
+
+        self._data_files = val
 
     @property
     def resolution(self) -> int:

@@ -10,19 +10,6 @@ export class APIClient {
         this.endpoint = endpoint;
     }
 
-    async setPenetrations(dataPaths: string[]) {
-        let penReqData: IPenetrationRequest = {
-            data_paths: dataPaths,
-        };
-
-        return await axios({
-            'method': 'post',
-            'url': `${this.endpoint}/penetrations`,
-            'data': penReqData,
-            'timeout': 5000
-        });
-    }
-
     async fetchCompartmentTree() {
         return await axios.get(`${this.endpoint}/compartments`);
     }
@@ -53,6 +40,19 @@ export class APIClient {
 
     async fetchUnitStatsById(statId: string) {
         return await axios.get(`${this.endpoint}/unit-stats/${statId}`);
+    }
+
+    async setPenetrations(dataPaths: string[]) {
+        let penReqData: IPenetrationRequest = {
+            data_paths: dataPaths,
+        };
+
+        return await axios({
+            'method': 'post',
+            'url': `${this.endpoint}/penetrations`,
+            'data': penReqData,
+            'timeout': 5000
+        });
     }
 
     async setSettings(settingsPath: string) {

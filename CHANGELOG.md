@@ -6,6 +6,14 @@ The format is based on
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- The `viewerd` command is now deprecated. Use
+  `viewer start-daemon [SETTINGS_FILE]` instead. `SETTINGS_FILE` is optional,
+  and defaults either to `settings_json` in the current directory, or the
+  global default settings file.
+- There is a new `dataFiles` field in the settings file's `system` section.
+  This replaces the need to specify files on the command line.
+- The `dataDirectory` field in the settings file's `system` section is now
+  `cacheDirectory`.
 - There is now a `penetrations/all/timeseries` endpoint, which returns all
   timeseries ids for all penetrations.
 - The `pcplane/<penetration_id>` endpoint is now at

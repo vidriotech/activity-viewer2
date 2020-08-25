@@ -9,6 +9,7 @@ import click
 import numpy as np
 
 from activity_viewer.api import app
+from activity_viewer.api.routes import state
 from activity_viewer.base import REPO_BASE
 from activity_viewer.cache import Cache
 from activity_viewer.settings import AVSettings, make_default_settings
@@ -95,6 +96,23 @@ def download(ctx: click.core.Context, force: bool):
         cache.save_template_volume(force)
         click.echo("done.")
 
+
+@cli.command()
+@click.argument("settings_file",
+                type=click.Path(exists=True, dir_okay=False),
+                nargs=1,
+                required=False)
+@click.pass_context
+def start_daemon(ctx: click.core.Context, settings_file: str):
+    """Start the `viewerd` daemon."""
+    settings_file = ctx.obj["settings_file"] if settings_file is None else settings_file
+    try:
+        state.settings = AVSettings.from_file(settings_file)
+    except:
+        click.echo(f"Settings file {settings_file} was not found. Using default settings.")
+        state.settings = make_default_settings()
+
+    app.run(host="127.0.0.1", port=3030, debug=True)
 
 @cli.command()
 @click.argument("filename", type=click.Path(exists=True, dir_okay=False))

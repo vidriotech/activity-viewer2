@@ -88,6 +88,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#the-command-line-interface">The command-line interface</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#viewer">viewer</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#viewer-download">download</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#viewer-start-daemon">start-daemon</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#viewer-validate">validate</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#viewer-visualize">visualize</a></li>
 </ul>
@@ -209,6 +210,20 @@
 </dd></dl>
 
 </div>
+<div class="section" id="viewer-start-daemon">
+<h4>start-daemon<a class="headerlink" href="#viewer-start-daemon" title="Permalink to this headline">¶</a></h4>
+<p>Start the <cite>viewerd</cite> daemon.</p>
+<div class="highlight-shell notranslate"><div class="highlight"><pre><span></span>viewer start-daemon <span class="o">[</span>OPTIONS<span class="o">]</span> <span class="o">[</span>SETTINGS_FILE<span class="o">]</span>
+</pre></div>
+</div>
+<p class="rubric">Arguments</p>
+<dl class="std option">
+<dt id="cmdoption-viewer-start-daemon-arg-SETTINGS_FILE">
+<code class="sig-name descname">SETTINGS_FILE</code><code class="sig-prename descclassname"></code><a class="headerlink" href="#cmdoption-viewer-start-daemon-arg-SETTINGS_FILE" title="Permalink to this definition">¶</a></dt>
+<dd><p>Optional argument</p>
+</dd></dl>
+
+</div>
 <div class="section" id="viewer-validate">
 <h4>validate<a class="headerlink" href="#viewer-validate" title="Permalink to this headline">¶</a></h4>
 <p>Validate a settings file FILENAME. Useful for basic sanity checks.</p>
@@ -242,7 +257,7 @@
 <div class="section" id="input-files">
 <span id="id1"></span><h2>Input files<a class="headerlink" href="#input-files" title="Permalink to this headline">¶</a></h2>
 <div class="section" id="the-settings-file">
-<h3>The settings file<a class="headerlink" href="#the-settings-file" title="Permalink to this headline">¶</a></h3>
+<span id="settings-file"></span><h3>The settings file<a class="headerlink" href="#the-settings-file" title="Permalink to this headline">¶</a></h3>
 <p>A JSON file allowing you to specify configuration options before running the
 program. There are two main sections, namely:</p>
 <ul class="simple">
@@ -262,8 +277,8 @@ compartments or parent compartments. <strong>If this is defined it takes
 precedence over</strong> <code class="docutils literal notranslate"><span class="pre">exclude</span></code>.</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">system</span></code>, containing fields related to the fetching and storage of data.
-Those fields are:</p>
+<li><p><code class="docutils literal notranslate"><span class="pre">system</span></code>, containing fields related to the fetching, storage, and display
+of data. Those fields are:</p>
 <ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">atlasVersion</span></code>: the version of the Allen Brain Atlas to use. Options are:</p>
 <ul>
@@ -272,12 +287,14 @@ Those fields are:</p>
 <li><p>“ccf_2015” (May 2015).</p></li>
 </ul>
 </li>
-<li><p><code class="docutils literal notranslate"><span class="pre">dataDirectory</span></code>: the directory where large data files are cached. If you
-don’t specify a data directory, this defaults to a subdirectory of your
+<li><p><code class="docutils literal notranslate"><span class="pre">cacheDirectory</span></code>: the directory where large data files are cached. If you
+don’t specify a cache directory, this defaults to a subdirectory of your
 system’s user cache directory (a dot folder on a Unix-like OS, or
-C:UsersmeAppDataLocal on Windows).</p></li>
+C:\Users\me\AppData\Local on Windows).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dataFiles</span></code>: a list of <a class="reference internal" href="#input-data"><span class="std std-ref">data files</span></a> to visualize in the
+current session.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">resolution</span></code>: the voxel resolution of the template and annotation volumes
-to use, in μm^3. Options are:</p>
+to use, in μm<sup>3</sup>. Options are:</p>
 <ul>
 <li><p>10 (results in very large data files)</p></li>
 <li><p>25</p></li>
@@ -291,7 +308,7 @@ to use, in μm^3. Options are:</p>
 <p>If you don’t have a settings file in the current working directory, the
 activity viewer will try to use a default settings file, installed in a
 system-dependent user config directory (a dot folder on a Unix-like OS, or
-C:UsersmeAppDataLocal on Windows). If that file can’t be found, it will be
+C:\Users\me\AppData\Local on Windows). If that file can’t be found, it will be
 created and populated with default values (see below).</p>
 <div class="section" id="the-default-settings-file">
 <h4>The default settings file<a class="headerlink" href="#the-default-settings-file" title="Permalink to this headline">¶</a></h4>
@@ -452,7 +469,7 @@ created and populated with default values (see below).</p>
 </div>
 </div>
 <div class="section" id="input-data">
-<h3>Input data<a class="headerlink" href="#input-data" title="Permalink to this headline">¶</a></h3>
+<span id="id2"></span><h3>Input data<a class="headerlink" href="#input-data" title="Permalink to this headline">¶</a></h3>
 <p>At the moment, input data is stored in a NumPy .npz file, which is a format similar
 to the .npy format you may be familiar with, but allows you to store multiple
 arrays in a single file, with optional compression. See the NumPy docs for
@@ -509,9 +526,9 @@ origin at Superior (Dorsal).</p></li>
 <li><p>The z axis represents Left-Right with origin at Left.</p></li>
 </ul>
 <p>Units are in <em>microns</em>. Visually:</p>
-<div class="figure align-default" id="id3">
+<div class="figure align-default" id="id4">
 <img alt="CCF coordinate convention" src="https://help.brain-map.org/download/attachments/5308480/3DOrientation.png" />
-<p class="caption"><span class="caption-text"><a class="reference external" href="https://help.brain-map.org/display/mouseconnectivity/API#API-3DReferenceModels">Source</a>.</span><a class="headerlink" href="#id3" title="Permalink to this image">¶</a></p>
+<p class="caption"><span class="caption-text"><a class="reference external" href="https://help.brain-map.org/display/mouseconnectivity/API#API-3DReferenceModels">Source</a>.</span><a class="headerlink" href="#id4" title="Permalink to this image">¶</a></p>
 </div>
 <p>Accordingly, the first column of <code class="docutils literal notranslate"><span class="pre">ccf_coord</span></code> should be the x coordinates of each
 unit (along the AP axis as specified); the second column should be the y
@@ -520,7 +537,7 @@ the z coordinates of each unit (along the LR axis). <strong>You should take care
 ensure that your origins match those of the CCF</strong>.</p>
 </div>
 <div class="section" id="timeseries-fields">
-<span id="id2"></span><h4>Timeseries fields<a class="headerlink" href="#timeseries-fields" title="Permalink to this headline">¶</a></h4>
+<span id="id3"></span><h4>Timeseries fields<a class="headerlink" href="#timeseries-fields" title="Permalink to this headline">¶</a></h4>
 <p>Timeseries are unit quantities that vary over some time interval. This can be
 any quantity you can measure, as long as it varies over time. Timeseries fields
 are stored in the data file as a 2D array of size <code class="docutils literal notranslate"><span class="pre">(n</span> <span class="pre">+</span> <span class="pre">1)</span> <span class="pre">x</span> <span class="pre">m</span></code>, where <code class="docutils literal notranslate"><span class="pre">m</span></code>

@@ -32,9 +32,9 @@ class SettingsValidator:
         # construct temporary cache for loading structure tree
         # data directory and CCF version are relevant, so use what's given
         cache_system_section = System()
-        if "dataDirectory" in self._system:
+        if "cacheDirectory" in self._system:
             try:
-                cache_system_section.data_directory = self._system["dataDirectory"]
+                cache_system_section.cache_directory = self._system["cacheDirectory"]
             except (TypeError, ValueError):
                 pass
         if "atlasVersion" in self._system:
@@ -201,12 +201,12 @@ class SettingsValidator:
 
         # collect standard keys
         atlas_version = self._system["atlasVersion"] if "atlasVersion" in self._system else System.DEFAULTS["atlas_version"]
-        data_directory = self._system["dataDirectory"] if "dataDirectory" in self._system else System.DEFAULTS["data_directory"]
+        cache_directory = self._system["cacheDirectory"] if "cacheDirectory" in self._system else System.DEFAULTS["cache_directory"]
         resolution = self._system["resolution"] if "resolution" in self._system else System.DEFAULTS["resolution"]
 
         # flag additional keys
         for k in self._system:
-            if k not in ("atlasVersion", "dataDirectory", "resolution"):
+            if k not in ("atlasVersion", "cacheDirectory", "resolution"):
                 messages["errors"].append(f"Unrecognized field '{k}' in system section.")
 
         # atlas version
@@ -214,8 +214,8 @@ class SettingsValidator:
             messages["errors"].append(f"Unrecognized atlasVersion: '{atlas_version}'.")
         
         # data directory
-        if not Path(data_directory).is_dir():
-            messages["warnings"].append(f"dataDirectory '{data_directory}' does not exist or is not a directory.")
+        if not Path(cache_directory).is_dir():
+            messages["warnings"].append(f"cacheDirectory '{cache_directory}' does not exist or is not a directory.")
 
         # resolution
         if resolution not in (10, 25, 50, 100):

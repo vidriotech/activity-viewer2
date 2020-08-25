@@ -180,7 +180,7 @@ class Cache:
 
     def structure_mesh_path(self, structure_id: int):
         """Return path for the mesh file for structure `structure_id`."""
-        return self.settings.versioned_data_directory / f"{structure_id}.obj"
+        return self.settings.versioned_cache_directory / f"{structure_id}.obj"
 
     def structure_mesh_exists(self, structure_id: int) -> bool:
         """Return true if and only if the mesh file for structure `structure_id` exists."""
@@ -193,7 +193,7 @@ class Cache:
     @property
     def annotation_volume_path(self):
         """Path to a binary file containing the annotation volume."""
-        return self.settings.versioned_data_directory / f"annotation_{self.settings.system.resolution}.bin"
+        return self.settings.versioned_cache_directory / f"annotation_{self.settings.system.resolution}.bin"
 
     @property
     def settings(self) -> AVSettings:
@@ -208,14 +208,14 @@ class Cache:
     @property
     def structure_centers_path(self):
         """Path to a CSV file with a list of structure centers."""
-        return self.settings.versioned_data_directory / "structure_centers.csv"
+        return self.settings.versioned_cache_directory / "structure_centers.csv"
 
     @property
     def structure_graph_path(self):
         """Path to a JSON file containing the structure graph."""
-        return self.settings.versioned_data_directory / "structure_graph.json"
+        return self.settings.versioned_cache_directory / "structure_graph.json"
 
     @property
     def template_volume_path(self):
         """Path to a binary file containing the template volume."""
-        return self.settings.versioned_data_directory / f"template_{self.settings.system.resolution}.bin"
+        return self.settings.versioned_cache_directory / f"template_{self.settings.system.resolution}.bin"
