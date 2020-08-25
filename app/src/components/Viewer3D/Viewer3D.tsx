@@ -1,7 +1,8 @@
 import React from 'react';
 import * as _ from 'underscore';
 
-import { Grid, Slider, Typography } from '@material-ui/core';
+import Grid from '@material-ui/core/Grid';
+import Paper from '@material-ui/core/Paper';
 
 import { APIClient } from '../../apiClient';
 import { BrainViewer } from '../../brainViewer';
@@ -13,6 +14,9 @@ import { CompartmentTree } from '../../models/compartmentTree';
 import { IAesthetics } from '../../viewmodels/aestheticMapping';
 import { ICompartmentView } from '../../viewmodels/compartmentViewModel';
 import { PenetrationViewModel } from '../../viewmodels/penetrationViewModel';
+
+import { CompartmentListContainer, ICompartmentListContainerProps } from './CompartmentListContainer';
+import { PlayerSlider, IPlayerSliderProps } from '../PlayerSlider';
 
 
 export interface IViewer3DProps {
@@ -26,6 +30,9 @@ export interface IViewer3DProps {
 }
 
 interface IViewer3DState {
+    frameRate: number,
+    isPlaying: boolean,
+    loopAnimation: 'once' | 'repeat',
     renderWidth: number,
     renderHeight: number,
     timeMin: number,
@@ -36,13 +43,15 @@ interface IViewer3DState {
 export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     private apiClient: APIClient;
     private containerId = 'viewer-container';
-    private penetrationViewModelsMap: Map<string, PenetrationViewModel>;
     private viewer: BrainViewer;
 
     constructor(props: IViewer3DProps) {
         super(props);
 
         this.state = {
+            frameRate: 10,
+            isPlaying: false,
+            loopAnimation: 'once',
             renderWidth: 0,
             renderHeight: 0,
             timeMin: 0,
@@ -51,8 +60,25 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         };
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
-        this.penetrationViewModelsMap = new Map<string, PenetrationViewModel>();
         this.viewer = null;
+    }
+
+    private animate() {
+        if (this.state.isPlaying) {
+            const newVal = this.state.timeVal + 0.01 > this.state.timeMax ?
+                            this.state.timeMin : this.state.timeVal + 0.01;
+            
+            if (newVal === this.state.timeMin && this.state.loopAnimation === 'once') {
+                this.setState({ timeVal: newVal, isPlaying: false });
+            } else {
+                this.setState({
+                    timeVal: newVal
+                }, () => {
+                    this.viewer.timeVal = this.state.timeVal;
+                    setTimeout(this.animate.bind(this), 1000/this.state.frameRate);
+                })
+            }
+        }
     }
 
     private computeDims() {
@@ -61,6 +87,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
             return { width: 0, height: 0 };
         }
 
+        console.log(`${container.clientWidth}, ${container.clientHeight}`);
         let width = container.clientWidth;
         let height = 0.75 * width; // 4:3 aspect ratio
 
@@ -85,19 +112,30 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         this.viewer = v;
     }
 
-    // private handleBlur() {
-    //     this.timeVal = Math.min(Math.max(this.state.timeMin, this.timeVal), this.state.timeMax);
-    // }
+    private handleFrameRateUpdate(frameRate: number) {
+        this.setState({ frameRate: Math.max(Math.min(frameRate, 60), 1) });
+    }
 
-    private handleInputChange(_event: any, timeVal: number) {
-        this.setState({ timeVal }, () => {
-            this.viewer.timeVal = this.state.timeVal
+    private handleLoopToggle() {
+        const newLoop = this.state.loopAnimation === 'once' ? 'repeat' : 'once';
+        this.setState({ loopAnimation: newLoop });
+    }
+
+    private handlePlayToggle() {
+        this.setState({ isPlaying: !this.state.isPlaying }, () => {
+            this.animate();
         });
     }
 
     private handleSliderChange(_event: any, timeVal: number) {
         this.setState({ timeVal }, () => {
             this.viewer.timeVal = this.state.timeVal
+        });
+    }
+
+    private handleStopClick() {
+        this.setState({ timeVal: this.state.timeMin, isPlaying: false }, () => {
+            this.viewer.timeVal = this.state.timeMin;
         });
     }
 
@@ -175,6 +213,8 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
                 timeMax: timeMax
             });
         }
+
+        this.viewer.updatePenetrationAesthetics();
     }
 
     private renderCompartments() {
@@ -209,60 +249,47 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     public componentDidUpdate() {
         this.renderCompartments();
         this.renderPenetrations();
+        const foo = document.getElementById('foo');
+        console.log(`${foo.clientHeight}, ${foo.clientWidth}`);
     }
 
     public render() {
-        // return (<div id={this.containerId}>
-        //     <div id="timestep">t = 0</div>
-        //     </div>)
-        let marks = [{
-            label: '',
-            value: this.state.timeMin
-        }];
-
-        if (this.state.timeMin < this.state.timeMax) {
-            marks[0].label = this.state.timeMin.toFixed(2) + ' s';
-            marks.push({
-                label: this.state.timeMax.toFixed(2) + ' s',
-                value: this.state.timeMax
-            });
-
-            if (this.state.timeMin < 0 && 0 < this.state.timeMax) {
-                marks.push({
-                    label: '0 s',
-                    value: 0,
-                });
-            }
+        // const compartmentListContainerProps: ICompartmentListContainerProps = {
+        //     compartmentTree: this.props.compartmentTree,
+        //     rootNode: this.state.rootNode,
+        //     visibleCompartments: this.props.visibleCompartments,
+        //     onToggleSubsetOnly: this.handleToggleSubsetOnly.bind(this),
+        //     onUpdateSelectedCompartments: this.props.onUpdateSelectedCompartments,
+        // };
+        
+        const playerSliderProps: IPlayerSliderProps = {
+            frameRate: this.state.frameRate,
+            isPlaying: this.state.isPlaying,
+            loopAnimation: this.state.loopAnimation,
+            timeMax: this.state.timeMax,
+            timeMin: this.state.timeMin,
+            timeStep: 0.01,
+            timeVal: this.state.timeVal,
+            onFrameRateUpdate: this.handleFrameRateUpdate.bind(this),
+            onLoopToggle: this.handleLoopToggle.bind(this),
+            onPlayToggle: this.handlePlayToggle.bind(this),
+            onSliderChange: this.handleSliderChange.bind(this),
+            onStopClick: this.handleStopClick.bind(this),
         }
-
-        return (<Grid container
-                      item
-                      direction='column'
-                      xs={8}
-                      spacing={3}
-                      style={{ padding: 40 }}>
-            <Grid item id={this.containerId} xs />
-            <Grid item>
-                <Typography gutterBottom>
-                    Timestep
-                </Typography>
-            </Grid>
-            <Grid container item xs={12} spacing={3}>
-                <Grid item xs={10}>
-                    <Slider min={this.state.timeMin}
-                            max={this.state.timeMax}
-                            step={0.02}
-                            marks={marks}
-                            onChange={this.handleSliderChange.bind(this)}
-                            value={this.state.timeVal}
-                    />
-                </Grid>
-                <Grid item xs={2}>
-                    <Typography>
-                        {`${this.state.timeVal.toFixed(2)} s`}
-                    </Typography>
+        return (
+            <Grid container
+                  item
+                  xs
+                  component={Paper}
+                  direction='column'
+                  spacing={3}
+                  style={{ padding: 40 }}
+                  id='foo'>
+                <Grid item id={this.containerId} xs />
+                <Grid item xs>
+                    <PlayerSlider {...playerSliderProps} />
                 </Grid>
             </Grid>
-        </Grid>)
+        )
     }
 }

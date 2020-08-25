@@ -97,14 +97,6 @@ class APIState:
         self._penetrations = {}
         self._active_penetration = None
 
-    def get_all_timeseries(self, penetration_id: str):
-        """Get a list of timeseries for `penetration_id`"""
-        if not self.has_penetration(penetration_id):
-            return
-
-        self.load_penetration(penetration_id)
-        return self.npz_loader.get("timeseries")
-
     def get_compartment_tree(self):
         """Get the entire compartment hierarchy."""
         def populate_children(tr: StructureTree, node: dict):
@@ -167,6 +159,14 @@ class APIState:
         self.load_penetration(penetration_id)
         return self.npz_loader.get(timeseries_id)
 
+    def get_timeseries_list(self, penetration_id: str):
+        """Get a list of timeseries for a specific penetration."""
+        if not self.has_penetration(penetration_id):
+            return
+
+        self.load_penetration(penetration_id)
+        return self.npz_loader.get("timeseries")
+
     def get_unit_ids(self, penetration_id: str):
         """Get point ids for `penetration_id`."""
         if not self.has_penetration(penetration_id):
@@ -174,6 +174,22 @@ class APIState:
 
         self.load_penetration(penetration_id)
         return self.npz_loader.get("unit_id")
+
+    def get_unit_stat(self, penetration_id: str, stat_id: str):
+        """Get a specific unit statistic for a given penetration."""
+        if not self.has_penetration(penetration_id):
+            return
+
+        self.load_penetration(penetration_id)
+        return self.npz_loader.get(stat_id)
+
+    def get_unit_stats_list(self, penetration_id: str):
+        """Get a list of unit stats for a specific penetration."""
+        if not self.has_penetration(penetration_id):
+            return
+
+        self.load_penetration(penetration_id)
+        return self.npz_loader.get("unit_stats")
 
     def has_penetration(self, penetration_id: str) -> bool:
         """Return true if and only if `penetration_id` exists."""

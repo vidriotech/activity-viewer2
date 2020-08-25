@@ -23,10 +23,6 @@ export class APIClient {
         });
     }
 
-    async fetchAllTimeseries(penetrationId: string) {
-        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries`);
-    }
-
     async fetchCompartmentTree() {
         return await axios.get(`${this.endpoint}/compartments`);
     }
@@ -39,12 +35,24 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
     }
 
+    async fetchSettings() {
+        return await axios.get(`${this.endpoint}/settings`);
+    }
+
     async fetchTimeseries(penetrationId: string, timeseriesId: string) {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries/${timeseriesId}`);
     }
 
-    async fetchSettings() {
-        return await axios.get(`${this.endpoint}/settings`);
+    async fetchTimeseriesList(penetrationId: string) {
+        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries`);
+    }
+
+    async fetchTimeseriesById(timeseriesId: string) {
+        return await axios.get(`${this.endpoint}/timeseries/${timeseriesId}`);
+    }
+
+    async fetchUnitStatsById(statId: string) {
+        return await axios.get(`${this.endpoint}/unit-stats/${statId}`);
     }
 
     async setSettings(settingsPath: string) {

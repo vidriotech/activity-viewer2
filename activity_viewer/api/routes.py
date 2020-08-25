@@ -62,25 +62,44 @@ def get_penetration_vitals(penetration_id: str):
     ids = state.get_unit_ids(penetration_id)
     coords = state.get_coordinates(penetration_id)
     compartments = state.get_compartments(penetration_id)
+    
+    timeseries = state.get_timeseries_list(penetration_id)
+    timeseries = timeseries.tolist() if timeseries is not None else []
+
+    unit_stats = state.get_unit_stats_list(penetration_id)
+    unit_stats = unit_stats.tolist() if unit_stats is not None else []
 
     return {
         "penetrationId": penetration_id,
         "ids": ids.ravel().tolist(),
         "compartments": compartments,
         "coordinates": coords.ravel().tolist(),
-        "stride": coords.shape[1]
+        "stride": coords.shape[1],
+        "timeseries": timeseries,
+        "unitStats": unit_stats,
     }
 
 
 @app.route("/penetrations/<penetration_id>/timeseries")
-def get_all_timeseries(penetration_id: str):
+def get_timeseries_list(penetration_id: str):
     if not state.has_penetration(penetration_id):
-        return make_response(f"Penetration not found.", 404)
+        return make_response(f"Penetration '{penetration_id}' not found.", 404)
 
-    timeseries = state.get_all_timeseries(penetration_id).tolist()
+    timeseries = state.get_timeseries_list(penetration_id).tolist()
     return {
         "penetration": penetration_id,
         "timeseries": timeseries,
+    }
+
+
+@app.route("/penetrations/<penetration_id>/unit-stats")
+def get_unit_stats_list(penetration_id: str):
+    if not state.has_penetration(penetration_id):
+        return make_response(f"Penetration '{penetration_id}' not found.", 404)
+
+    return {
+        "penetration": penetration_id,
+        "unitStats": [],
     }
 
 
@@ -97,6 +116,21 @@ def get_timeseries(penetration_id: str, timeseries_id: str):
         "penetration": penetration_id,
         "data": timeseries.ravel().tolist(),
         "stride": timeseries.shape[1],
+    }
+
+
+@app.route("/penetrations/<penetration_id>/unit-stats/<stat_id>")
+def get_unit_stat(penetration_id: str, stat_id: str):
+    if not state.has_penetration(penetration_id):
+        return make_response(f"Penetration not found.", 404)
+
+    timeseries = state.get_unit_stat(penetration_id, stat_id)
+    if timeseries is None:
+        return make_response(f"Unit stat '{stat_id}' not found.", 404)
+
+    return {
+        "penetration": penetration_id,
+        "data": timeseries.ravel().tolist(),
     }
 
 
@@ -127,3 +161,43 @@ def settings():
                 state.settings = make_default_settings()
     
     return state.settings.to_dict()
+
+
+@app.route("/timeseries/<timeseries_id>")
+def get_timeseries_by_id(timeseries_id: str):
+    response = {"timeseries": []}
+
+    for penetration_id in state.penetrations:
+        entry = {
+            "penetrationId": penetration_id,
+            "data": [],
+            "stride": 0
+        }
+
+        data = state.get_timeseries(penetration_id, timeseries_id)
+        if data is not None:
+            entry["data"] = data.ravel().tolist()
+            entry["stride"] = data.shape[1]
+        
+        response["timeseries"].append(entry)
+
+    return response
+
+
+@app.route("/unit-stats/<stat_id>")
+def get_unit_stat_by_id(stat_id: str):
+    response = {"unitStats": []}
+
+    for penetration_id in state.penetrations:
+        entry = {
+            "penetrationId": penetration_id,
+            "data": [],
+        }
+
+        data = state.get_unit_stat(penetration_id, stat_id)
+        if data is not None:
+            entry["data"] = data.ravel().tolist()
+        
+        response["unitStats"].append(entry)
+
+    return response

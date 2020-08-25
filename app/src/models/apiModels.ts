@@ -29,6 +29,8 @@ export interface IPenetrationData {
     compartments: ICompartment[]
     coordinates: number[],
     stride: number,
+    timeseries: string[],
+    unitStats: string[],
 }
 
 export interface IPenetrationRequest {
@@ -67,10 +69,19 @@ export interface IPenetrationTimeseriesResponse {
  * Endpoint: /penetrations/<penetration_id>/timeseries/<timeseries_id>
  * Retrieve a specific timeseries' values for a specific penetration.
  */
-export interface IPenetrationTimeseriesValuesResponse {
+export interface ITimeseriesValuesResponse {
     penetrationId: string,
     data: number[],
     stride: number,
+}
+
+/*
+ * Endpoint: /penetrations/<penetration_id>/unit-stats/<stat_id>
+ * Retrieve a specific timeseries' values for a specific penetration.
+ */
+export interface IUnitStatsValuesResponse {
+    penetrationId: string,
+    data: number[],
 }
 
 /*
@@ -79,4 +90,20 @@ export interface IPenetrationTimeseriesValuesResponse {
  */
 export interface ICompartmentNode extends ICompartment {
     children: ICompartmentNode[],
+}
+
+/*
+ * Endpoint: /timeseries/<timeseries_id>
+ * Allows to query all penetrations for a given timeseries id.
+ */
+export interface ITimeseriesListResponse {
+    timeseries: ITimeseriesValuesResponse[],
+}
+
+/*
+ * Endpoint: /unit-stats/<stat_id>
+ * Allows to query all penetrations for a given unit statistic id.
+ */
+export interface IUnitStatsListResponse {
+    unitStats: IUnitStatsValuesResponse[],
 }

@@ -109,29 +109,6 @@ export class BrainViewer {
         return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
     }
 
-    private updatePenetrationAesthetics() {
-        const t = this._timeVal;
-
-        this.penetrationPointsMap.forEach((pointObj, penetrationId, _map) => {
-            const viewModel = this.penetrationViewModelsMap.get(penetrationId);
-            const colors = viewModel.getColor(t);
-            const opacities = viewModel.getOpacity(t);
-            const sizes = viewModel.getRadius(t);
-
-            const geom = pointObj.geometry as BufferGeometry;
-            geom.attributes.color = new Float32BufferAttribute(colors, 3);
-            geom.attributes.color.needsUpdate = true;
-
-            geom.attributes.opacity = new Float32BufferAttribute(opacities, 1);
-            geom.attributes.opacity.needsUpdate = true;
-
-            geom.attributes.size = new Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage);
-            geom.attributes.size.needsUpdate = true;
-        });
-
-        this.render();
-    }
-
     public animate(timestamp: number = null) {
         if (!this.lastTimestamp) {
             this.lastTimestamp = timestamp;
@@ -222,11 +199,33 @@ export class BrainViewer {
         this.renderer.render(this.scene, this.camera);
     }
 
-    // public setAesthetics(aesthetics: IAesthetics[]) {
     public setAesthetics(penetrationId: string, aesthetics: PenetrationViewModel) {
         this.penetrationViewModelsMap.set(
             penetrationId, aesthetics // new PenetrationViewModel(aes, nPoints)
         );
+    }
+
+    public updatePenetrationAesthetics() {
+        const t = this._timeVal;
+
+        this.penetrationPointsMap.forEach((pointObj, penetrationId, _map) => {
+            const viewModel = this.penetrationViewModelsMap.get(penetrationId);
+            const colors = viewModel.getColor(t);
+            const opacities = viewModel.getOpacity(t);
+            const sizes = viewModel.getRadius(t);
+
+            const geom = pointObj.geometry as BufferGeometry;
+            geom.attributes.color = new Float32BufferAttribute(colors, 3);
+            geom.attributes.color.needsUpdate = true;
+
+            geom.attributes.opacity = new Float32BufferAttribute(opacities, 1);
+            geom.attributes.opacity.needsUpdate = true;
+
+            geom.attributes.size = new Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage);
+            geom.attributes.size.needsUpdate = true;
+        });
+
+        this.render();
     }
 
     public setCompartmentVisible(name: string, visible: boolean) {

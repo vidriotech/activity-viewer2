@@ -1,6 +1,9 @@
 import React from 'react';
 import * as _ from 'underscore';
 
+import Container from '@material-ui/core/Container';
+import Typography from '@material-ui/core/Typography';
+
 import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
 import { ISettingsResponse, IPenetrationData, IPenetrationResponse } from '../models/apiModels';
@@ -92,7 +95,9 @@ export class App extends React.Component<IAppProps, IAppState> {
         }
         
         return (<div>
-            <h1>MAP Viewer</h1>
+            <Typography variant='h2' component='h2'>
+                Mesoscale Activity Viewer
+            </Typography>
             <MainView {...mainViewProps} />
         </div>);
     }
