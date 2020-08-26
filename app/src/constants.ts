@@ -8,6 +8,7 @@ export class AVConstants {
     private _rootColor = [135, 135, 135];
 
     private _defaultColor = 0x0080ff;
+    private _defaultColorFaded = 0x77b4ff;
     private _defaultOpacity = 1;
     private _defaultRadius = 40;
 
@@ -41,14 +42,17 @@ export class AVConstants {
     }`;
 
     private _pointVertexShader = `
-    attribute float size;
     attribute float opacity;
+    attribute float size;
+    attribute float visible;
     varying vec3 vColor;
     varying float vOpacity;
+    varying float vVisible;
 
     void main() {
         vColor = color;
         vOpacity = opacity;
+        vVisible = visible;
         vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
         gl_PointSize = size * ( 300.0 / -mvPosition.z );
         gl_Position = projectionMatrix * mvPosition;
@@ -57,9 +61,10 @@ export class AVConstants {
     uniform sampler2D pointTexture;
     varying vec3 vColor;
     varying float vOpacity;
+    varying float vVisible;
 
     void main() {
-        gl_FragColor = vec4( vColor, vOpacity );
+        gl_FragColor = vec4( vColor, vOpacity * vVisible );
         gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
     }`;
 
@@ -98,6 +103,10 @@ export class AVConstants {
 
     public get defaultColor() {
         return this._defaultColor;
+    }
+
+    public get defaultColorFaded() {
+        return this._defaultColorFaded;
     }
 
     public get defaultOpacity() {

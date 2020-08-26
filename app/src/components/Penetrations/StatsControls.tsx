@@ -8,20 +8,23 @@ import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
 import Paper from '@material-ui/core/Paper';
 import Select from '@material-ui/core/Select';
-import Typography from '@material-ui/core/Typography';
 
 import { IPenetrationData } from '../../models/apiModels';
-import { StatsHistogram } from './StatsHistogram';
+import { StatsHistogram, IStatsHistogramProps } from './StatsHistogram';
+
+import { AVConstants } from '../../constants';
+import { IFilterCondition } from '../../models/filter';
 
 
 export interface IStatsControlsProps {
     availablePenetrations: IPenetrationData[],
+    constants: AVConstants,
     data: number[],
     selectedStat: string,
+    onNewFilterCondition(condition: IFilterCondition): void,
     onSelectionChange(event: any): void,
 }
 
-// export class StatsSummary extends React.Component<IStatsSummaryProps, IStatsSummaryState> {
 export function StatsControls(props: IStatsControlsProps) {
     const availableStats = _.union(...props.availablePenetrations.map(pen => pen.unitStats));
     const menuItems = _.union(
@@ -33,6 +36,15 @@ export function StatsControls(props: IStatsControlsProps) {
             </MenuItem>
         })
     );
+
+    const histogramProps: IStatsHistogramProps = {
+        constants: props.constants,
+        data: props.data,
+        height: 300,
+        statName: props.selectedStat,
+        width: 400,
+        onNewFilterCondition: props.onNewFilterCondition,
+    }
 
     return (
         <Grid container
@@ -54,10 +66,7 @@ export function StatsControls(props: IStatsControlsProps) {
                 </FormControl>
             </Grid>
             <Grid item xs>
-                <StatsHistogram data={props.data}
-                                height={300}
-                                statName={props.selectedStat}
-                                width={400} />
+                <StatsHistogram {...histogramProps} />
             </Grid>
         </Grid>
     );

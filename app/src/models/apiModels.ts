@@ -29,7 +29,6 @@ export interface IPenetrationData {
     ids: number[],
     compartments: ICompartment[]
     coordinates: number[],
-    stride: number,
     timeseries: string[],
     unitStats: string[],
 }

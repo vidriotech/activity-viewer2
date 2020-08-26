@@ -7,6 +7,8 @@ import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
 import { ISettingsResponse, IPenetrationData, ITimeseriesListResponse, IUnitStatsListResponse } from '../models/apiModels';
 import { CompartmentTree } from '../models/compartmentTree';
+import { Predicate, IFilterCondition } from '../models/filter';
+import { PointModel, IPointSummary } from '../models/pointModel';
 import { IAesthetics } from '../viewmodels/aestheticMapping';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
@@ -40,6 +42,7 @@ export interface IMainViewProps {
 interface IMainViewState {
     aesthetics: IAesthetics[],
     colorBounds: number[],
+    filterConditions: IFilterCondition[],
     opacityBounds: number[],
     radiusBounds: number[],
     rootNode: CompartmentNode,
@@ -63,6 +66,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         this.state = {
             aesthetics: [],
             colorBounds: [0, 255],
+            filterConditions: [],
             opacityBounds: [0.01, 1],
             radiusBounds: [5, 500],
             rootNode: new CompartmentNode(rootNode, true),
@@ -142,6 +146,14 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         }
 
         this.setState({subsetOnly: subsetOnly, rootNode: rootNode});
+    }
+
+    private handleNewFilterCondition(condition: IFilterCondition) {
+        let conditions = this.state.filterConditions.slice();
+        conditions.push(condition); // TODO: concatenate in an intelligent way
+        this.setState({ filterConditions: [condition] }, () => {
+            this.updateAesthetics();
+        });
     }
 
     private handleOpacitySelectionChange(event: React.ChangeEvent<{
@@ -230,7 +242,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     }
 
     private updateAesthetics() {
-        // get timeseries which have all selected timeseries available
         let visiblePenetrations = this.props.availablePenetrations.map(
             value => value.penetrationId
         );
@@ -262,6 +273,13 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             );
         }
 
+        // // check if any filter conditions specify excluding penetrationIds
+        // this.state.filterConditions.forEach(condition => {
+        //     if (condition.key === 'penetrationId' && condition.negate) {
+        //         visiblePenetrations = _.without(visiblePenetrations, condition.equals);
+        //     }
+        // });
+
         let aesthetics: IAesthetics[] = [];
 
         const colorData = this.state.selectedColor === 'nothing' ? null : this.timeseriesData.get(this.state.selectedColor);
@@ -269,9 +287,50 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         const radiusData = this.state.selectedRadius === 'nothing' ? null : this.timeseriesData.get(this.state.selectedRadius);
 
         visiblePenetrations.forEach((penetrationId) => {
+            const penIdx = this.props.availablePenetrations.map(p => p.penetrationId).indexOf(penetrationId);
+            const penetrationData = this.props.availablePenetrations[penIdx];
+
             const penColor = colorData === null ? null : colorData.filter((data) => data.penetrationId === penetrationId)[0];
             const penOpacity = opacityData === null ? null : opacityData.filter((data) => data.penetrationId === penetrationId)[0];
             const penRadius = radiusData === null ? null : radiusData.filter((data) => data.penetrationId === penetrationId)[0];
+
+            // collection stats data for points in this penetration
+            const penStatsData = new Map<string, IUnitStatsData>();
+            this.statsData.forEach((statValues, statName) => {
+                const idx = statValues.map(v => v.penetrationId).indexOf(penetrationId);
+                if (idx === -1) {
+                    return;
+                }
+
+                penStatsData.set(statName, statValues[idx]);
+            });
+
+            // filter points
+            let pointModels: PointModel[] = [];
+            for (let i = 0; i < penetrationData.ids.length; i++) {
+                const summary: IPointSummary = {
+                    compartment: penetrationData.compartments[i],
+                    coordinates: penetrationData.coordinates.slice(i*3, 3),
+                    id: penetrationData.ids[i],
+                    penetrationId: penetrationId,
+                };
+                let pointModel = new PointModel(summary);
+
+                penStatsData.forEach((statValues, statName) => {
+                    pointModel.setStat(statName, statValues.values[i]);
+                });
+                pointModels.push(pointModel);
+            }
+
+            let penVisibility = new Array(penetrationData.ids.length);
+            penVisibility.fill(true);
+
+            // logical AND on all filter conditions
+            this.state.filterConditions.forEach((condition) => {
+                const predicate = new Predicate(condition);
+                const satisfied = predicate.eval(pointModels);
+                penVisibility = penVisibility.map((p, i) => p && satisfied[i]);
+            });
 
             const aesthetic: IAesthetics = {
                 penetrationId: penetrationId,
@@ -289,7 +348,8 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
                     timeseriesId: this.state.selectedRadius,
                     times: penRadius.times,
                     values: this.transformValues(penRadius.values, this.state.radiusBounds)
-                }
+                },
+                visible: penVisibility
             };
             aesthetics.push(aesthetic);
         });
@@ -297,7 +357,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         this.setState({ visiblePenetrations, aesthetics });
     }
 
-    public componentDidUpdate(prevProps: IMainViewProps, prevState: IMainViewState) {
+    public componentDidUpdate(prevProps: IMainViewProps) {
         if (!_.isEqual(prevProps.availablePenetrations, this.props.availablePenetrations)) {
             this.setState({
                 visiblePenetrations: this.props.availablePenetrations.map(
@@ -340,9 +400,11 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
 
         const statsControlsProps: IStatsControlsProps = {
             availablePenetrations: this.props.availablePenetrations,
+            constants: this.props.constants,
             data: statsData,
             selectedStat: this.state.selectedStat,
-            onSelectionChange: this.handleStatSelectionChange.bind(this)
+            onNewFilterCondition: this.handleNewFilterCondition.bind(this),
+            onSelectionChange: this.handleStatSelectionChange.bind(this),
         }
 
         const style = {width: "100%", height: "100%"};

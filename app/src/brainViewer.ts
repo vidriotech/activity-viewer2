@@ -171,6 +171,7 @@ export class BrainViewer {
             color: null,
             opacity: null,
             radius: null,
+            visible: null,
         };
 
         const viewModel = new PenetrationViewModel(defaultAesthetics, penetrationData.ids.length);
@@ -179,12 +180,14 @@ export class BrainViewer {
         let colors = viewModel.getColor(0);
         let opacities = viewModel.getOpacity(0);
         let sizes = viewModel.getRadius(0);
+        let visible = viewModel.getVisible();
 
         let geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geometry.setAttribute('opacity', new THREE.Float32BufferAttribute(opacities, 1));
         geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage));
+        geometry.setAttribute('visible', new THREE.Float32BufferAttribute(visible, 1));
 
         let penetration: THREE.Points = new THREE.Points(geometry, this.pointsMaterial);
         penetration.position.set(centerPoint[0], centerPoint[1], centerPoint[2]);
@@ -213,6 +216,7 @@ export class BrainViewer {
             const colors = viewModel.getColor(t);
             const opacities = viewModel.getOpacity(t);
             const sizes = viewModel.getRadius(t);
+            const visible = viewModel.getVisible();
 
             const geom = pointObj.geometry as BufferGeometry;
             geom.attributes.color = new Float32BufferAttribute(colors, 3);
@@ -223,6 +227,9 @@ export class BrainViewer {
 
             geom.attributes.size = new Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage);
             geom.attributes.size.needsUpdate = true;
+
+            geom.attributes.visible = new Float32BufferAttribute(visible, 1);
+            geom.attributes.visible.needsUpdate = true;
         });
 
         this.render();

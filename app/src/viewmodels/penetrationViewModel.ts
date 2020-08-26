@@ -20,10 +20,6 @@ export class PenetrationViewModel {
         this.defaultColor = new Color(this.constants.defaultColor);
     }
 
-    private radToPx(radius: number) {
-        return radius * (35/4);
-    }
-
     private interpValues(times: number[], values: number[], t: number, idx: number, stride: number, newValues: Float32Array) {
         const t0 = times[idx-1];
         const t1 = times[idx];
@@ -95,10 +91,11 @@ export class PenetrationViewModel {
 
     public getRadius(t: number) {
         const stride = this.aesthetics.radius !== null ? this.aesthetics.radius.times.length : 0;
+        const radToPx = (radius: number) => radius * (35/4);
 
         let sizes = new Float32Array(this.nPoints);
         if (stride === 0) {
-            sizes.fill(this.radToPx(this.constants.defaultRadius));
+            sizes.fill(radToPx(this.constants.defaultRadius));
         } else {
             const times = this.aesthetics.radius.times;
             const values = this.aesthetics.radius.values;
@@ -109,14 +106,24 @@ export class PenetrationViewModel {
                 idx = Math.min(idx, times.length - 1);
 
                 for (let i = idx; i < values.length; i += stride) {
-                    sizes[(i - idx) / stride] = this.radToPx(values[i]);
+                    sizes[(i - idx) / stride] = radToPx(values[i]);
                 }
             } else { // interpolate
                 this.interpValues(times, values, t, idx, stride, sizes);
-                sizes = sizes.map(x => this.radToPx(x));
+                sizes = sizes.map(x => radToPx(x));
             }
         }
 
         return sizes;
+    }
+
+    public getVisible() {
+        if (this.aesthetics.visible === null) {
+            let visible = new Float32Array(this.nPoints);
+            visible.fill(1.0);
+            return visible;
+        }
+
+        return new Float32Array(this.aesthetics.visible.map(x => x ? 1.0 : 0.0));
     }
 }

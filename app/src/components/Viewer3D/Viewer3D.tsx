@@ -37,6 +37,7 @@ interface IViewer3DState {
     renderHeight: number,
     timeMin: number,
     timeMax: number,
+    timeStep: number,
     timeVal: number,
 }
 
@@ -56,6 +57,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
             renderHeight: 0,
             timeMin: 0,
             timeMax: 0,
+            timeStep: 0.01,
             timeVal: 0,
         };
 
@@ -65,15 +67,15 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
 
     private animate() {
         if (this.state.isPlaying) {
-            const newVal = this.state.timeVal + 0.01 > this.state.timeMax ?
-                            this.state.timeMin : this.state.timeVal + 0.01;
+            const newVal = this.state.timeVal + this.state.timeStep > this.state.timeMax ?
+                            this.state.timeMin : this.state.timeVal + this.state.timeStep;
             
             if (newVal === this.state.timeMin && this.state.loopAnimation === 'once') {
-                this.setState({ timeVal: newVal, isPlaying: false });
+                this.setState({ timeVal: this.state.timeMin, isPlaying: false }, () => {
+                    this.viewer.timeVal = this.state.timeMin;
+                });
             } else {
-                this.setState({
-                    timeVal: newVal
-                }, () => {
+                this.setState({ timeVal: newVal }, () => {
                     this.viewer.timeVal = this.state.timeVal;
                     setTimeout(this.animate.bind(this), 1000/this.state.frameRate);
                 })
@@ -87,7 +89,6 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
             return { width: 0, height: 0 };
         }
 
-        console.log(`${container.clientWidth}, ${container.clientHeight}`);
         let width = container.clientWidth;
         let height = 0.75 * width; // 4:3 aspect ratio
 
@@ -162,7 +163,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         let timeMax = 0;
 
         this.props.availablePenetrations.forEach((penetration: IPenetrationData) => {
-            if (penetration.stride == 0) {
+            if (penetration.ids.length == 0) {
                 return;
             }
 
@@ -249,8 +250,6 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     public componentDidUpdate() {
         this.renderCompartments();
         this.renderPenetrations();
-        const foo = document.getElementById('foo');
-        console.log(`${foo.clientHeight}, ${foo.clientWidth}`);
     }
 
     public render() {
@@ -268,7 +267,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
             loopAnimation: this.state.loopAnimation,
             timeMax: this.state.timeMax,
             timeMin: this.state.timeMin,
-            timeStep: 0.01,
+            timeStep: this.state.timeStep,
             timeVal: this.state.timeVal,
             onFrameRateUpdate: this.handleFrameRateUpdate.bind(this),
             onLoopToggle: this.handleLoopToggle.bind(this),
@@ -284,7 +283,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
                   direction='column'
                   spacing={3}
                   style={{ padding: 40 }}
-                  id='foo'>
+                  id='container-container'>
                 <Grid item id={this.containerId} xs />
                 <Grid item xs>
                     <PlayerSlider {...playerSliderProps} />
