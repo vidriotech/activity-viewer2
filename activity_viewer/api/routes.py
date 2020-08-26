@@ -74,7 +74,6 @@ def get_penetration_vitals(penetration_id: str):
         "ids": ids.ravel().tolist(),
         "compartments": compartments,
         "coordinates": coords.ravel().tolist(),
-        "stride": coords.shape[1],
         "timeseries": timeseries,
         "unitStats": unit_stats,
     }
