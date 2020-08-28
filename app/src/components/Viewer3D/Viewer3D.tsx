@@ -90,7 +90,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         }
 
         let width = container.clientWidth;
-        let height = 0.75 * width; // 4:3 aspect ratio
+        let height = width / 1.85; // 1.85:1 aspect ratio
 
         return { width, height };
     }

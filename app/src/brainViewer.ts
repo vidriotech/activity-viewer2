@@ -32,8 +32,8 @@ export class BrainViewer {
 
     private pointsMaterial: THREE.PointsMaterial;
 
-    public HEIGHT = 0.5 * window.innerHeight;
-    public WIDTH = 0.5 * window.innerWidth;
+    public HEIGHT: number;
+    public WIDTH: number;
     public container = 'container';
     public flip = true; // flip y axis
 

@@ -12,10 +12,9 @@ import { PointModel, IPointSummary } from '../models/pointModel';
 import { IAesthetics } from '../viewmodels/aestheticMapping';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
-import { TimeseriesControls, ITimeseriesControlsProps } from './Penetrations/TimeseriesControls';
-import { StatsControls, IStatsControlsProps } from './Penetrations/StatsControls';
 import { CompartmentNode } from './Viewer3D/CompartmentNode';
 import { Viewer3D, IViewer3DProps } from './Viewer3D/Viewer3D';
+import { ControlPanel, IControlPanelProps } from './ControlPanel/ControlPanel';
 
 
 interface ITimeseriesData {
@@ -273,13 +272,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             );
         }
 
-        // // check if any filter conditions specify excluding penetrationIds
-        // this.state.filterConditions.forEach(condition => {
-        //     if (condition.key === 'penetrationId' && condition.negate) {
-        //         visiblePenetrations = _.without(visiblePenetrations, condition.equals);
-        //     }
-        // });
-
         let aesthetics: IAesthetics[] = [];
 
         const colorData = this.state.selectedColor === 'nothing' ? null : this.timeseriesData.get(this.state.selectedColor);
@@ -378,52 +370,35 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             updateCompartments: this.props.updateCompartments,
         };
 
-        const timeseriesControlsProps: ITimeseriesControlsProps = {
+        const controlPanelProps: IControlPanelProps = {
+            availablePenetrations: this.props.availablePenetrations,
+            constants: this.props.constants,
             opacityBounds: this.state.opacityBounds,
             radiusBounds: this.state.radiusBounds,
             selectedOpacity: this.state.selectedOpacity,
             selectedRadius: this.state.selectedRadius,
-            timeseries: _.uniq(
-                _.flatten(this.props.availablePenetrations.map(
-                    pen => pen.timeseries
-                )).sort(), true
-            ),
+            selectedStat: this.state.selectedStat,
+            statsData: this.state.selectedStat !== 'nothing' ?
+                _.union(
+                    ...(this.statsData.get(this.state.selectedStat).map(entry => entry.values))
+                ) : [],
+            onNewFilterCondition: this.handleNewFilterCondition.bind(this),
             onOpacitySelectionChange: this.handleOpacitySelectionChange.bind(this),
             onOpacitySliderChange: this.handleOpacitySliderChange.bind(this),
             onRadiusSelectionChange: this.handleRadiusSelectionChange.bind(this),
             onRadiusSliderChange: this.handleRadiusSliderChange.bind(this),
-        };
-
-        const statsData = this.state.selectedStat !== 'nothing' ? _.union(
-            ...(this.statsData.get(this.state.selectedStat).map(entry => entry.values))
-        ) : [];
-
-        const statsControlsProps: IStatsControlsProps = {
-            availablePenetrations: this.props.availablePenetrations,
-            constants: this.props.constants,
-            data: statsData,
-            selectedStat: this.state.selectedStat,
-            onNewFilterCondition: this.handleNewFilterCondition.bind(this),
-            onSelectionChange: this.handleStatSelectionChange.bind(this),
+            onStatSelectionChange: this.handleStatSelectionChange.bind(this),
         }
 
         const style = {width: "100%", height: "100%"};
         return (
             <div style={style}>
                 <Grid container spacing={3}>
-                    <Grid item xs>
+                    <Grid item xs={7}>
                         <Viewer3D {...viewer3DProps} />
                     </Grid>
-                    <Grid container
-                          item
-                          xs
-                          direction='column'>
-                        <Grid item xs>
-                            <TimeseriesControls {...timeseriesControlsProps}/>
-                        </Grid>
-                        <Grid item xs>
-                            <StatsControls {...statsControlsProps} />
-                        </Grid>
+                    <Grid item xs={5}>
+                        <ControlPanel {...controlPanelProps} />
                     </Grid>
                 </Grid>
             </div>

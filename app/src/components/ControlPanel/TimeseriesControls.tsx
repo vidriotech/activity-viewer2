@@ -10,15 +10,9 @@ export interface ITimeseriesControlsProps {
     selectedOpacity: string,
     selectedRadius: string,
     timeseries: string[],
-    onOpacitySelectionChange(event: React.ChangeEvent<{
-        name?: string;
-        value: any;
-    }>): void,
+    onOpacitySelectionChange(event: React.ChangeEvent<{ name?: string; value: any; }>): void,
     onOpacitySliderChange(event: any, newData: number[], commit: boolean): void,
-    onRadiusSelectionChange(event: React.ChangeEvent<{
-        name?: string;
-        value: any;
-    }>): void,
+    onRadiusSelectionChange(event: React.ChangeEvent<{ name?: string; value: any; }>): void,
     onRadiusSliderChange(event: any, newData: number[], commit: boolean): void,
 }
 
