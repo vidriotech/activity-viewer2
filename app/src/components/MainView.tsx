@@ -50,7 +50,6 @@ interface IMainViewState {
     selectedRadius: string,
     selectedStat: string,
     subsetOnly: boolean,
-    visiblePenetrations: string[],
 }
 
 export class MainView extends React.Component<IMainViewProps, IMainViewState> {
@@ -74,9 +73,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             selectedRadius: 'nothing',
             selectedStat: 'nothing',
             subsetOnly: true,
-            visiblePenetrations: this.props.availablePenetrations.map(
-                penetrationData => penetrationData.penetrationId
-            ),
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -346,17 +342,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             aesthetics.push(aesthetic);
         });
 
-        this.setState({ visiblePenetrations, aesthetics });
-    }
-
-    public componentDidUpdate(prevProps: IMainViewProps) {
-        if (!_.isEqual(prevProps.availablePenetrations, this.props.availablePenetrations)) {
-            this.setState({
-                visiblePenetrations: this.props.availablePenetrations.map(
-                    penetrationData => penetrationData.penetrationId
-                )
-            });
-        }
+        this.setState({ aesthetics });
     }
 
     public render() {
