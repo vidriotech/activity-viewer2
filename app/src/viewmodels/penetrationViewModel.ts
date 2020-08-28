@@ -3,7 +3,6 @@ import * as _ from 'underscore';
 
 import { AVConstants } from '../constants';
 import { IAesthetics } from './aestheticMapping';
-import { isNaN } from 'underscore';
 
 
 export class PenetrationViewModel {
@@ -124,6 +123,6 @@ export class PenetrationViewModel {
             return visible;
         }
 
-        return new Float32Array(this.aesthetics.visible.map(x => x ? 1.0 : 0.0));
+        return new Float32Array(this.aesthetics.visible);
     }
 }

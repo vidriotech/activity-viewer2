@@ -37,7 +37,7 @@ export class App extends React.Component<IAppProps, IAppState> {
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
     }
 
-    private onUpdateSelectedCompartments(added: string[], removed: string[]) {
+    private handleUpdateSelectedCompartments(added: string[], removed: string[]) {
         let compartmentViews = this.state.visibleCompartments.slice();
         const compartmentNames = compartmentViews.map((c: ICompartmentView) => c.name);
 
@@ -64,10 +64,10 @@ export class App extends React.Component<IAppProps, IAppState> {
             }
         });
 
-        this.updateCompartmentViews(compartmentViews);
+        this.handleUpdateCompartmentViews(compartmentViews);
     }
 
-    public updateCompartmentViews(compartmentViews: ICompartmentView[]) {
+    public handleUpdateCompartmentViews(compartmentViews: ICompartmentView[]) {
         this.setState({visibleCompartments: compartmentViews});
     }
 
@@ -78,8 +78,8 @@ export class App extends React.Component<IAppProps, IAppState> {
                 this.setState({availablePenetrations: data.penetrations});
             })
             .catch((err: Error) => {
-                window.alert(err.message);
                 console.error(err);
+                window.alert(err.message);
             });
     }
 
@@ -90,12 +90,12 @@ export class App extends React.Component<IAppProps, IAppState> {
             visibleCompartments: this.state.visibleCompartments,
             constants: this.props.constants,
             settings: this.props.settings,
-            onUpdateSelectedCompartments: this.onUpdateSelectedCompartments.bind(this),
-            updateCompartments: this.updateCompartmentViews.bind(this),
+            onUpdateCompartmentViews: this.handleUpdateCompartmentViews.bind(this),
+            onUpdateSelectedCompartments: this.handleUpdateSelectedCompartments.bind(this),
         }
         
         return (<div>
-            <Typography variant='h2' component='h2'>
+            <Typography variant='h3' component='h3'>
                 Mesoscale Activity Viewer
             </Typography>
             <MainView {...mainViewProps} />

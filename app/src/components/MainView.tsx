@@ -5,16 +5,20 @@ import Grid from '@material-ui/core/Grid';
 
 import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
+
 import { ISettingsResponse, IPenetrationData, ITimeseriesListResponse, IUnitStatsListResponse } from '../models/apiModels';
 import { CompartmentTree } from '../models/compartmentTree';
 import { Predicate, IFilterCondition } from '../models/filter';
 import { PointModel, IPointSummary } from '../models/pointModel';
+
 import { IAesthetics } from '../viewmodels/aestheticMapping';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
-import { CompartmentNode } from './ControlPanel/CompartmentNode';
+import { PlayerSlider, IPlayerSliderProps } from './AnimationControls/PlayerSlider';
+import { CompartmentNode } from './FilterControls/CompartmentNode';
+import { FilterControls, IFilterControlsProps } from './FilterControls/FilterControls';
+import { TimeseriesControls, ITimeseriesControlsProps } from './TimeseriesControls/TimeseriesControls';
 import { Viewer3D, IViewer3DProps } from './Viewers/Viewer3D';
-import { ControlPanel, IControlPanelProps } from './ControlPanel/ControlPanel';
 
 
 interface ITimeseriesData {
@@ -34,14 +38,17 @@ export interface IMainViewProps {
     visibleCompartments: ICompartmentView[],
     constants: AVConstants,
     settings: ISettingsResponse,
+    onUpdateCompartmentViews(compartments: ICompartmentView[]): void,
     onUpdateSelectedCompartments(added: string[], removed: string[]): void,
-    updateCompartments(compartments: ICompartmentView[]): void,
 }
 
 interface IMainViewState {
     aesthetics: IAesthetics[],
     colorBounds: number[],
     filterConditions: IFilterCondition[],
+    frameRate: number,
+    isPlaying: boolean,
+    loopAnimation: 'once' | 'repeat',
     opacityBounds: number[],
     radiusBounds: number[],
     rootNode: CompartmentNode,
@@ -50,10 +57,15 @@ interface IMainViewState {
     selectedRadius: string,
     selectedStat: string,
     subsetOnly: boolean,
+    timeMin: number,
+    timeMax: number,
+    timeStep: number,
+    timeVal: number,
 }
 
 export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     private apiClient: APIClient;
+    private pointVisibilities: Map<string, number[][]>;
     private statsData: Map<string, IUnitStatsData[]>;
     private timeseriesData: Map<string, ITimeseriesData[]>;
 
@@ -65,6 +77,9 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             aesthetics: [],
             colorBounds: [0, 255],
             filterConditions: [],
+            frameRate: 30,
+            isPlaying: false,
+            loopAnimation: 'once',
             opacityBounds: [0.01, 1],
             radiusBounds: [5, 500],
             rootNode: new CompartmentNode(rootNode, true),
@@ -73,11 +88,34 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             selectedRadius: 'nothing',
             selectedStat: 'nothing',
             subsetOnly: true,
+            timeMin: 0,
+            timeMax: 0,
+            timeStep: 0.01,
+            timeVal: 0,
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
+        this.pointVisibilities = new Map<string, number[][]>();
         this.statsData = new Map<string, IUnitStatsData[]>();
         this.timeseriesData = new Map<string, ITimeseriesData[]>();
+    }
+
+    private animate() {
+        if (this.state.isPlaying) {
+            const newVal = this.state.timeVal + this.state.timeStep > this.state.timeMax ?
+                            this.state.timeMin : this.state.timeVal + this.state.timeStep;
+            
+            let callback = () => {};
+            let newState = { timeVal: newVal };
+
+            if (newVal > this.state.timeMin || this.state.loopAnimation === 'repeat') {
+                callback = () => { setTimeout(this.animate.bind(this), 1000/this.state.frameRate); };
+            } else {
+                newState = _.extend(newState, { isPlaying: false });
+            }
+
+            this.setState(newState, callback);
+        }
     }
 
     private fetchAndUpdateTimeseries(value: string) {
@@ -131,22 +169,83 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         }
     }
 
-    private handleToggleSubsetOnly() {
-        const subsetOnly = !this.state.subsetOnly;
-        let rootNode;
-        if (subsetOnly) {
-            rootNode = new CompartmentNode(this.props.compartmentTree.getCompartmentSubsetTree(this.props.settings), true);
-        } else {
-            rootNode = new CompartmentNode(this.props.compartmentTree.getCompartmentNodeByName('root'), true);;
+    private getVisibilityByPenetrationId(penetrationId: string): number[] {
+        const penetrationIds = this.props.availablePenetrations.map((penetrationData) => penetrationData.penetrationId);
+        const penIdx = penetrationIds.indexOf(penetrationId);
+        let visibility: number[] = [];
+
+        if (!this.pointVisibilities.has(penetrationId) && penIdx > -1) {
+            visibility = new Array(this.props.availablePenetrations[penIdx].ids.length);
+            visibility.fill(1);
+        } else if (this.pointVisibilities.has(penetrationId)) {
+            const visibilityArr = this.pointVisibilities.get(penetrationId);
+            visibility = visibilityArr[visibilityArr.length - 1];
         }
 
-        this.setState({subsetOnly: subsetOnly, rootNode: rootNode});
+        return visibility;
+    }
+
+    private handleFrameRateUpdate(frameRate: number) {
+        this.setState({ frameRate: frameRate });
+    }
+
+    private handleLoopToggle() {
+        const newLoop = this.state.loopAnimation === 'once' ? 'repeat' : 'once';
+        this.setState({ loopAnimation: newLoop });
     }
 
     private handleNewFilterCondition(condition: IFilterCondition) {
         let conditions = this.state.filterConditions.slice();
-        conditions.push(condition); // TODO: concatenate in an intelligent way
-        this.setState({ filterConditions: [condition] }, () => {
+        conditions.push(condition);
+
+        this.props.availablePenetrations.forEach((penetrationData) => {
+            const penetrationId = penetrationData.penetrationId;
+
+            // collect stats data for points in this penetration
+            const penStatsData = new Map<string, IUnitStatsData>();
+            this.statsData.forEach((statValues, statName) => {
+                const idx = statValues.map(v => v.penetrationId).indexOf(penetrationId);
+                if (idx === -1) {
+                    return;
+                }
+
+                penStatsData.set(statName, statValues[idx]);
+            });
+
+            // filter points
+            let pointModels: PointModel[] = [];
+            for (let i = 0; i < penetrationData.ids.length; i++) {
+                const summary: IPointSummary = {
+                    compartment: penetrationData.compartments[i],
+                    coordinates: penetrationData.coordinates.slice(i*3, 3),
+                    id: penetrationData.ids[i],
+                    penetrationId: penetrationId,
+                };
+                let pointModel = new PointModel(summary);
+
+                penStatsData.forEach((statValues, statName) => {
+                    pointModel.setStat(statName, statValues.values[i]);
+                });
+                pointModels.push(pointModel);
+            }
+
+            // logical AND or OR on latest filter condition
+            const predicate = new Predicate(condition);
+            let pointMask = predicate.eval(pointModels);
+
+            let newVisibility = this.getVisibilityByPenetrationId(penetrationId).slice();
+            pointMask.forEach((p, i) => {
+                if (condition.booleanOp === 'OR' && p) {
+                    newVisibility[i] = 1;
+                } else if (condition.booleanOp === 'AND' && !p) {
+                    newVisibility[i] = 0;
+                }
+            });
+
+            this.pointVisibilities.get(penetrationId).push(newVisibility);
+        });
+
+        this.setState({ filterConditions: conditions }, () => {
             this.updateAesthetics();
         });
     }
@@ -177,6 +276,12 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         });
     }
 
+    private handlePlayToggle() {
+        this.setState({ isPlaying: !this.state.isPlaying }, () => {
+            this.animate()
+        });
+    }
+
     private handleRadiusSelectionChange(event: React.ChangeEvent<{
         name?: string;
         value: any;
@@ -201,6 +306,14 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
                 this.updateAesthetics();
             }
         });
+    }
+
+    private handleSliderChange(_event: any, timeVal: number) {
+        this.setState({ timeVal });
+    }
+
+    private handleStopClick() {
+        this.setState({ timeVal: this.state.timeMin, isPlaying: false });
     }
 
     private handleStatSelectionChange(event: React.ChangeEvent<{
@@ -237,6 +350,9 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     }
 
     private updateAesthetics() {
+        let timeMin = 0;
+        let timeMax = 0;
+
         let visiblePenetrations = this.props.availablePenetrations.map(
             value => value.penetrationId
         );
@@ -275,50 +391,26 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         const radiusData = this.state.selectedRadius === 'nothing' ? null : this.timeseriesData.get(this.state.selectedRadius);
 
         visiblePenetrations.forEach((penetrationId) => {
-            const penIdx = this.props.availablePenetrations.map(p => p.penetrationId).indexOf(penetrationId);
-            const penetrationData = this.props.availablePenetrations[penIdx];
-
             const penColor = colorData === null ? null : colorData.filter((data) => data.penetrationId === penetrationId)[0];
-            const penOpacity = opacityData === null ? null : opacityData.filter((data) => data.penetrationId === penetrationId)[0];
-            const penRadius = radiusData === null ? null : radiusData.filter((data) => data.penetrationId === penetrationId)[0];
-
-            // collection stats data for points in this penetration
-            const penStatsData = new Map<string, IUnitStatsData>();
-            this.statsData.forEach((statValues, statName) => {
-                const idx = statValues.map(v => v.penetrationId).indexOf(penetrationId);
-                if (idx === -1) {
-                    return;
-                }
-
-                penStatsData.set(statName, statValues[idx]);
-            });
-
-            // filter points
-            let pointModels: PointModel[] = [];
-            for (let i = 0; i < penetrationData.ids.length; i++) {
-                const summary: IPointSummary = {
-                    compartment: penetrationData.compartments[i],
-                    coordinates: penetrationData.coordinates.slice(i*3, 3),
-                    id: penetrationData.ids[i],
-                    penetrationId: penetrationId,
-                };
-                let pointModel = new PointModel(summary);
-
-                penStatsData.forEach((statValues, statName) => {
-                    pointModel.setStat(statName, statValues.values[i]);
-                });
-                pointModels.push(pointModel);
+            if (penColor !== null) {
+                const colorTimes = penColor.times;
+                timeMin = Math.min(timeMin, colorTimes[0]);
+                timeMax = Math.max(timeMax, colorTimes[colorTimes.length - 1]);
             }
 
-            let penVisibility = new Array(penetrationData.ids.length);
-            penVisibility.fill(true);
+            const penOpacity = opacityData === null ? null : opacityData.filter((data) => data.penetrationId === penetrationId)[0];
+            if (penOpacity !== null) {
+                const opacityTimes = penOpacity.times;
+                timeMin = Math.min(timeMin, opacityTimes[0]);
+                timeMax = Math.max(timeMax, opacityTimes[opacityTimes.length - 1]);
+            }
 
-            // logical AND on all filter conditions
-            this.state.filterConditions.forEach((condition) => {
-                const predicate = new Predicate(condition);
-                const satisfied = predicate.eval(pointModels);
-                penVisibility = penVisibility.map((p, i) => p && satisfied[i]);
-            });
+            const penRadius = radiusData === null ? null : radiusData.filter((data) => data.penetrationId === penetrationId)[0];
+            if (penRadius !== null) {
+                const radiusTimes = penRadius.times;
+                timeMin = Math.min(timeMin, radiusTimes[0]);
+                timeMax = Math.max(timeMax, radiusTimes[radiusTimes.length - 1]);
+            }
 
             const aesthetic: IAesthetics = {
                 penetrationId: penetrationId,
@@ -337,12 +429,33 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
                     times: penRadius.times,
                     values: this.transformValues(penRadius.values, this.state.radiusBounds)
                 },
-                visible: penVisibility
+                visible: this.getVisibilityByPenetrationId(penetrationId),
             };
             aesthetics.push(aesthetic);
         });
 
-        this.setState({ aesthetics });
+        let timeVal = this.state.timeVal;
+        if (timeMin !== this.state.timeMin || timeMax !== this.state.timeMax || timeVal < timeMin || timeVal > timeMax) {
+            timeVal = timeMin;
+        }
+        this.setState({ aesthetics, timeMax, timeMin, timeVal });
+    }
+
+    public componentDidUpdate(prevProps: Readonly<IMainViewProps>) {
+        if (!_.isEqual(prevProps.availablePenetrations, this.props.availablePenetrations)) {
+            // set all points to visible by default
+            this.pointVisibilities = new Map<string, number[][]>();
+            this.props.availablePenetrations.forEach((penetrationData) => {
+                const penetrationId = penetrationData.penetrationId;
+                const nPoints = penetrationData.ids.length;
+                const visible = new Array<number>(nPoints);
+                visible.fill(1);
+
+                this.pointVisibilities.set(penetrationId, [visible]);
+            });
+
+            this.setState({ filterConditions: [] }, () => this.updateAesthetics());
+        }
     }
 
     public render() {
@@ -351,40 +464,78 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             availablePenetrations: this.props.availablePenetrations,
             constants: this.props.constants,
             compartmentTree: this.props.compartmentTree,
+            frameRate: this.state.frameRate,
+            isPlaying: this.state.isPlaying,
+            loopAnimation: this.state.loopAnimation,
             settings: this.props.settings,
+            timeMin: this.state.timeMin,
+            timeMax: this.state.timeMax,
+            timeStep: this.state.timeStep,
+            timeVal: this.state.timeVal,
             visibleCompartments: this.props.visibleCompartments,
-            updateCompartments: this.props.updateCompartments,
+            onUpdateCompartmentViews: this.props.onUpdateCompartmentViews,
         };
 
-        const controlPanelProps: IControlPanelProps = {
-            availablePenetrations: this.props.availablePenetrations,
-            constants: this.props.constants,
+        const timeseriesControlsProps: ITimeseriesControlsProps = {
             opacityBounds: this.state.opacityBounds,
             radiusBounds: this.state.radiusBounds,
             selectedOpacity: this.state.selectedOpacity,
             selectedRadius: this.state.selectedRadius,
+            timeseries: _.uniq(
+                _.flatten(this.props.availablePenetrations.map(
+                    pen => pen.timeseries
+                )).sort(), true
+            ),
+            onOpacitySelectionChange: this.handleOpacitySelectionChange.bind(this),
+            onOpacitySliderChange: this.handleOpacitySliderChange.bind(this),
+            onRadiusSelectionChange: this.handleRadiusSelectionChange.bind(this),
+            onRadiusSliderChange: this.handleRadiusSliderChange.bind(this),
+        };
+
+        const playerSliderProps: IPlayerSliderProps = {
+            frameRate: this.state.frameRate,
+            isPlaying: this.state.isPlaying,
+            loopAnimation: this.state.loopAnimation,
+            timeMax: this.state.timeMax,
+            timeMin: this.state.timeMin,
+            timeStep: this.state.timeStep,
+            timeVal: this.state.timeVal,
+            onFrameRateUpdate: this.handleFrameRateUpdate.bind(this),
+            onLoopToggle: this.handleLoopToggle.bind(this),
+            onPlayToggle: this.handlePlayToggle.bind(this),
+            onSliderChange: this.handleSliderChange.bind(this),
+            onStopClick: this.handleStopClick.bind(this),
+        }
+
+        const filterControlProps: IFilterControlsProps = {
+            availablePenetrations: this.props.availablePenetrations,
+            constants: this.props.constants,
+            filterConditions: this.state.filterConditions,
             selectedStat: this.state.selectedStat,
             statsData: this.state.selectedStat !== 'nothing' ?
                 _.union(
                     ...(this.statsData.get(this.state.selectedStat).map(entry => entry.values))
                 ) : [],
             onNewFilterCondition: this.handleNewFilterCondition.bind(this),
-            onOpacitySelectionChange: this.handleOpacitySelectionChange.bind(this),
-            onOpacitySliderChange: this.handleOpacitySliderChange.bind(this),
-            onRadiusSelectionChange: this.handleRadiusSelectionChange.bind(this),
-            onRadiusSliderChange: this.handleRadiusSliderChange.bind(this),
             onStatSelectionChange: this.handleStatSelectionChange.bind(this),
         }
 
-        const style = {width: "100%", height: "100%"};
+        const style = { padding: 20 };
         return (
             <div style={style}>
-                <Grid container spacing={3}>
-                    <Grid item xs={7}>
+                <Grid container
+                      spacing={2}>
+                    <Grid item xs={5}>
                         <Viewer3D {...viewer3DProps} />
                     </Grid>
+                    <Grid item xs={7}>
+                        <FilterControls {...filterControlProps} />
+                    </Grid>
                     <Grid item xs={5}>
-                        <ControlPanel {...controlPanelProps} />
+                        <PlayerSlider {...playerSliderProps} />
+                    </Grid>
+                    <Grid item xs={7}>
+                        <TimeseriesControls {...timeseriesControlsProps}/>
                     </Grid>
                 </Grid>
             </div>

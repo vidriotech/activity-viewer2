@@ -4,6 +4,7 @@ import { PointModel } from './pointModel';
 
 
 export interface IFilterCondition {
+    booleanOp: 'AND' | 'OR',
     key: string,
     valType: 'stat' | 'property',
     equals: string,

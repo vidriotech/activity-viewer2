@@ -1,12 +1,10 @@
 import React from 'react';
 import * as _ from 'underscore';
 
-import Container from '@material-ui/core/Container';
 import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import Paper from '@material-ui/core/Paper';
 import Select from '@material-ui/core/Select';
 
 import { IPenetrationData } from '../../models/apiModels';
@@ -16,16 +14,17 @@ import { AVConstants } from '../../constants';
 import { IFilterCondition } from '../../models/filter';
 
 
-export interface IStatsControlsProps {
+export interface IFilterControlsProps {
     availablePenetrations: IPenetrationData[],
     constants: AVConstants,
-    data: number[],
+    statsData: number[],
+    filterConditions: IFilterCondition[],
     selectedStat: string,
     onNewFilterCondition(condition: IFilterCondition): void,
-    onSelectionChange(event: any): void,
+    onStatSelectionChange(event: any): void,
 }
 
-export function StatsControls(props: IStatsControlsProps) {
+export function FilterControls(props: IFilterControlsProps) {
     const availableStats = _.union(...props.availablePenetrations.map(pen => pen.unitStats));
     const menuItems = _.union(
         [<MenuItem key='nothing' value='nothing'>No selection</MenuItem>],
@@ -39,7 +38,7 @@ export function StatsControls(props: IStatsControlsProps) {
 
     const histogramProps: IStatsHistogramProps = {
         constants: props.constants,
-        data: props.data,
+        data: props.statsData,
         height: 300,
         statName: props.selectedStat,
         width: 400,
@@ -49,18 +48,18 @@ export function StatsControls(props: IStatsControlsProps) {
     return (
         <Grid container
               direction='column'
-              spacing={3}>
+              spacing={1}>
             <Grid item xs>
                 <FormControl>
                     <InputLabel id={`stats-mapper-label`}>
-                        Unit statistic
+                        Statistic
                     </InputLabel>
                     <Select
                         labelId={`stats-mapper-select-label`}
                         id={`stats-mapper-select`}
                         defaultValue='nothing'
                         value={props.selectedStat}
-                        onChange={props.onSelectionChange}>
+                        onChange={props.onStatSelectionChange}>
                         {menuItems}
                     </Select>
                 </FormControl>

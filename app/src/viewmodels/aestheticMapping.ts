@@ -9,5 +9,5 @@ export interface IAesthetics {
     color: IAestheticMapping,
     opacity: IAestheticMapping,
     radius: IAestheticMapping,
-    visible: boolean[],
+    visible: number[],
 }

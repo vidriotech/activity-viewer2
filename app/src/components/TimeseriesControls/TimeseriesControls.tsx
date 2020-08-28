@@ -2,6 +2,7 @@ import React from 'react';
 
 import Grid from '@material-ui/core/Grid';
 
+import { ColorMapper } from './ColorMapper';
 import { ScalarMapper, IScalarMapperProps } from './ScalarMapper';
 
 export interface ITimeseriesControlsProps {
@@ -43,16 +44,16 @@ export function TimeseriesControls(props: ITimeseriesControlsProps) {
 
     return (
         <Grid container
-                item
-                xs
-                direction='column'
-                justify='flex-start'
-                spacing={3}>
+              direction='column'
+              spacing={0} >
             <Grid item xs>
                 <ScalarMapper {...radiusMapperProps} />
             </Grid>
             <Grid item xs>
                 <ScalarMapper {...opacityMapperProps} />
+            </Grid>
+            <Grid item xs>
+                <ColorMapper />
             </Grid>
         </Grid>);
 }

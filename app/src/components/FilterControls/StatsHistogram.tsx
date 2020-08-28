@@ -177,6 +177,7 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
         const min = this.state.logScale ? Math.pow(10, this.state.histBounds[0]) : this.state.histBounds[0];
         const max = this.state.logScale ? Math.pow(10, this.state.histBounds[1]) : this.state.histBounds[1];
         let condition: IFilterCondition = {
+            booleanOp: 'AND',
             key: this.props.statName,
             valType: 'stat',
             greaterThan: min,
@@ -212,15 +213,15 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
 
         return <Container id='stats-histogram-container'>
             <Grid container
-                  direction='column'
-                  spacing={3}>
-                <Grid item xs={10}>
+                //   direction='column'
+                  spacing={1}>
+                <Grid item xs={12}>
                     <svg className='container'
                          id={this.histId}
                          width={this.props.width}
                          height={this.props.height} />
                 </Grid>
-                <Grid container item xs={10} spacing={3}>
+                {/* <Grid container item xs={2}> */}
                     <Grid item xs={2}>
                         <Typography>
                             {disabled ? '' : toStr(this.state.histBounds[0])}
@@ -252,7 +253,7 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
                             disabled={disabled}
                         />
                     </Grid>
-                </Grid>
+                {/* </Grid> */}
             </Grid>
         </Container>
     }

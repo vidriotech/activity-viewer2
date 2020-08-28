@@ -5,11 +5,9 @@ import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
-import Paper from '@material-ui/core/Paper';
 import Select from '@material-ui/core/Select';
 import Slider from '@material-ui/core/Slider';
 import Typography from '@material-ui/core/Typography';
-import { Container } from '@material-ui/core';
 
 
 export interface IScalarMapperProps {
@@ -49,11 +47,8 @@ export function ScalarMapper(props: IScalarMapperProps) {
 
     return (
         <Grid container
-              item
-              xs
-              component={Paper}
-              spacing={3}>
-            <Grid item xs>
+              spacing={0}>
+            <Grid item xs={3}>
                 <FormControl>
                     <InputLabel id={`aesthetic-mapper-${props.mapperLabel}-label`}>
                         {props.mapperLabel}
@@ -69,20 +64,20 @@ export function ScalarMapper(props: IScalarMapperProps) {
                 </FormControl>
             </Grid>
             <Grid item
-                  xs>
-                    <Typography variant='caption'
-                                display='block'
-                                gutterBottom>
-                        Transformation range
-                    </Typography>
-                    <Slider min={props.sliderMin}
-                            max={props.sliderMax}
-                            step={props.sliderStep}
-                            marks={sliderMarks}
-                            value={props.sliderVal}
-                            onChange={(evt, newData) => props.onSliderChange(evt, newData as number[], false)}
-                            onChangeCommitted={(evt, newData) => props.onSliderChange(evt, newData as number[], true)}
-                            disabled={props.selectedTimeseries === 'nothing'} />
+                  xs={9} >
+                <Typography variant='caption'
+                            display='block'
+                            gutterBottom>
+                    Transformation range
+                </Typography>
+                <Slider min={props.sliderMin}
+                        max={props.sliderMax}
+                        step={props.sliderStep}
+                        marks={sliderMarks}
+                        value={props.sliderVal}
+                        onChange={(evt, newData) => props.onSliderChange(evt, newData as number[], false)}
+                        onChangeCommitted={(evt, newData) => props.onSliderChange(evt, newData as number[], true)}
+                        disabled={props.selectedTimeseries === 'nothing'} />
             </Grid>
         </Grid>
     );
