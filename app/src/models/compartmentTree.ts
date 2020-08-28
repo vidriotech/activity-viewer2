@@ -74,7 +74,6 @@ export class CompartmentTree {
     }
 
     public getCompartmentSubsetTree(settings: ISettingsResponse): ICompartmentNode {
-        // rootNode.children = [];
         /* Brute force approach:
         Note depths of all compartments in subset.
         Sort by depth, ascending.

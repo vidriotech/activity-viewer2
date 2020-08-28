@@ -12,8 +12,8 @@ import { PointModel, IPointSummary } from '../models/pointModel';
 import { IAesthetics } from '../viewmodels/aestheticMapping';
 import { ICompartmentView } from '../viewmodels/compartmentViewModel';
 
-import { CompartmentNode } from './Viewer3D/CompartmentNode';
-import { Viewer3D, IViewer3DProps } from './Viewer3D/Viewer3D';
+import { CompartmentNode } from './ControlPanel/CompartmentNode';
+import { Viewer3D, IViewer3DProps } from './Viewers/Viewer3D';
 import { ControlPanel, IControlPanelProps } from './ControlPanel/ControlPanel';
 
 

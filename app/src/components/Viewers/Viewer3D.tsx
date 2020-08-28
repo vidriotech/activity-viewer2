@@ -15,7 +15,6 @@ import { IAesthetics } from '../../viewmodels/aestheticMapping';
 import { ICompartmentView } from '../../viewmodels/compartmentViewModel';
 import { PenetrationViewModel } from '../../viewmodels/penetrationViewModel';
 
-import { CompartmentListContainer, ICompartmentListContainerProps } from './CompartmentListContainer';
 import { PlayerSlider, IPlayerSliderProps } from '../PlayerSlider';
 
 
@@ -253,14 +252,6 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     }
 
     public render() {
-        // const compartmentListContainerProps: ICompartmentListContainerProps = {
-        //     compartmentTree: this.props.compartmentTree,
-        //     rootNode: this.state.rootNode,
-        //     visibleCompartments: this.props.visibleCompartments,
-        //     onToggleSubsetOnly: this.handleToggleSubsetOnly.bind(this),
-        //     onUpdateSelectedCompartments: this.props.onUpdateSelectedCompartments,
-        // };
-        
         const playerSliderProps: IPlayerSliderProps = {
             frameRate: this.state.frameRate,
             isPlaying: this.state.isPlaying,
