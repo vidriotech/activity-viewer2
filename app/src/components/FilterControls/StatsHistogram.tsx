@@ -5,7 +5,6 @@ import * as d3 from 'd3';
 import Container from '@material-ui/core/Container';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
-import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
 import InputLabel from '@material-ui/core/InputLabel';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -15,6 +14,7 @@ import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 
 import { AVConstants } from '../../constants';
+
 import { IPenetrationData } from '../../models/apiModels';
 import { IFilterCondition } from '../../models/filter';
 
@@ -97,11 +97,18 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
     }
 
     private handleLogScaleToggle() {
-        this.setState({ logScale: !this.state.logScale }, () => {
-            this.setState({ histBounds: this.computeDomain() }, () => {
-                this.updateStatFilter();
-            })
-        });
+        const logScale = !this.state.logScale;
+
+        let histBounds = this.state.histBounds;
+        if (logScale && _.some(histBounds, (x) => x < 0)) {
+            histBounds = this.computeDomain();
+        } else if (logScale) {
+            histBounds = histBounds.map((x) => Math.log10(x)) as [number, number];
+        } else {
+            histBounds = histBounds.map((x) => Math.pow(10, x)) as [number, number];
+        }
+
+        this.setState({ logScale, histBounds });
     }
 
     private renderHistogram() {

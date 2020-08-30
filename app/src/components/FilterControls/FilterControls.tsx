@@ -54,9 +54,6 @@ export function FilterControls(props: IFilterControlsProps) {
         <Grid container
               spacing={1}>
             <Grid item xs>
-                <FilterPredicateList filterConditions={props.filterConditions} />
-            </Grid>
-            <Grid item xs>
                 <CompartmentList {...compartmentListProps} />
             </Grid>
             <Grid item xs>
