@@ -1,68 +1,63 @@
 import React from 'react';
 import * as _ from 'underscore';
 
-import FormControl from '@material-ui/core/FormControl';
 import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-
-import { IPenetrationData } from '../../models/apiModels';
-import { StatsHistogram, IStatsHistogramProps } from './StatsHistogram';
 
 import { AVConstants } from '../../constants';
+
+import { IPenetrationData, ISettingsResponse } from '../../models/apiModels';
 import { IFilterCondition } from '../../models/filter';
+
+import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
+
+import { CompartmentList, ICompartmentListProps } from './CompartmentList';
+import { FilterPredicateList } from './FilterPredicateList';
+import { StatsHistogram, IStatsHistogramProps } from './StatsHistogram';
 
 
 export interface IFilterControlsProps {
     availablePenetrations: IPenetrationData[],
+    compartmentSubsetOnly: boolean,
+    compartmentViewTree: ICompartmentNodeView,
     constants: AVConstants,
     statsData: number[],
     filterConditions: IFilterCondition[],
     selectedStat: string,
+    settings: ISettingsResponse,
     onNewFilterCondition(condition: IFilterCondition): void,
     onStatSelectionChange(event: any): void,
+    onToggleCompartmentVisible(rootNode: ICompartmentNodeView): void,
 }
 
 export function FilterControls(props: IFilterControlsProps) {
-    const availableStats = _.union(...props.availablePenetrations.map(pen => pen.unitStats));
-    const menuItems = _.union(
-        [<MenuItem key='nothing' value='nothing'>No selection</MenuItem>],
-        availableStats.map(stat => {
-            return <MenuItem value={stat}
-                             key={stat}>
-                {stat}
-            </MenuItem>
-        })
-    );
+    const compartmentListProps: ICompartmentListProps = {
+        compartmentSubsetOnly: props.compartmentSubsetOnly,
+        compartmentViewTree: props.compartmentViewTree,
+        constants: props.constants,
+        settings: props.settings,
+        onToggleCompartmentVisible: props.onToggleCompartmentVisible,
+    }
 
     const histogramProps: IStatsHistogramProps = {
+        availablePenetrations: props.availablePenetrations,
         constants: props.constants,
         data: props.statsData,
         height: 300,
+        selectedStat: props.selectedStat,
         statName: props.selectedStat,
         width: 400,
         onNewFilterCondition: props.onNewFilterCondition,
+        onStatSelectionChange: props.onStatSelectionChange,
     }
 
     return (
         <Grid container
-              direction='column'
               spacing={1}>
             <Grid item xs>
-                <FormControl>
-                    <InputLabel id={`stats-mapper-label`}>
-                        Statistic
-                    </InputLabel>
-                    <Select
-                        labelId={`stats-mapper-select-label`}
-                        id={`stats-mapper-select`}
-                        defaultValue='nothing'
-                        value={props.selectedStat}
-                        onChange={props.onStatSelectionChange}>
-                        {menuItems}
-                    </Select>
-                </FormControl>
+                <FilterPredicateList filterConditions={props.filterConditions} />
+            </Grid>
+            <Grid item xs>
+                <CompartmentList {...compartmentListProps} />
             </Grid>
             <Grid item xs>
                 <StatsHistogram {...histogramProps} />

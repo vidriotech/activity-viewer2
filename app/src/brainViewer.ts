@@ -8,14 +8,14 @@ const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 import * as _ from 'underscore';
 
 import { AVConstants } from './constants';
-import { CompartmentTree } from './models/compartmentTree';
+
 import { IPenetrationData } from './models/apiModels';
+
 import { IAesthetics } from './viewmodels/aestheticMapping';
+import { ICompartmentNodeView } from './viewmodels/compartmentViewModel';
 import { PenetrationViewModel } from './viewmodels/penetrationViewModel';
-import { isNaN, times } from 'underscore';
 
 export class BrainViewer {
-    private compartmentTree: CompartmentTree;
     private constants: AVConstants;
 
     private loadedCompartments: string[] = [];
@@ -43,9 +43,8 @@ export class BrainViewer {
     //animation
     private _timeVal: number = 0;
 
-    constructor(constants: AVConstants, compartmentTree: CompartmentTree) {
+    constructor(constants: AVConstants) {
         this.constants = constants;
-        this.compartmentTree = compartmentTree;
 
         this.pointsMaterial = new THREE.ShaderMaterial({
             uniforms: {
@@ -62,18 +61,15 @@ export class BrainViewer {
         this.penetrationViewModelsMap = new Map<string, PenetrationViewModel>();
     }
 
-    private loadCompartment(name: string) {
+    private loadCompartment(compartmentNodeView: ICompartmentNodeView) {
+        const name = compartmentNodeView.name;
+
         if (this.loadedCompartments.includes(name)) {
             return;
         }
 
-        let compartmentNode = this.compartmentTree.getCompartmentByName(name);
-        if (compartmentNode === null) {
-            return;
-        }
-
-        let compartmentId = compartmentNode.id;
-        let compartmentColor = '#' + this.rgb2Hex(compartmentNode.rgb_triplet);
+        let compartmentId = compartmentNodeView.id;
+        let compartmentColor = '#' + this.rgb2Hex(compartmentNodeView.rgbTriplet);
 
         const loader = new THREE.OBJLoader();    
         const path = `${this.constants.apiEndpoint}/mesh/${compartmentId}`;
@@ -235,23 +231,24 @@ export class BrainViewer {
         this.render();
     }
 
-    public setCompartmentVisible(name: string, visible: boolean) {
+    public setCompartmentVisible(compartmentNodeView: ICompartmentNodeView) {
         // loading sets visible as a side effect
+        const name = compartmentNodeView.name;
+        const visible = compartmentNodeView.isVisible;
+
         if (visible && !this.loadedCompartments.includes(name)) {
-            this.loadCompartment(name);
+            this.loadCompartment(compartmentNodeView);
         } else { // if not visible, don't bother loading, otherwise update an already-loaded compartment
             const compartmentObj = this.scene.getObjectByName(name);
 
             if (compartmentObj) {
-                compartmentObj.visible = visible;
+                console.log(compartmentNodeView);
+                compartmentObj.visible = compartmentNodeView.isVisible;
 
-                if (visible) {
+                if (compartmentNodeView.isVisible) {
                     this._visibleCompartments.push(name);
                 } else {
-                    const idx = this._visibleCompartments.indexOf(name);
-                    if (idx !== -1) {
-                        this._visibleCompartments.splice(idx, 1);
-                    }
+                    this._visibleCompartments = _.without(this._visibleCompartments, name);
                 }
             }
         }

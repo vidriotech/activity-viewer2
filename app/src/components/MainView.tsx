@@ -7,18 +7,16 @@ import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
 
 import { ISettingsResponse, IPenetrationData, ITimeseriesListResponse, IUnitStatsListResponse } from '../models/apiModels';
-import { CompartmentTree } from '../models/compartmentTree';
+import { CompartmentTree } from '../compartmentTree';
 import { Predicate, IFilterCondition } from '../models/filter';
 import { PointModel, IPointSummary } from '../models/pointModel';
 
 import { IAesthetics } from '../viewmodels/aestheticMapping';
-import { ICompartmentView } from '../viewmodels/compartmentViewModel';
+import { ICompartmentNodeView } from '../viewmodels/compartmentViewModel';
 
-import { PlayerSlider, IPlayerSliderProps } from './AnimationControls/PlayerSlider';
-import { CompartmentNode } from './FilterControls/CompartmentNode';
 import { FilterControls, IFilterControlsProps } from './FilterControls/FilterControls';
 import { TimeseriesControls, ITimeseriesControlsProps } from './TimeseriesControls/TimeseriesControls';
-import { Viewer3D, IViewer3DProps } from './Viewers/Viewer3D';
+import { ViewerContainer, IViewerContainerProps } from './Viewers/ViewerContainer';
 
 
 interface ITimeseriesData {
@@ -35,32 +33,28 @@ interface IUnitStatsData {
 export interface IMainViewProps {
     availablePenetrations: IPenetrationData[],
     compartmentTree: CompartmentTree,
-    visibleCompartments: ICompartmentView[],
     constants: AVConstants,
     settings: ISettingsResponse,
-    onUpdateCompartmentViews(compartments: ICompartmentView[]): void,
-    onUpdateSelectedCompartments(added: string[], removed: string[]): void,
 }
 
 interface IMainViewState {
     aesthetics: IAesthetics[],
     colorBounds: number[],
+    compartmentSubsetOnly: boolean,
+    compartmentViewTree: ICompartmentNodeView,
     filterConditions: IFilterCondition[],
     frameRate: number,
     isPlaying: boolean,
     loopAnimation: 'once' | 'repeat',
     opacityBounds: number[],
     radiusBounds: number[],
-    rootNode: CompartmentNode,
     selectedColor: string,
     selectedOpacity: string,
     selectedRadius: string,
     selectedStat: string,
-    subsetOnly: boolean,
     timeMin: number,
     timeMax: number,
     timeStep: number,
-    timeVal: number,
 }
 
 export class MainView extends React.Component<IMainViewProps, IMainViewState> {
@@ -72,50 +66,33 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     constructor(props: IMainViewProps) {
         super(props);
 
-        const rootNode = this.props.compartmentTree.getCompartmentSubsetTree(this.props.settings);
+        let compartmentViewTree = this.props.compartmentTree.getCompartmentNodeViewTree(true);
+        compartmentViewTree.isVisible = true;
+ 
         this.state = {
             aesthetics: [],
             colorBounds: [0, 255],
+            compartmentViewTree: compartmentViewTree,
             filterConditions: [],
             frameRate: 30,
             isPlaying: false,
             loopAnimation: 'once',
             opacityBounds: [0.01, 1],
             radiusBounds: [5, 500],
-            rootNode: new CompartmentNode(rootNode, true),
             selectedColor: 'nothing',
             selectedOpacity: 'nothing',
             selectedRadius: 'nothing',
             selectedStat: 'nothing',
-            subsetOnly: true,
+            compartmentSubsetOnly: true,
             timeMin: 0,
             timeMax: 0,
             timeStep: 0.01,
-            timeVal: 0,
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
         this.pointVisibilities = new Map<string, number[][]>();
         this.statsData = new Map<string, IUnitStatsData[]>();
         this.timeseriesData = new Map<string, ITimeseriesData[]>();
-    }
-
-    private animate() {
-        if (this.state.isPlaying) {
-            const newVal = this.state.timeVal + this.state.timeStep > this.state.timeMax ?
-                            this.state.timeMin : this.state.timeVal + this.state.timeStep;
-            
-            let callback = () => {};
-            let newState = { timeVal: newVal };
-
-            if (newVal > this.state.timeMin || this.state.loopAnimation === 'repeat') {
-                callback = () => { setTimeout(this.animate.bind(this), 1000/this.state.frameRate); };
-            } else {
-                newState = _.extend(newState, { isPlaying: false });
-            }
-
-            this.setState(newState, callback);
-        }
     }
 
     private fetchAndUpdateTimeseries(value: string) {
@@ -183,15 +160,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         }
 
         return visibility;
-    }
-
-    private handleFrameRateUpdate(frameRate: number) {
-        this.setState({ frameRate: frameRate });
-    }
-
-    private handleLoopToggle() {
-        const newLoop = this.state.loopAnimation === 'once' ? 'repeat' : 'once';
-        this.setState({ loopAnimation: newLoop });
     }
 
     private handleNewFilterCondition(condition: IFilterCondition) {
@@ -276,12 +244,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         });
     }
 
-    private handlePlayToggle() {
-        this.setState({ isPlaying: !this.state.isPlaying }, () => {
-            this.animate()
-        });
-    }
-
     private handleRadiusSelectionChange(event: React.ChangeEvent<{
         name?: string;
         value: any;
@@ -308,20 +270,28 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         });
     }
 
-    private handleSliderChange(_event: any, timeVal: number) {
-        this.setState({ timeVal });
-    }
-
-    private handleStopClick() {
-        this.setState({ timeVal: this.state.timeMin, isPlaying: false });
-    }
-
     private handleStatSelectionChange(event: React.ChangeEvent<{
         name?: string;
         value: string;
     }>) {
         const value = event.target.value;
         this.fetchAndUpdateUnitStats(value);
+    }
+
+    private handleSubsetOnlyToggle() {
+        const compartmentSubsetOnly = !this.state.compartmentSubsetOnly;
+        let compartmentViewTree = this.props.compartmentTree.getCompartmentNodeViewTree(compartmentSubsetOnly);
+        compartmentViewTree.isVisible = true;
+
+        this.setState({ compartmentSubsetOnly, compartmentViewTree });
+    }
+
+    private handleToggleCompartmentVisible(rootNode: ICompartmentNodeView) {
+        this.setState({ compartmentViewTree: rootNode });
+    }
+
+    public handleUpdateCompartmentViews(compartmentViewTree: ICompartmentNodeView) {
+        this.setState({ compartmentViewTree });
     }
 
     private transformValues(data: number[], transformBounds: number[]): number[] {
@@ -434,11 +404,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             aesthetics.push(aesthetic);
         });
 
-        let timeVal = this.state.timeVal;
-        if (timeMin !== this.state.timeMin || timeMax !== this.state.timeMax || timeVal < timeMin || timeVal > timeMax) {
-            timeVal = timeMin;
-        }
-        this.setState({ aesthetics, timeMax, timeMin, timeVal });
+        this.setState({ aesthetics, timeMax, timeMin });
     }
 
     public componentDidUpdate(prevProps: Readonly<IMainViewProps>) {
@@ -459,22 +425,17 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     }
 
     public render() {
-        const viewer3DProps: IViewer3DProps = {
-            aestheticMappings: this.state.aesthetics,
+        const viewerContainerProps: IViewerContainerProps = {
+            aesthetics: this.state.aesthetics,
             availablePenetrations: this.props.availablePenetrations,
             constants: this.props.constants,
-            compartmentTree: this.props.compartmentTree,
-            frameRate: this.state.frameRate,
-            isPlaying: this.state.isPlaying,
-            loopAnimation: this.state.loopAnimation,
             settings: this.props.settings,
-            timeMin: this.state.timeMin,
             timeMax: this.state.timeMax,
+            timeMin: this.state.timeMin,
             timeStep: this.state.timeStep,
-            timeVal: this.state.timeVal,
-            visibleCompartments: this.props.visibleCompartments,
-            onUpdateCompartmentViews: this.props.onUpdateCompartmentViews,
-        };
+            viewerType: '3D',
+            compartmentViewTree: this.state.compartmentViewTree,
+        }
 
         const timeseriesControlsProps: ITimeseriesControlsProps = {
             opacityBounds: this.state.opacityBounds,
@@ -492,47 +453,33 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             onRadiusSliderChange: this.handleRadiusSliderChange.bind(this),
         };
 
-        const playerSliderProps: IPlayerSliderProps = {
-            frameRate: this.state.frameRate,
-            isPlaying: this.state.isPlaying,
-            loopAnimation: this.state.loopAnimation,
-            timeMax: this.state.timeMax,
-            timeMin: this.state.timeMin,
-            timeStep: this.state.timeStep,
-            timeVal: this.state.timeVal,
-            onFrameRateUpdate: this.handleFrameRateUpdate.bind(this),
-            onLoopToggle: this.handleLoopToggle.bind(this),
-            onPlayToggle: this.handlePlayToggle.bind(this),
-            onSliderChange: this.handleSliderChange.bind(this),
-            onStopClick: this.handleStopClick.bind(this),
-        }
-
         const filterControlProps: IFilterControlsProps = {
             availablePenetrations: this.props.availablePenetrations,
+            compartmentSubsetOnly: this.state.compartmentSubsetOnly,
+            compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
             filterConditions: this.state.filterConditions,
             selectedStat: this.state.selectedStat,
-            statsData: this.state.selectedStat !== 'nothing' ?
-                _.union(
+            settings: this.props.settings,
+            statsData: this.state.selectedStat === 'nothing' ?
+                [] : _.union(
                     ...(this.statsData.get(this.state.selectedStat).map(entry => entry.values))
-                ) : [],
+                ),
             onNewFilterCondition: this.handleNewFilterCondition.bind(this),
             onStatSelectionChange: this.handleStatSelectionChange.bind(this),
+            onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
         }
 
-        const style = { padding: 20 };
+        const style = { padding: 30 };
         return (
             <div style={style}>
                 <Grid container
                       spacing={2}>
                     <Grid item xs={5}>
-                        <Viewer3D {...viewer3DProps} />
+                        <ViewerContainer {...viewerContainerProps} />
                     </Grid>
                     <Grid item xs={7}>
                         <FilterControls {...filterControlProps} />
-                    </Grid>
-                    <Grid item xs={5}>
-                        <PlayerSlider {...playerSliderProps} />
                     </Grid>
                     <Grid item xs={7}>
                         <TimeseriesControls {...timeseriesControlsProps}/>

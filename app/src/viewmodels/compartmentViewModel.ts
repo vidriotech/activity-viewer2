@@ -1,5 +1,8 @@
-import { ICompartment } from '../models/apiModels';
-
-export interface ICompartmentView extends ICompartment {
-    isVisible: boolean;
+export interface ICompartmentNodeView {
+    acronym: string
+    id: number,
+    name: string,
+    children: ICompartmentNodeView[],
+    isVisible: boolean,
+    rgbTriplet: number[],
 }

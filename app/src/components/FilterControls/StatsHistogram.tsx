@@ -3,23 +3,31 @@ import * as _ from 'underscore';
 import * as d3 from 'd3';
 
 import Container from '@material-ui/core/Container';
-import FormGroup from '@material-ui/core/FormGroup';
+import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
+import FormGroup from '@material-ui/core/FormGroup';
 import Grid from '@material-ui/core/Grid';
+import InputLabel from '@material-ui/core/InputLabel';
+import MenuItem from '@material-ui/core/MenuItem';
+import Select from '@material-ui/core/Select';
 import Slider from '@material-ui/core/Slider';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 
 import { AVConstants } from '../../constants';
+import { IPenetrationData } from '../../models/apiModels';
 import { IFilterCondition } from '../../models/filter';
 
 export interface IStatsHistogramProps {
+    availablePenetrations: IPenetrationData[],
     constants: AVConstants
     data: number[],
     height: number,
+    selectedStat: string,
     statName: string,
     width: number,
     onNewFilterCondition(condition: IFilterCondition): void,
+    onStatSelectionChange(event: any): void,
 }
 
 interface IStatsHistogramState {
@@ -211,23 +219,52 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
                 x.toFixed(2)
         )
 
-        return <Container id='stats-histogram-container'>
-            <Grid container
-                //   direction='column'
-                  spacing={1}>
-                <Grid item xs={12}>
-                    <svg className='container'
-                         id={this.histId}
-                         width={this.props.width}
-                         height={this.props.height} />
-                </Grid>
-                {/* <Grid container item xs={2}> */}
-                    <Grid item xs={2}>
-                        <Typography>
+        const availableStats = _.union(...this.props.availablePenetrations.map(pen => pen.unitStats));
+        const menuItems = _.union(
+            [<MenuItem key='nothing' value='nothing'>No selection</MenuItem>],
+            availableStats.map(stat => {
+                return <MenuItem value={stat}
+                                 key={stat}>
+                    {stat}
+                </MenuItem>
+            })
+        );
+
+        return (
+            <Container id='stats-histogram-container'>
+                <Typography variant='h5' gutterBottom>
+                    Filter by statistic
+                </Typography>
+                <Grid container
+                    //   direction='column'
+                    spacing={2}>
+                    <Grid item xs={12}>
+                        <svg className='container'
+                            id={this.histId}
+                            width={this.props.width}
+                            height={this.props.height} />
+                    </Grid>
+                    <Grid item xs={3}>
+                        <FormControl>
+                            <InputLabel id={`stats-mapper-label`}>
+                                Statistic
+                            </InputLabel>
+                            <Select
+                                labelId={`stats-mapper-select-label`}
+                                id={`stats-mapper-select`}
+                                defaultValue='nothing'
+                                value={this.props.selectedStat}
+                                onChange={this.props.onStatSelectionChange}>
+                                {menuItems}
+                            </Select>
+                        </FormControl>
+                    </Grid>
+                    <Grid item xs={1}>
+                        <Typography variant='caption'>
                             {disabled ? '' : toStr(this.state.histBounds[0])}
                         </Typography>
                     </Grid>
-                    <Grid item xs={5}>
+                    <Grid item xs={7}>
                         <Slider min={min}
                                 max={max}
                                 scale={this.state.logScale ? (x) => 10**x : (x) => x}
@@ -237,12 +274,12 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
                                 onChangeCommitted={(evt, newData) => this.handleBoundsChange(evt, newData as [number, number], true)}
                                 disabled={disabled} />
                     </Grid>
-                    <Grid item xs={2}>
-                        <Typography>
+                    <Grid item xs={1}>
+                        <Typography variant='caption'>
                             {disabled ? '' : toStr(this.state.histBounds[1])}
                         </Typography>
                     </Grid>
-                    <Grid item xs={3}>
+                    <Grid item xs={2}>
                         <FormControlLabel
                             control={
                                 <Switch checked={this.state.logScale}
@@ -253,8 +290,8 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
                             disabled={disabled}
                         />
                     </Grid>
-                {/* </Grid> */}
-            </Grid>
-        </Container>
+                </Grid>
+            </Container>
+        );
     }
 }

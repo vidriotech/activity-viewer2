@@ -31,12 +31,12 @@ import ReactDOM from 'react-dom';
 
 // Import styling
 import './assets/css/index.css';
-import 'fomantic-ui-css/semantic.css';
+// import 'fomantic-ui-css/semantic.css';
 import 'fontsource-roboto';
 
 import { APIClient } from './apiClient';
 import { AVConstants } from './constants';
-import { CompartmentTree } from './models/compartmentTree';
+import { CompartmentTree } from './compartmentTree';
 import { ICompartmentNode, ISettingsResponse } from './models/apiModels';
 
 import { App, IAppProps } from './components/App';
@@ -67,7 +67,7 @@ apiClient.fetchSettings()
     })
     .then((res: any) => res.data)
     .then((root: ICompartmentNode) => {
-        props.compartmentTree = new CompartmentTree(root);
+        props.compartmentTree = new CompartmentTree(root, props.settings);
 
         ReactDOM.render(
             <App {...props}/>,
