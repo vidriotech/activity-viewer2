@@ -86,6 +86,7 @@ export class CompartmentTree {
                 name: node.name,
                 isVisible: false,
                 rgbTriplet: node.rgb_triplet,
+                structureIdPath: node.structure_id_path,
                 children: node.children.map(node2NodeView),
             }
         };

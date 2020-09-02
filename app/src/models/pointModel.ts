@@ -1,12 +1,12 @@
 import { ICompartment } from './apiModels';
 
-export interface IPointSummary {
+
+interface IPointSummary {
     compartment: ICompartment,
     coordinates: number[],
     id: number,
     penetrationId: string,
 }
-
 
 export class PointModel {
     private summary: IPointSummary;
@@ -18,11 +18,11 @@ export class PointModel {
     }
 
     public get compartmentName() {
-        return this.summary.compartment.name;
+        return this.summary.compartment ? this.summary.compartment.name : null;
     }
 
     public get coordinates() {
-        return this.summary.coordinates.slice();
+        return this.summary.coordinates ? this.summary.coordinates.slice() : [];
     }
 
     public get id() {

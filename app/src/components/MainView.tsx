@@ -8,8 +8,8 @@ import { AVConstants } from '../constants';
 
 import { ISettingsResponse, IPenetrationData, ITimeseriesListResponse, IUnitStatsListResponse } from '../models/apiModels';
 import { CompartmentTree } from '../compartmentTree';
-import { Predicate, IFilterCondition } from '../models/filter';
-import { PointModel, IPointSummary } from '../models/pointModel';
+import { PointModel } from '../models/pointModel';
+import { Predicate } from '../models/predicateModels';
 
 import { IAesthetics } from '../viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from '../viewmodels/compartmentViewModel';
@@ -42,7 +42,7 @@ interface IMainViewState {
     colorBounds: number[],
     compartmentSubsetOnly: boolean,
     compartmentViewTree: ICompartmentNodeView,
-    filterConditions: IFilterCondition[],
+    filterPredicate: Predicate,
     frameRate: number,
     isPlaying: boolean,
     loopAnimation: 'once' | 'repeat',
@@ -59,7 +59,7 @@ interface IMainViewState {
 
 export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     private apiClient: APIClient;
-    private pointVisibilities: Map<string, number[][]>;
+    private pointVisibility: Map<string, number[]>;
     private statsData: Map<string, IUnitStatsData[]>;
     private timeseriesData: Map<string, ITimeseriesData[]>;
 
@@ -73,7 +73,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             aesthetics: [],
             colorBounds: [0, 255],
             compartmentViewTree: compartmentViewTree,
-            filterConditions: [],
+            filterPredicate: null,
             frameRate: 30,
             isPlaying: false,
             loopAnimation: 'once',
@@ -90,7 +90,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
-        this.pointVisibilities = new Map<string, number[][]>();
+        this.pointVisibility = new Map<string, number[]>();
         this.statsData = new Map<string, IUnitStatsData[]>();
         this.timeseriesData = new Map<string, ITimeseriesData[]>();
     }
@@ -151,71 +151,37 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         const penIdx = penetrationIds.indexOf(penetrationId);
         let visibility: number[] = [];
 
-        if (!this.pointVisibilities.has(penetrationId) && penIdx > -1) {
+        if (!this.pointVisibility.has(penetrationId) && penIdx > -1) {
             visibility = new Array(this.props.availablePenetrations[penIdx].ids.length);
             visibility.fill(1);
-        } else if (this.pointVisibilities.has(penetrationId)) {
-            const visibilityArr = this.pointVisibilities.get(penetrationId);
-            visibility = visibilityArr[visibilityArr.length - 1];
+        } else if (this.pointVisibility.has(penetrationId)) {
+            visibility = this.pointVisibility.get(penetrationId);
         }
 
         return visibility;
     }
 
-    private handleNewFilterCondition(condition: IFilterCondition) {
-        let conditions = this.state.filterConditions.slice();
-        conditions.push(condition);
+    private handleFilterPredicateUpdate(predicate: Predicate, newStat: string) {
+        if (newStat !== 'nothing' && !this.statsData.has(newStat)) {
+            this.apiClient.fetchUnitStatsById(newStat)
+                .then((res: any) => res.data)
+                .then((responseData: IUnitStatsListResponse) => {
+                    let statsData: IUnitStatsData[] = [];
 
-        this.props.availablePenetrations.forEach((penetrationData) => {
-            const penetrationId = penetrationData.penetrationId;
+                    responseData.unitStats.forEach((data) => {
+                        statsData.push({
+                            penetrationId: data.penetrationId,
+                            values: data.data
+                        });
+                    });
 
-            // collect stats data for points in this penetration
-            const penStatsData = new Map<string, IUnitStatsData>();
-            this.statsData.forEach((statValues, statName) => {
-                const idx = statValues.map(v => v.penetrationId).indexOf(penetrationId);
-                if (idx === -1) {
-                    return;
-                }
-
-                penStatsData.set(statName, statValues[idx]);
-            });
-
-            // filter points
-            let pointModels: PointModel[] = [];
-            for (let i = 0; i < penetrationData.ids.length; i++) {
-                const summary: IPointSummary = {
-                    compartment: penetrationData.compartments[i],
-                    coordinates: penetrationData.coordinates.slice(i*3, 3),
-                    id: penetrationData.ids[i],
-                    penetrationId: penetrationId,
-                };
-                let pointModel = new PointModel(summary);
-
-                penStatsData.forEach((statValues, statName) => {
-                    pointModel.setStat(statName, statValues.values[i]);
-                });
-                pointModels.push(pointModel);
-            }
-
-            // logical AND or OR on latest filter condition
-            const predicate = new Predicate(condition);
-            let pointMask = predicate.eval(pointModels);
-
-            let newVisibility = this.getVisibilityByPenetrationId(penetrationId).slice();
-            pointMask.forEach((p, i) => {
-                if (condition.booleanOp === 'OR' && p) {
-                    newVisibility[i] = 1;
-                } else if (condition.booleanOp === 'AND' && !p) {
-                    newVisibility[i] = 0;
-                }
-            });
-
-            this.pointVisibilities.get(penetrationId).push(newVisibility);
-        });
-
-        this.setState({ filterConditions: conditions }, () => {
-            this.updateAesthetics();
-        });
+                    this.statsData.set(newStat, statsData);
+                    this.updateFilter(predicate);
+                })
+                .catch((err: Error) => console.error(err));
+        } else {
+            this.updateFilter(predicate);
+        }
     }
 
     private handleOpacitySelectionChange(event: React.ChangeEvent<{
@@ -407,20 +373,67 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         this.setState({ aesthetics, timeMax, timeMin });
     }
 
+    private updateFilter(predicate: Predicate) {
+        this.props.availablePenetrations.forEach((penetrationData) => {
+            const penetrationId = penetrationData.penetrationId;
+
+            let visibility: number[];
+            if (predicate === null) { // clear filter
+                visibility = new Array(penetrationData.ids.length);
+                visibility.fill(1);
+            } else {
+                // collect stats data for points in this penetration
+                const penStatsData = new Map<string, IUnitStatsData>();
+                this.statsData.forEach((statValues, statName) => {
+                    const idx = statValues.map(v => v.penetrationId).indexOf(penetrationId);
+                    if (idx === -1) {
+                        return;
+                    }
+
+                    penStatsData.set(statName, statValues[idx]);
+                });
+
+                // filter points
+                let pointModels: PointModel[] = [];
+                for (let i = 0; i < penetrationData.ids.length; i++) {
+                    let pointModel = new PointModel({
+                        compartment: penetrationData.compartments[i],
+                        coordinates: penetrationData.coordinates.slice(i*3, (i+1)*3),
+                        id: penetrationData.ids[i],
+                        penetrationId: penetrationId,
+                    });
+
+                    penStatsData.forEach((statValues, statName) => {
+                        pointModel.setStat(statName, statValues.values[i]);
+                    });
+                    pointModels.push(pointModel);
+                }
+
+                visibility = predicate.eval(pointModels).map(v => Number(v));
+            }
+
+            this.pointVisibility.set(penetrationId, visibility);
+        });
+
+        this.setState({ filterPredicate: predicate }, () => {
+            this.updateAesthetics();
+        });
+    }
+
     public componentDidUpdate(prevProps: Readonly<IMainViewProps>) {
         if (!_.isEqual(prevProps.availablePenetrations, this.props.availablePenetrations)) {
             // set all points to visible by default
-            this.pointVisibilities = new Map<string, number[][]>();
+            this.pointVisibility = new Map<string, number[]>();
             this.props.availablePenetrations.forEach((penetrationData) => {
                 const penetrationId = penetrationData.penetrationId;
                 const nPoints = penetrationData.ids.length;
                 const visible = new Array<number>(nPoints);
                 visible.fill(1);
 
-                this.pointVisibilities.set(penetrationId, [visible]);
+                this.pointVisibility.set(penetrationId, visible);
             });
 
-            this.setState({ filterConditions: [] }, () => this.updateAesthetics());
+            this.setState({ filterPredicate: null }, () => this.updateAesthetics());
         }
     }
 
@@ -458,14 +471,14 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             compartmentSubsetOnly: this.state.compartmentSubsetOnly,
             compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
-            filterConditions: this.state.filterConditions,
+            filterPredicate: this.state.filterPredicate,
             selectedStat: this.state.selectedStat,
             settings: this.props.settings,
             statsData: this.state.selectedStat === 'nothing' ?
                 [] : _.union(
                     ...(this.statsData.get(this.state.selectedStat).map(entry => entry.values))
                 ),
-            onNewFilterCondition: this.handleNewFilterCondition.bind(this),
+            onFilterPredicateUpdate: this.handleFilterPredicateUpdate.bind(this),
             onStatSelectionChange: this.handleStatSelectionChange.bind(this),
             onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
         }

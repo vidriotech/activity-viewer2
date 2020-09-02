@@ -17,6 +17,7 @@ import { AVConstants } from '../../constants';
 
 import { IPenetrationData } from '../../models/apiModels';
 import { IFilterCondition } from '../../models/filter';
+import { Predicate, StatPredicate } from '../../models/predicateModels';
 
 export interface IStatsHistogramProps {
     availablePenetrations: IPenetrationData[],
@@ -26,7 +27,7 @@ export interface IStatsHistogramProps {
     selectedStat: string,
     statName: string,
     width: number,
-    onNewFilterCondition(condition: IFilterCondition): void,
+    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void,
     onStatSelectionChange(event: any): void,
 }
 
@@ -189,18 +190,11 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
     }
 
     private updateStatFilter() {
-        const min = this.state.logScale ? Math.pow(10, this.state.histBounds[0]) : this.state.histBounds[0];
-        const max = this.state.logScale ? Math.pow(10, this.state.histBounds[1]) : this.state.histBounds[1];
-        let condition: IFilterCondition = {
-            booleanOp: 'AND',
-            key: this.props.statName,
-            valType: 'stat',
-            greaterThan: min,
-            lessThan: max,
-            equals: null,
-            negate: false,
-        }
-        this.props.onNewFilterCondition(condition);
+        const lowerBound = this.state.logScale ? Math.pow(10, this.state.histBounds[0]) : this.state.histBounds[0];
+        const upperBound = this.state.logScale ? Math.pow(10, this.state.histBounds[1]) : this.state.histBounds[1];
+        let predicate = new StatPredicate(this.props.statName, lowerBound, upperBound);
+
+        this.props.onFilterPredicateUpdate(predicate, this.props.statName);
     }
 
     public componentDidUpdate(prevProps: Readonly<IStatsHistogramProps>) {
@@ -229,12 +223,12 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
         const availableStats = _.union(...this.props.availablePenetrations.map(pen => pen.unitStats));
         const menuItems = _.union(
             [<MenuItem key='nothing' value='nothing'>No selection</MenuItem>],
-            availableStats.map(stat => {
-                return <MenuItem value={stat}
-                                 key={stat}>
+            availableStats.map((stat) => (
+                <MenuItem value={stat}
+                    key={stat}>
                     {stat}
-                </MenuItem>
-            })
+                </MenuItem>)
+            ),
         );
 
         return (
@@ -243,7 +237,6 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
                     Filter by statistic
                 </Typography>
                 <Grid container
-                    //   direction='column'
                     spacing={2}>
                     <Grid item xs={12}>
                         <svg className='container'
@@ -256,12 +249,11 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
                             <InputLabel id={`stats-mapper-label`}>
                                 Statistic
                             </InputLabel>
-                            <Select
-                                labelId={`stats-mapper-select-label`}
-                                id={`stats-mapper-select`}
-                                defaultValue='nothing'
-                                value={this.props.selectedStat}
-                                onChange={this.props.onStatSelectionChange}>
+                            <Select labelId='stats-mapper-select-label'
+                                    id='stats-mapper-select'
+                                    defaultValue='nothing'
+                                    value={this.props.selectedStat}
+                                    onChange={this.props.onStatSelectionChange}>
                                 {menuItems}
                             </Select>
                         </FormControl>

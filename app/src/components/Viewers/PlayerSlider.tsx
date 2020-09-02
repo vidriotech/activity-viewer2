@@ -2,6 +2,7 @@ import React from 'react';
 
 import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
+import Input from '@material-ui/core/Input';
 import Slider from '@material-ui/core/Slider';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
@@ -123,17 +124,16 @@ export function PlayerSlider(props: IPlayerSliderProps) {
                               fontSize='large' />
                 </IconButton>
                 {loopToggleButton}
-                <TextField type='number'
-                           label='Frames/sec'
-                           InputLabelProps={{ shrink: true }}
-                           value={props.frameRate}
-                           disabled={disabled}
-                           onChange={
-                               (event: React.ChangeEvent<HTMLInputElement>) => {
-                                   const value = event.target.value as unknown;
-                                   props.onFrameRateUpdate(value as number);
-                                }
-                           } />
+                <Input type='number'
+                       inputProps={{ min: 1, max: 60, name: 'Frames/sec' }}
+                       value={props.frameRate}
+                       disabled={disabled}
+                       onChange={
+                           (event: React.ChangeEvent<HTMLInputElement>) => {
+                               const value = event.target.value as unknown;
+                               props.onFrameRateUpdate(value as number);
+                           }
+                       } />
             </Grid>
         </Grid>
     )

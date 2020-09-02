@@ -6,12 +6,12 @@ import Grid from '@material-ui/core/Grid';
 import { AVConstants } from '../../constants';
 
 import { IPenetrationData, ISettingsResponse } from '../../models/apiModels';
-import { IFilterCondition } from '../../models/filter';
+import { Predicate } from '../../models/predicateModels';
 
 import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
 import { CompartmentList, ICompartmentListProps } from './CompartmentList';
-import { FilterPredicateList } from './FilterPredicateList';
+import { PredicateList, IPredicateListProps } from './PredicateList';
 import { StatsHistogram, IStatsHistogramProps } from './StatsHistogram';
 
 
@@ -21,15 +21,21 @@ export interface IFilterControlsProps {
     compartmentViewTree: ICompartmentNodeView,
     constants: AVConstants,
     statsData: number[],
-    filterConditions: IFilterCondition[],
+    filterPredicate: Predicate,
     selectedStat: string,
     settings: ISettingsResponse,
-    onNewFilterCondition(condition: IFilterCondition): void,
+    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void,
     onStatSelectionChange(event: any): void,
     onToggleCompartmentVisible(rootNode: ICompartmentNodeView): void,
 }
 
 export function FilterControls(props: IFilterControlsProps) {
+    const predicateListProps: IPredicateListProps = {
+        availablePenetrations: props.availablePenetrations,
+        filterPredicate: props.filterPredicate,
+        onFilterPredicateUpdate: props.onFilterPredicateUpdate,
+    };
+
     const compartmentListProps: ICompartmentListProps = {
         compartmentSubsetOnly: props.compartmentSubsetOnly,
         compartmentViewTree: props.compartmentViewTree,
@@ -46,13 +52,16 @@ export function FilterControls(props: IFilterControlsProps) {
         selectedStat: props.selectedStat,
         statName: props.selectedStat,
         width: 400,
-        onNewFilterCondition: props.onNewFilterCondition,
+        onFilterPredicateUpdate: props.onFilterPredicateUpdate,
         onStatSelectionChange: props.onStatSelectionChange,
     }
 
     return (
         <Grid container
               spacing={1}>
+            <Grid item xs={12}>
+                <PredicateList {...predicateListProps} />
+            </Grid>
             <Grid item xs>
                 <CompartmentList {...compartmentListProps} />
             </Grid>

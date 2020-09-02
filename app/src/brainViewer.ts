@@ -242,7 +242,6 @@ export class BrainViewer {
             const compartmentObj = this.scene.getObjectByName(name);
 
             if (compartmentObj) {
-                console.log(compartmentNodeView);
                 compartmentObj.visible = compartmentNodeView.isVisible;
 
                 if (compartmentNodeView.isVisible) {

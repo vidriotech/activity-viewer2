@@ -102,9 +102,16 @@ class Cache:
 
         return data
 
+    def load_structure_centers(self) -> pd.DataFrame:
+        """Load the structure centers file from disk."""
+        if not self.structure_centers_exists():
+            return self.save_structure_centers()
+
+        return pd.read_csv(self.structure_centers_path)
+
     def load_template_volume(self) -> (np.ndarray, dict):
         """Load template volume from cache."""
-        if not self.template_volume_exists:
+        if not self.template_volume_exists():
             self.save_template_volume()
 
         try:
@@ -148,6 +155,8 @@ class Cache:
         
         df = self.download_structure_centers()
         df.to_csv(file_path)
+
+        return df
 
     def save_structure_mesh(self, structure_id: int, force: bool = False):
         """Download WaveFront mesh file for the compartment with ID `structure_id` and save it to cache."""

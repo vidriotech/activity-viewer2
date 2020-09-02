@@ -5,4 +5,5 @@ export interface ICompartmentNodeView {
     children: ICompartmentNodeView[],
     isVisible: boolean,
     rgbTriplet: number[],
+    structureIdPath: number[],
 }

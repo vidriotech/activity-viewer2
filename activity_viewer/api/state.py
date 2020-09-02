@@ -5,6 +5,7 @@ from typing import List, Optional, Union
 from allensdk.core.structure_tree import StructureTree
 from flask import Flask
 import numpy as np
+import pandas as pd
 
 from activity_viewer.base import type_check
 from activity_viewer.cache import Cache
