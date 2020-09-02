@@ -1,3 +1,7 @@
+body {
+  background-color: #ffffff;
+}
+
 #timestep {
   font-family: 'Courier New', Courier, monospace;
   position: absolute;
