@@ -77,9 +77,10 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
             let filteredCompartments: ICompartmentNodeView[] = [];
             let queue = [this.props.compartmentViewTree]
 
+            let node;
             while (queue.length > 0) {
-                const node = queue.splice(0, 1)[0];
-                queue = queue.concat(queue, node.children);
+                node = queue.splice(0, 1)[0];
+                queue = queue.concat(node.children);
 
                 if (filteredCompartmentNames.includes(node.name)) {
                     filteredCompartments.push(node);
