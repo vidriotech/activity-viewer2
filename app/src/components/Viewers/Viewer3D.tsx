@@ -18,6 +18,7 @@ import { PenetrationViewModel } from '../../viewmodels/penetrationViewModel';
 export interface IViewer3DProps {
     aesthetics: IAesthetics[],
     availablePenetrations: IPenetrationData[],
+    canvasId: string,
     constants: AVConstants,
     compartmentViewTree: ICompartmentNodeView,
     frameRate: number,
@@ -37,7 +38,6 @@ interface IViewer3DState {
 
 export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     private apiClient: APIClient;
-    private containerId = 'viewer-container';
     private viewer: BrainViewer;
 
     constructor(props: IViewer3DProps) {
@@ -53,7 +53,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     }
 
     private computeDims() {
-        const container = document.getElementById(this.containerId);
+        const container = document.getElementById(this.props.canvasId);
         if (!container) {
             return { width: 0, height: 0 };
         }
@@ -72,7 +72,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         const { width, height } = this.computeDims();
         const v = new BrainViewer(this.props.constants);
 
-        v.container = this.containerId; // div is created in render()
+        v.container = this.props.canvasId; // div is created in render()
         v.WIDTH = width;
         v.HEIGHT = height;
 
@@ -165,7 +165,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
                   spacing={3}
                   style={{ padding: 40 }}
                   id='container-container'>
-                <Grid item id={this.containerId} xs />
+                <Grid item id={this.props.canvasId} xs />
             </Grid>
         )
     }

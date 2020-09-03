@@ -8,6 +8,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
 
+import FiberManualRecordIcon from '@material-ui/icons/FiberManualRecord';
 import PauseIcon from '@material-ui/icons/Pause';
 import PlayArrowIcon from '@material-ui/icons/PlayArrow';
 import RepeatIcon from '@material-ui/icons/Repeat';
@@ -28,6 +29,7 @@ const useStyles = makeStyles((theme: Theme) =>
 export interface IPlayerSliderProps {
     frameRate: number,
     isPlaying: boolean,
+    isRecording: boolean,
     loopAnimation: 'once' | 'repeat',
     timeMax: number,
     timeMin: number,
@@ -36,6 +38,7 @@ export interface IPlayerSliderProps {
     onFrameRateUpdate(frameRate: number): void,
     onLoopToggle(): void,
     onPlayToggle(): void,
+    onRecordToggle(): void,
     onSliderChange(event: any, timeVal: number): void,
     onStopClick(): void,
 }
@@ -93,7 +96,7 @@ export function PlayerSlider(props: IPlayerSliderProps) {
                             fontSize='large' />
             )}
         </IconButton>
-    )
+    );
 
     return (
         <Grid container
@@ -115,6 +118,14 @@ export function PlayerSlider(props: IPlayerSliderProps) {
                 </Typography>
             </Grid>
             <Grid item xs>
+                <IconButton size='small'
+                            className={classes.margin}
+                            disabled={disabled}
+                            onClick={props.onRecordToggle}>
+                    <FiberManualRecordIcon titleAccess='record playback'
+                                           color={props.isRecording ? 'error' : 'inherit'}
+                                           fontSize='large' />
+                </IconButton>
                 {playPauseButton}
                 <IconButton size='small'
                             className={classes.margin}

@@ -30,17 +30,21 @@ export interface IViewerContainerProps {
 interface IViewerContainerState {
     frameRate: number,
     isPlaying: boolean,
+    isRecording: boolean,
     loopAnimation: 'once' | 'repeat',
     timeVal: number,
 }
 
 export class ViewerContainer extends React.Component<IViewerContainerProps, IViewerContainerState> {
+    private canvasId = 'viewer-container';
+
     constructor(props: IViewerContainerProps) {
         super(props);
 
         this.state = {
             frameRate: 30,
             isPlaying: false,
+            isRecording: false,
             loopAnimation: 'once',
             timeVal: 0,
         }
@@ -79,12 +83,37 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
         });
     }
 
+    private handleRecordToggle() {
+        // start playing when hitting record
+        let isPlaying = this.state.isRecording ?
+            this.state.isPlaying :
+            true;
+
+        this.setState({
+            isRecording: !this.state.isRecording,
+            isPlaying: isPlaying
+        }, () => {
+            this.animate();
+            if (!this.state.isRecording) {
+                this.onRecordingStop();
+            }
+        });
+    }
+
     private handleSliderChange(_event: any, timeVal: number) {
         this.setState({ timeVal });
     }
 
     private handleStopClick() {
-        this.setState({ timeVal: this.props.timeMin, isPlaying: false });
+        this.setState({
+            timeVal: this.props.timeMin,
+            isPlaying: false,
+            isRecording: false
+        });
+    }
+
+    private onRecordingStop() {
+        
     }
 
     public componentDidUpdate(prevProps: Readonly<IViewerContainerProps>) {
@@ -97,6 +126,7 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
         const viewer3DProps: IViewer3DProps = {
             aesthetics: this.props.aesthetics,
             availablePenetrations: this.props.availablePenetrations,
+            canvasId: this.canvasId,
             constants: this.props.constants,
             frameRate: this.state.frameRate,
             isPlaying: this.state.isPlaying,
@@ -112,6 +142,7 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
         const playerSliderProps: IPlayerSliderProps = {
             frameRate: this.state.frameRate,
             isPlaying: this.state.isPlaying,
+            isRecording: this.state.isRecording,
             loopAnimation: this.state.loopAnimation,
             timeMax: this.props.timeMax,
             timeMin: this.props.timeMin,
@@ -120,6 +151,7 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
             onFrameRateUpdate: this.handleFrameRateUpdate.bind(this),
             onLoopToggle: this.handleLoopToggle.bind(this),
             onPlayToggle: this.handlePlayToggle.bind(this),
+            onRecordToggle: this.handleRecordToggle.bind(this),
             onSliderChange: this.handleSliderChange.bind(this),
             onStopClick: this.handleStopClick.bind(this),
         }
