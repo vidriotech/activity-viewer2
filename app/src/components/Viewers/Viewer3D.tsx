@@ -70,7 +70,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         }
 
         const { width, height } = this.computeDims();
-        const v = new BrainViewer(this.props.constants);
+        const v = new BrainViewer(this.props.constants, this.props.settings.epochs);
 
         v.container = this.props.canvasId; // div is created in render()
         v.WIDTH = width;

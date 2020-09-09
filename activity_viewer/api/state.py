@@ -138,6 +138,12 @@ class APIState:
         self.load_penetration(penetration_id)
         return self.npz_loader.get("ccf_coord")
 
+    def get_penetration_filename(self, penetration_id: str):
+        if not self.has_penetration(penetration_id):
+            return
+
+        return self._penetrations[penetration_id].resolve()
+
     def get_pseudocoronal_annotation_slice(self, penetration_id: str):
         """Get voxel values for pseudocoronal plane of best fit for `penetration_id`."""
         if not self.has_penetration(penetration_id):

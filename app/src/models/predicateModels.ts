@@ -1,5 +1,6 @@
 import * as _ from 'lodash';
 
+import { ICompartmentNode } from './apiModels';
 import { PointModel } from './pointModel';
 
 
@@ -128,6 +129,30 @@ export class PropPredicate extends Predicate {
     public toString(): string {
         const operator = this.negate ? '≠' : '=';
         return `${this.propName} ${operator} '${this.propValue}'`;
+    }
+}
+
+export class FuzzyPredicate extends Predicate {
+    private parentCompartment: ICompartmentNode;
+
+    constructor(parentCompartment: ICompartmentNode, ) {
+        super('string');
+
+        this.parentCompartment = parentCompartment;
+    }
+
+    public eval(points: PointModel[]): boolean[] {
+        let result: boolean[] = new Array(points.length);
+        points.forEach((point: PointModel, idx: number) => {
+            result[idx] = point.compartmentIdPath === null ?
+                false : point.compartmentIdPath.includes(this.parentCompartment.id);
+        });
+
+        return result;
+    }
+
+    public toString(): string {
+        return `compartmentName ⊆ ${this.parentCompartment.name}`;
     }
 }
 

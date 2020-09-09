@@ -6,7 +6,15 @@ import Grid from '@material-ui/core/Grid';
 import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
 
-import { ISettingsResponse, IPenetrationData, ITimeseriesListResponse, IUnitStatsListResponse } from '../models/apiModels';
+import {
+    IUnitExport,
+    IExportRequest,
+    ISettingsResponse,
+    IPenetrationData,
+    IPenetrationResponse,
+    ITimeseriesListResponse,
+    IUnitStatsListResponse,
+} from '../models/apiModels';
 import { CompartmentTree } from '../compartmentTree';
 import { PointModel } from '../models/pointModel';
 import { Predicate } from '../models/predicateModels';
@@ -14,9 +22,11 @@ import { Predicate } from '../models/predicateModels';
 import { IAesthetics } from '../viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from '../viewmodels/compartmentViewModel';
 
+import { CompartmentList, ICompartmentListProps } from './CompartmentList/CompartmentList';
 import { FilterControls, IFilterControlsProps } from './FilterControls/FilterControls';
 import { TimeseriesControls, ITimeseriesControlsProps } from './TimeseriesControls/TimeseriesControls';
 import { ViewerContainer, IViewerContainerProps } from './Viewers/ViewerContainer';
+import { UnitTable, IUnitTableProps } from './UnitTable/UnitTable';
 
 
 interface ITimeseriesData {
@@ -31,7 +41,6 @@ interface IUnitStatsData {
 }
 
 export interface IMainViewProps {
-    availablePenetrations: IPenetrationData[],
     compartmentTree: CompartmentTree,
     constants: AVConstants,
     settings: ISettingsResponse,
@@ -39,6 +48,7 @@ export interface IMainViewProps {
 
 interface IMainViewState {
     aesthetics: IAesthetics[],
+    availablePenetrations: IPenetrationData[],
     colorBounds: number[],
     compartmentSubsetOnly: boolean,
     compartmentViewTree: ICompartmentNodeView,
@@ -59,7 +69,6 @@ interface IMainViewState {
 
 export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     private apiClient: APIClient;
-    private pointVisibility: Map<string, number[]>;
     private statsData: Map<string, IUnitStatsData[]>;
     private timeseriesData: Map<string, ITimeseriesData[]>;
 
@@ -71,6 +80,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
  
         this.state = {
             aesthetics: [],
+            availablePenetrations: [],
             colorBounds: [0, 255],
             compartmentViewTree: compartmentViewTree,
             filterPredicate: null,
@@ -90,7 +100,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
-        this.pointVisibility = new Map<string, number[]>();
         this.statsData = new Map<string, IUnitStatsData[]>();
         this.timeseriesData = new Map<string, ITimeseriesData[]>();
     }
@@ -144,21 +153,6 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         } else {
             this.setState({ selectedStat: value });
         }
-    }
-
-    private getVisibilityByPenetrationId(penetrationId: string): number[] {
-        const penetrationIds = this.props.availablePenetrations.map((penetrationData) => penetrationData.penetrationId);
-        const penIdx = penetrationIds.indexOf(penetrationId);
-        let visibility: number[] = [];
-
-        if (!this.pointVisibility.has(penetrationId) && penIdx > -1) {
-            visibility = new Array(this.props.availablePenetrations[penIdx].ids.length);
-            visibility.fill(1);
-        } else if (this.pointVisibility.has(penetrationId)) {
-            visibility = this.pointVisibility.get(penetrationId);
-        }
-
-        return visibility;
     }
 
     private handleFilterPredicateUpdate(predicate: Predicate, newStat: string) {
@@ -244,20 +238,38 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         this.fetchAndUpdateUnitStats(value);
     }
 
-    private handleSubsetOnlyToggle() {
-        const compartmentSubsetOnly = !this.state.compartmentSubsetOnly;
-        let compartmentViewTree = this.props.compartmentTree.getCompartmentNodeViewTree(compartmentSubsetOnly);
-        compartmentViewTree.isVisible = true;
-
-        this.setState({ compartmentSubsetOnly, compartmentViewTree });
-    }
-
     private handleToggleCompartmentVisible(rootNode: ICompartmentNodeView) {
         this.setState({ compartmentViewTree: rootNode });
     }
 
     public handleUpdateCompartmentViews(compartmentViewTree: ICompartmentNodeView) {
         this.setState({ compartmentViewTree });
+    }
+
+    public handleUnitExportRequest() {
+        let unitExport: IUnitExport[] = [];
+        this.state.availablePenetrations.forEach((penetrationData) => {
+            unitExport.push({
+                penetrationId: penetrationData.penetrationId,
+                unitIds: penetrationData.ids.filter((_id, idx) => penetrationData.visible[idx]),
+            });
+        });
+
+        this.apiClient.fetchExportedData(unitExport)
+            .then((data) => data.data)
+            .then((data: any) => {
+                window.alert('Data is saved in export.npz');
+                // const blob = new Blob([data]);
+                // const url = URL.createObjectURL(blob);
+
+                // let a = document.createElement('a');
+                // document.body.appendChild(a);
+                // a.href = url;
+                // a.download = 'export.npz';
+                // a.click();
+
+                // window.URL.revokeObjectURL(url);
+            });
     }
 
     private transformValues(data: number[], transformBounds: number[]): number[] {
@@ -289,7 +301,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         let timeMin = 0;
         let timeMax = 0;
 
-        let visiblePenetrations = this.props.availablePenetrations.map(
+        let visiblePenetrations = this.state.availablePenetrations.map(
             value => value.penetrationId
         );
 
@@ -326,7 +338,12 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         const opacityData = this.state.selectedOpacity === 'nothing' ? null : this.timeseriesData.get(this.state.selectedOpacity);
         const radiusData = this.state.selectedRadius === 'nothing' ? null : this.timeseriesData.get(this.state.selectedRadius);
 
-        visiblePenetrations.forEach((penetrationId) => {
+        this.state.availablePenetrations.forEach((penetrationData) => {
+            const penetrationId = penetrationData.penetrationId;
+            if (!visiblePenetrations.includes(penetrationId)) {
+                return;
+            }
+
             const penColor = colorData === null ? null : colorData.filter((data) => data.penetrationId === penetrationId)[0];
             if (penColor !== null) {
                 const colorTimes = penColor.times;
@@ -365,7 +382,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
                     times: penRadius.times,
                     values: this.transformValues(penRadius.values, this.state.radiusBounds)
                 },
-                visible: this.getVisibilityByPenetrationId(penetrationId),
+                visible: penetrationData.visible.map((p) => Number(p)),
             };
             aesthetics.push(aesthetic);
         });
@@ -374,13 +391,15 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     }
 
     private updateFilter(predicate: Predicate) {
-        this.props.availablePenetrations.forEach((penetrationData) => {
+        let availablePenetrations: IPenetrationData[] = [];
+
+        this.state.availablePenetrations.forEach((penetrationData) => {
             const penetrationId = penetrationData.penetrationId;
 
-            let visibility: number[];
+            let visible: boolean[];
             if (predicate === null) { // clear filter
-                visibility = new Array(penetrationData.ids.length);
-                visibility.fill(1);
+                visible = new Array(penetrationData.ids.length);
+                visible.fill(true);
             } else {
                 // collect stats data for points in this penetration
                 const penStatsData = new Map<string, IUnitStatsData>();
@@ -409,38 +428,43 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
                     pointModels.push(pointModel);
                 }
 
-                visibility = predicate.eval(pointModels).map(v => Number(v));
+                visible = predicate.eval(pointModels);
             }
 
-            this.pointVisibility.set(penetrationId, visibility);
+            availablePenetrations.push(_.extend(
+                _.pick(
+                    penetrationData,
+                    _.without(_.keys(penetrationData), 'visible')
+                ),
+                { 'visible': visible }
+            ));
         });
 
-        this.setState({ filterPredicate: predicate }, () => {
+        this.setState({ availablePenetrations, filterPredicate: predicate }, () => {
             this.updateAesthetics();
         });
     }
 
-    public componentDidUpdate(prevProps: Readonly<IMainViewProps>) {
-        if (!_.isEqual(prevProps.availablePenetrations, this.props.availablePenetrations)) {
-            // set all points to visible by default
-            this.pointVisibility = new Map<string, number[]>();
-            this.props.availablePenetrations.forEach((penetrationData) => {
-                const penetrationId = penetrationData.penetrationId;
-                const nPoints = penetrationData.ids.length;
-                const visible = new Array<number>(nPoints);
-                visible.fill(1);
-
-                this.pointVisibility.set(penetrationId, visible);
+    public componentDidMount() {
+        this.apiClient.fetchPenetrations()
+            .then((res: any) => res.data)
+            .then((data: IPenetrationResponse) => {
+                this.setState({
+                    availablePenetrations: data.penetrations.map((penetration) => (
+                        _.extend(penetration, { 'visible': penetration.ids.map(_x => true)})
+                    ))
+                });
+            })
+            .catch((err: Error) => {
+                console.error(err);
+                window.alert(err.message);
             });
-
-            this.setState({ filterPredicate: null }, () => this.updateAesthetics());
-        }
     }
 
     public render() {
         const viewerContainerProps: IViewerContainerProps = {
             aesthetics: this.state.aesthetics,
-            availablePenetrations: this.props.availablePenetrations,
+            availablePenetrations: this.state.availablePenetrations,
             constants: this.props.constants,
             settings: this.props.settings,
             timeMax: this.state.timeMax,
@@ -456,7 +480,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             selectedOpacity: this.state.selectedOpacity,
             selectedRadius: this.state.selectedRadius,
             timeseries: _.uniq(
-                _.flatten(this.props.availablePenetrations.map(
+                _.flatten(this.state.availablePenetrations.map(
                     pen => pen.timeseries
                 )).sort(), true
             ),
@@ -467,8 +491,9 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         };
 
         const filterControlProps: IFilterControlsProps = {
-            availablePenetrations: this.props.availablePenetrations,
+            availablePenetrations: this.state.availablePenetrations,
             compartmentSubsetOnly: this.state.compartmentSubsetOnly,
+            compartmentTree: this.props.compartmentTree,
             compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
             filterPredicate: this.state.filterPredicate,
@@ -483,18 +508,34 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
         }
 
+        const compartmentListProps: ICompartmentListProps = {
+            compartmentSubsetOnly: this.state.compartmentSubsetOnly,
+            compartmentViewTree: this.state.compartmentViewTree,
+            constants: this.props.constants,
+            settings: this.props.settings,
+            onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
+        }
+
         const style = { padding: 30 };
         return (
             <div style={style}>
                 <Grid container
                       spacing={2}>
-                    <Grid item xs={5}>
-                        <ViewerContainer {...viewerContainerProps} />
-                    </Grid>
-                    <Grid item xs={7}>
+                    <Grid item xs={12}>
                         <FilterControls {...filterControlProps} />
                     </Grid>
-                    <Grid item xs={7}>
+                    <Grid item xs={3}>
+                        {/* <UnitList {...unitListProps}/> */}
+                        <UnitTable availablePenetrations={this.state.availablePenetrations}
+                                   onUnitExportRequest={this.handleUnitExportRequest.bind(this)} />
+                    </Grid>
+                    <Grid item xs={6}>
+                        <ViewerContainer {...viewerContainerProps} />
+                    </Grid>
+                    <Grid item xs={3}>
+                        <CompartmentList {...compartmentListProps} />
+                    </Grid>
+                    <Grid item xs>
                         <TimeseriesControls {...timeseriesControlsProps}/>
                     </Grid>
                 </Grid>

@@ -6,6 +6,11 @@ export interface ISettingsRequest {
     settings_path: string,
 }
 
+export interface IEpoch {
+    label: string,
+    bounds: [number, number],
+}
+
 export interface ISettingsResponse {
     compartment: {
         include: string[],
@@ -17,7 +22,17 @@ export interface ISettingsResponse {
         cacheDirectory: string,
         dataFiles: string[],
         resolution: number,
-    }
+    },
+    epochs: IEpoch[],
+}
+
+export interface IUnitExport {
+    penetrationId: string,
+    unitIds: number[],
+}
+
+export interface IExportRequest {
+    data: IUnitExport[],
 }
 
 /*
@@ -31,6 +46,7 @@ export interface IPenetrationData {
     coordinates: number[],
     timeseries: string[],
     unitStats: string[],
+    visible: boolean[],
 }
 
 export interface IPenetrationRequest {

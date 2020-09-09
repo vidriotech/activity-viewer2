@@ -6,6 +6,10 @@ The format is based on
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- The `dataFiles` field in the settings file now takes a glob, or a list of
+  file names, or a list of file names and globs.
+- The settings file now takes an optional `epochs` field, allowing you to
+  define experimental epochs. See the docs for details.
 - The `viewerd` command is now deprecated. Use
   `viewer start-daemon [SETTINGS_FILE]` instead. `SETTINGS_FILE` is optional,
   and defaults either to `settings_json` in the current directory, or the

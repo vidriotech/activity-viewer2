@@ -35,8 +35,15 @@ interface IViewerContainerState {
     timeVal: number,
 }
 
+interface CanvasElement extends HTMLCanvasElement {
+    captureStream(frameRate?: number): MediaStream;
+}
+  
+
 export class ViewerContainer extends React.Component<IViewerContainerProps, IViewerContainerState> {
-    private canvasId = 'viewer-container';
+    private canvasContainerId = 'viewer-container';
+    private mediaRecorder: MediaRecorder = null;
+    private recordedBlobs: Blob[];
 
     constructor(props: IViewerContainerProps) {
         super(props);
@@ -47,7 +54,9 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
             isRecording: false,
             loopAnimation: 'once',
             timeVal: 0,
-        }
+        };
+
+        this.recordedBlobs = [];
     }
 
     private animate() {
@@ -65,6 +74,43 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
             }
 
             this.setState(newState, callback);
+        }
+    }
+
+    private downloadRecording() {
+        const blob = new Blob(this.recordedBlobs, {
+            type: "video/webm"
+        });
+
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = now.getMonth();
+        const day = now.getDate();
+        const hour = now.getHours();
+        const minute = now.getMinutes();
+        const second = now.getSeconds();
+        const recordingFilename = `recording-${year}${month}${day}-${hour}${minute}${second}.webm`;
+
+        const url = URL.createObjectURL(blob);
+        let a = document.createElement('a');
+        document.body.appendChild(a);
+        // a.style = "display: none";
+        a.href = url;
+        a.download = recordingFilename;
+        a.click();
+
+        window.URL.revokeObjectURL(url);
+    }
+
+    private handleStreamDataAvailable(evt: BlobEvent) {
+        if (evt.data.size > 0) {
+            this.recordedBlobs.push(evt.data);
+
+            if (!this.state.isRecording) {
+                this.downloadRecording();
+                this.mediaRecorder = null;
+                this.recordedBlobs = [];
+            }
         }
     }
 
@@ -93,10 +139,12 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
             isRecording: !this.state.isRecording,
             isPlaying: isPlaying
         }, () => {
-            this.animate();
-            if (!this.state.isRecording) {
+            if (this.state.isRecording) {
+                this.onRecordingStart();
+            } else {
                 this.onRecordingStop();
             }
+            this.animate();
         });
     }
 
@@ -109,11 +157,25 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
             timeVal: this.props.timeMin,
             isPlaying: false,
             isRecording: false
+        }, () => {
+            this.onRecordingStop();
         });
     }
 
+    private onRecordingStart() {
+        const canvas: CanvasElement = document.getElementById(this.canvasContainerId)
+            .querySelector('canvas') as CanvasElement;
+
+        const stream = canvas.captureStream(2*this.state.frameRate);
+        this.mediaRecorder = new MediaRecorder(stream, { mimeType: "video/webm; codecs=vp9" });
+        this.mediaRecorder.ondataavailable = this.handleStreamDataAvailable.bind(this);
+        this.mediaRecorder.start();
+    }
+
     private onRecordingStop() {
-        
+        if (this.mediaRecorder !== null) {
+            this.mediaRecorder.stop();
+        }
     }
 
     public componentDidUpdate(prevProps: Readonly<IViewerContainerProps>) {
@@ -126,7 +188,7 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
         const viewer3DProps: IViewer3DProps = {
             aesthetics: this.props.aesthetics,
             availablePenetrations: this.props.availablePenetrations,
-            canvasId: this.canvasId,
+            canvasId: this.canvasContainerId,
             constants: this.props.constants,
             frameRate: this.state.frameRate,
             isPlaying: this.state.isPlaying,

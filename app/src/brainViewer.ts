@@ -9,7 +9,7 @@ import * as _ from 'underscore';
 
 import { AVConstants } from './constants';
 
-import { IPenetrationData } from './models/apiModels';
+import { IEpoch, IPenetrationData } from './models/apiModels';
 
 import { IAesthetics } from './viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from './viewmodels/compartmentViewModel';
@@ -17,6 +17,7 @@ import { PenetrationViewModel } from './viewmodels/penetrationViewModel';
 
 export class BrainViewer {
     private constants: AVConstants;
+    private epochs: IEpoch[];
 
     private loadedCompartments: string[] = [];
     private _visibleCompartments: string[] = [];
@@ -31,6 +32,8 @@ export class BrainViewer {
     private lastTimestamp: number = null;
 
     private pointsMaterial: THREE.PointsMaterial;
+    private epochSlider: THREE.Object3D = null;
+    private epochMarker: THREE.Object3D = null;
 
     public HEIGHT: number;
     public WIDTH: number;
@@ -43,8 +46,9 @@ export class BrainViewer {
     //animation
     private _timeVal: number = 0;
 
-    constructor(constants: AVConstants) {
+    constructor(constants: AVConstants, epochs: IEpoch[]) {
         this.constants = constants;
+        this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
 
         this.pointsMaterial = new THREE.ShaderMaterial({
             uniforms: {
@@ -101,8 +105,108 @@ export class BrainViewer {
         });
     }
 
+    private makeEpochSlider(labelWidth: number, fontSize: number): THREE.Object3D {
+        if (this.epochs.length === 0) {
+            return null;
+        }
+
+        const epochs = this.epochs;
+
+        const root = new THREE.Object3D();
+        const labelBaseScale = 0.01;
+
+        const canvas = this.makeLabelCanvas(labelWidth, fontSize, epochs);
+        const texture = new THREE.CanvasTexture(canvas);
+
+        texture.minFilter = THREE.LinearFilter;
+        texture.wrapS = THREE.ClampToEdgeWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+
+        const labelMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+        });
+        const labels = new THREE.Sprite(labelMaterial);
+        root.add(labels);
+
+        labels.scale.x = canvas.width * labelBaseScale;
+        labels.scale.y = canvas.height * labelBaseScale;
+    
+        this.camera.add(root);
+        root.position.set(0, -3.5, -10);
+
+        // time slider
+        let geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
+
+        return root;
+    }
+
+    private makeLabelCanvas(baseWidth: number, fontSize: number, epochs: IEpoch[]) {
+        const borderSize = 2;
+        const ctx = document.createElement('canvas').getContext('2d');
+        const font =  `${fontSize}px sans-serif`;
+        ctx.font = font;
+        // measure how long the name will be
+        const textWidth = ctx.measureText(name).width;
+
+        const doubleBorderSize = borderSize * 2;
+        const width = baseWidth + doubleBorderSize;
+        const height = fontSize + doubleBorderSize;
+        ctx.canvas.width = width;
+        ctx.canvas.height = height;
+
+        // need to set font again after resizing canvas
+        ctx.font = font;
+        ctx.textBaseline = 'middle';
+        ctx.textAlign = 'center';
+
+        // fill in epochs
+        const startTime = epochs[0].bounds[0];
+        const totalTime = epochs[epochs.length-1].bounds[1] - startTime;
+
+        epochs.forEach((epoch, idx) => {
+            ctx.fillStyle = idx % 2 === 0 ? 'grey' : 'black';
+
+            const startX = width * (epoch.bounds[0] - startTime) / totalTime;
+            const epochWidth = width * (epoch.bounds[1] - epoch.bounds[0]) / totalTime;
+
+            ctx.fillRect(startX, 0, epochWidth, height);
+
+            ctx.fillStyle = 'white';
+            ctx.fillText(epoch.label, (2*startX + epochWidth) / 2, height / 2);
+        });
+
+        // scale to fit but don't stretch
+        const scaleFactor = Math.min(1, baseWidth / textWidth);
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(scaleFactor, 1);
+
+        return ctx.canvas;
+    }
+
     private rgb2Hex(val: number[]): string {
         return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
+    }
+
+    private updateSlider() {
+        if (this.epochSlider === null) {
+            return;
+        }
+
+        const startTime = this.epochs[0].bounds[0];
+        if (this.timeVal === startTime) {
+            this.camera.remove(this.epochSlider);
+            this.epochSlider = this.makeEpochSlider(1200, 28);
+        } else {
+            const timeRange = this.epochs[this.epochs.length - 1].bounds[1] - startTime;
+
+            const canvasTexture = (this.epochSlider.children[0] as THREE.Sprite).material.map;
+            const ctx = canvasTexture.image.getContext('2d');
+            ctx.fillStyle = 'red';
+            ctx.fillRect(0, 3 * canvasTexture.image.height / 4, ctx.canvas.width * (this.timeVal - startTime)/timeRange, canvasTexture.image.height / 4);
+
+            (this.epochSlider.children[0] as THREE.Sprite).material.needsUpdate = true;
+        }
     }
 
     public animate(timestamp: number = null) {
@@ -158,6 +262,9 @@ export class BrainViewer {
         // add controls
         this.trackControls = new OrbitControls(this.camera, document.getElementById(this.container));
         this.trackControls.addEventListener('change', this.render.bind(this));
+
+        // add slider
+        this.epochSlider = this.makeEpochSlider(1200, 28);
     }
 
     public loadPenetration(penetrationData: IPenetrationData) {
@@ -280,6 +387,7 @@ export class BrainViewer {
 
     public set timeVal(t: number) {
         this._timeVal = t;
+        this.updateSlider();
         this.updatePenetrationAesthetics();
     }
 

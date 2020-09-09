@@ -1,8 +1,12 @@
 import json
 import os
+from pathlib import Path
+import shutil
+from tempfile import mkdtemp, mktemp
 
-from flask import Flask, make_response, request
+from flask import Flask, make_response, request, send_file
 from flask_cors import CORS
+import numpy as np
 
 from activity_viewer.settings import AVSettings, make_default_settings
 from activity_viewer.loaders import NpzLoader
@@ -21,6 +25,46 @@ def hello():
 @app.route("/compartments")
 def get_compartment_tree():
     return state.get_compartment_tree()
+
+
+@app.route("/data-file", methods=["POST"])
+def get_export_data_file():
+    """
+    export interface IUnitExport {
+        penetrationId: string,
+        unitIds: number[],
+    }
+
+    export interface IExportRequest {
+        data: IUnitExport[],
+    }
+    """
+    if request.method == "POST" and hasattr(request, "data"):
+        tmpfile = Path(mkdtemp(), "export.npz")
+
+        data = json.loads(request.data)
+        export_data = {}
+
+        for export_request in data["data"]:
+            penetration_id = export_request["penetrationId"]
+            unit_ids = export_request["unitIds"]
+            export_data[penetration_id] = unit_ids
+
+        np.savez(tmpfile, **export_data)
+        shutil.copy2(tmpfile, Path(state.settings.filename.parent, "export.npz"))
+        return send_file(tmpfile)
+
+
+@app.route("/data-file/penetration/<penetration_id>")
+def get_penetration_data_file(penetration_id: str):
+    file_path = state.get_penetration_filename(state.penetrations[0])
+    if file_path is None:
+        return make_response(f"Penetration '{penetration_id}'.", 404)
+
+    return send_file(
+        file_path,
+        attachment_filename=file_path.name
+    )
 
 
 @app.route("/mesh/<int:structure_id>")
@@ -155,7 +199,7 @@ def settings():
         if "settings_path" in data:
             try:
                 state.settings = AVSettings.from_file(data["settings_path"])
-            except:
+            except Exception as e:
                 app.logger.warning(f"Settings file {data['settings_path']} was not found. Using default settings.")
                 state.settings = make_default_settings()
     

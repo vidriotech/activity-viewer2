@@ -146,6 +146,8 @@
     },
     "system": {
         "atlasVersion": "ccf_2017",
+        "dataFiles": [],
         "resolution": 100
-    }
+    },
+    "epochs": []
 }

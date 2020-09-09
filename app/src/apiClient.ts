@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-import { ISettingsRequest, IPenetrationRequest } from './models/apiModels';
+import { IUnitExport, ISettingsRequest, IPenetrationRequest } from './models/apiModels';
 
 
 export class APIClient {
@@ -12,6 +12,19 @@ export class APIClient {
 
     async fetchCompartmentTree() {
         return await axios.get(`${this.endpoint}/compartments`);
+    }
+
+    async fetchExportedData(exportData: IUnitExport[]) {
+        const data = {
+            data: exportData,
+        };
+
+        return await axios({
+            'method': 'post',
+            'url': `${this.endpoint}/data-file`,
+            'data': data,
+            'timeout': 5000
+        });
     }
 
     async fetchPenetrations() {

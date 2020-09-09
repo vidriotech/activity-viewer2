@@ -108,8 +108,8 @@ def start_daemon(ctx: click.core.Context, settings_file: str):
     settings_file = ctx.obj["settings_file"] if settings_file is None else settings_file
     try:
         state.settings = AVSettings.from_file(settings_file)
-    except:
-        click.echo(f"Settings file {settings_file} was not found. Using default settings.")
+    except Exception:
+        click.echo(f"Failed to load settings from file '{settings_file}'. Using default settings.")
         state.settings = make_default_settings()
 
     app.run(host="127.0.0.1", port=3030, debug=True)

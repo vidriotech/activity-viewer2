@@ -66,8 +66,6 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
         });
 
         cur.isVisible = compartmentNodeView.isVisible;
-        console.log(cur);
-        console.log(root);
         this.props.onToggleCompartmentVisible(root);
     }
 
@@ -112,6 +110,7 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
                           onChange={(_evt, newValue: ICompartmentNodeView[] ) => this.setState({ filteredCompartments: newValue})}
                           renderInput={(params) => (
                               <TextField {...params}
+                                         variant='outlined'
                                          placeholder='Search compartments'
                               />
                           )}
@@ -143,7 +142,7 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
                 {header}
                 {ac}
                 <List dense
-                      style={{ width: '100%', maxHeight: 300, overflow: 'auto', position: 'relative' }} >
+                      style={{ width: '100%', maxHeight: 500, overflow: 'auto', position: 'relative' }} >
                     {listChildren}
                 </List>
             </Container>

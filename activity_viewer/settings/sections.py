@@ -140,6 +140,8 @@ class System(DefaultSerializable):
             self.data_files = kwargs.pop("data_files")
         except KeyError:
             self.data_files = self.DEFAULTS["data_files"]
+        except Exception as e:
+            print(e)
 
         try:
             self.resolution = kwargs.pop("resolution")
@@ -182,15 +184,20 @@ class System(DefaultSerializable):
         return self._data_files
 
     @data_files.setter
-    def data_files(self, val: List[PathType]):
-        type_check(val, list)
+    def data_files(self, val: Union[PathType, List[PathType]]):
+        type_check(val, (list,) + PathType.__args__)
+
+        if not isinstance(val, list):
+            val = [val]
+
         files = []
 
         for v in val:
             type_check(v, PathType.__args__)
-            files.append(Path(v).resolve())
+            v = Path(v)
+            files += [p.resolve() for p in v.parent.glob(v.name)]
 
-        self._data_files = val
+        self._data_files = files
 
     @property
     def resolution(self) -> int:

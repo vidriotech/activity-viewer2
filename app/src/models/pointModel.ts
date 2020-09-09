@@ -17,6 +17,14 @@ export class PointModel {
         this.stats = new Map<string, number>();
     }
 
+    public get compartmentId() {
+        return this.summary.compartment ? this.summary.compartment.id : null;
+    }
+
+    public get compartmentIdPath() {
+        return this.summary.compartment ? this.summary.compartment.structure_id_path : null;
+    }
+
     public get compartmentName() {
         return this.summary.compartment ? this.summary.compartment.name : null;
     }

@@ -3,6 +3,7 @@ import * as _ from 'underscore';
 
 import Grid from '@material-ui/core/Grid';
 
+import { CompartmentTree } from '../../compartmentTree';
 import { AVConstants } from '../../constants';
 
 import { IPenetrationData, ISettingsResponse } from '../../models/apiModels';
@@ -10,7 +11,6 @@ import { Predicate } from '../../models/predicateModels';
 
 import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
-import { CompartmentList, ICompartmentListProps } from './CompartmentList';
 import { PredicateList, IPredicateListProps } from './PredicateList';
 import { StatsHistogram, IStatsHistogramProps } from './StatsHistogram';
 
@@ -18,6 +18,7 @@ import { StatsHistogram, IStatsHistogramProps } from './StatsHistogram';
 export interface IFilterControlsProps {
     availablePenetrations: IPenetrationData[],
     compartmentSubsetOnly: boolean,
+    compartmentTree: CompartmentTree,
     compartmentViewTree: ICompartmentNodeView,
     constants: AVConstants,
     statsData: number[],
@@ -32,17 +33,10 @@ export interface IFilterControlsProps {
 export function FilterControls(props: IFilterControlsProps) {
     const predicateListProps: IPredicateListProps = {
         availablePenetrations: props.availablePenetrations,
+        compartmentTree: props.compartmentTree,
         filterPredicate: props.filterPredicate,
         onFilterPredicateUpdate: props.onFilterPredicateUpdate,
     };
-
-    const compartmentListProps: ICompartmentListProps = {
-        compartmentSubsetOnly: props.compartmentSubsetOnly,
-        compartmentViewTree: props.compartmentViewTree,
-        constants: props.constants,
-        settings: props.settings,
-        onToggleCompartmentVisible: props.onToggleCompartmentVisible,
-    }
 
     const histogramProps: IStatsHistogramProps = {
         availablePenetrations: props.availablePenetrations,
@@ -62,12 +56,9 @@ export function FilterControls(props: IFilterControlsProps) {
             <Grid item xs={12}>
                 <PredicateList {...predicateListProps} />
             </Grid>
-            <Grid item xs>
-                <CompartmentList {...compartmentListProps} />
-            </Grid>
-            <Grid item xs>
+            {/* <Grid item xs>
                 <StatsHistogram {...histogramProps} />
-            </Grid>
+            </Grid> */}
         </Grid>
     );
 }
