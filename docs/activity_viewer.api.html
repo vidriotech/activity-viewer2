@@ -167,8 +167,29 @@
 <dd></dd></dl>
 
 <dl class="py function">
+<dt id="activity_viewer.api.routes.get_export_data_file">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_export_data_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_export_data_file" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="simple">
+<dt>export interface IUnitExport {</dt><dd><p>penetrationId: string,
+unitIds: number[],</p>
+</dd>
+</dl>
+<p>}</p>
+<dl class="simple">
+<dt>export interface IExportRequest {</dt><dd><p>data: IUnitExport[],</p>
+</dd>
+</dl>
+<p>}</p>
+</dd></dl>
+
+<dl class="py function">
 <dt id="activity_viewer.api.routes.get_mesh">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_mesh</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">structure_id</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_mesh" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_penetration_data_file">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_penetration_data_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_penetration_data_file" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -271,6 +292,11 @@
 <code class="sig-name descname">get_coordinates</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_coordinates" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get CCF coordinates for <cite>penetration_id</cite>.</p>
 </dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_penetration_filename">
+<code class="sig-name descname">get_penetration_filename</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_penetration_filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="activity_viewer.api.state.APIState.get_pseudocoronal_annotation_slice">

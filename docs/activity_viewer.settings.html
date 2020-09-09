@@ -178,18 +178,24 @@ You probably don’t want to instantiate this directly. Instead, use the <cite>f
 </div>
 <dl class="py attribute">
 <dt id="activity_viewer.settings.avsettings.AVSettings.ATTRS">
-<code class="sig-name descname">ATTRS</code><em class="property"> = ['compartment', 'system']</em><a class="headerlink" href="#activity_viewer.settings.avsettings.AVSettings.ATTRS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">ATTRS</code><em class="property"> = ['compartment', 'system', 'epochs']</em><a class="headerlink" href="#activity_viewer.settings.avsettings.AVSettings.ATTRS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
 <dt id="activity_viewer.settings.avsettings.AVSettings.DEFAULTS">
-<code class="sig-name descname">DEFAULTS</code><em class="property"> = {'compartment': {&quot;maxDepth&quot;:0,&quot;exclude&quot;:[],&quot;include&quot;:[]}, 'filename': WindowsPath('C:/Users/alanc/AppData/Local/activity-viewer/settings.json'), 'system': {&quot;atlasVersion&quot;:&quot;ccf_2017&quot;,&quot;dataFiles&quot;:[],&quot;cacheDirectory&quot;:&quot;C:\\Users\\alanc\\AppData\\Local\\activity-viewer&quot;,&quot;resolution&quot;:100}}</em><a class="headerlink" href="#activity_viewer.settings.avsettings.AVSettings.DEFAULTS" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">DEFAULTS</code><em class="property"> = {'compartment': {&quot;maxDepth&quot;:0,&quot;exclude&quot;:[],&quot;include&quot;:[]}, 'epochs': [], 'filename': WindowsPath('C:/Users/alanc/AppData/Local/activity-viewer/settings.json'), 'system': {&quot;atlasVersion&quot;:&quot;ccf_2017&quot;,&quot;dataFiles&quot;:[],&quot;cacheDirectory&quot;:&quot;C:\\Users\\alanc\\AppData\\Local\\activity-viewer&quot;,&quot;resolution&quot;:100}}</em><a class="headerlink" href="#activity_viewer.settings.avsettings.AVSettings.DEFAULTS" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt id="activity_viewer.settings.avsettings.AVSettings.compartment">
 <em class="property">property </em><code class="sig-name descname">compartment</code><a class="headerlink" href="#activity_viewer.settings.avsettings.AVSettings.compartment" title="Permalink to this definition">¶</a></dt>
 <dd><p>Class representation of the ‘compartment’ section of the settings file.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.settings.avsettings.AVSettings.epochs">
+<em class="property">property </em><code class="sig-name descname">epochs</code><a class="headerlink" href="#activity_viewer.settings.avsettings.AVSettings.epochs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Collection of experimental epochs.</p>
 </dd></dl>
 
 <dl class="py method">
@@ -267,6 +273,30 @@ You probably don’t want to instantiate this directly. Instead, use the <cite>f
 <dd class="field-odd"><p><strong>filename</strong> (<em>str</em><em> or </em><em>Path</em>) – The filename to touch.</p>
 </dd>
 </dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer.settings.epoch">
+<span id="activity-viewer-settings-epoch-module"></span><h2>activity_viewer.settings.epoch module<a class="headerlink" href="#module-activity_viewer.settings.epoch" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="activity_viewer.settings.epoch.Epoch">
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.settings.epoch.</code><code class="sig-name descname">Epoch</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.settings.epoch.Epoch" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="activity_viewer.html#activity_viewer.base.Serializable" title="activity_viewer.base.Serializable"><code class="xref py py-class docutils literal notranslate"><span class="pre">activity_viewer.base.Serializable</span></code></a></p>
+<dl class="py attribute">
+<dt id="activity_viewer.settings.epoch.Epoch.ATTRS">
+<code class="sig-name descname">ATTRS</code><em class="property"> = ['label', 'bounds']</em><a class="headerlink" href="#activity_viewer.settings.epoch.Epoch.ATTRS" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.settings.epoch.Epoch.bounds">
+<em class="property">property </em><code class="sig-name descname">bounds</code><a class="headerlink" href="#activity_viewer.settings.epoch.Epoch.bounds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.settings.epoch.Epoch.label">
+<em class="property">property </em><code class="sig-name descname">label</code><a class="headerlink" href="#activity_viewer.settings.epoch.Epoch.label" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>

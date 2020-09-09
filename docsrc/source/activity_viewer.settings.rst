@@ -12,6 +12,14 @@ activity\_viewer.settings.avsettings module
    :undoc-members:
    :show-inheritance:
 
+activity\_viewer.settings.epoch module
+--------------------------------------
+
+.. automodule:: activity_viewer.settings.epoch
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 activity\_viewer.settings.sections module
 -----------------------------------------
 

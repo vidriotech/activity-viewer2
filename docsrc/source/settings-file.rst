@@ -32,20 +32,39 @@ program. There are two main sections, namely:
     system's user cache directory (a dot folder on a Unix-like OS, or
     C:\\Users\\me\\AppData\\Local on Windows).
   - ``dataFiles``: a list of :ref:`data files <input-data>` to visualize in the
-    current session.
-  - ``resolution``: the voxel resolution of the template and annotation volumes
-    to use, in μm\ :sup:`3`. Options are:
+    current session. This can be a glob, a list of file names, or a list of file names and globs.
 
-    - 10 (results in very large data files)
-    - 25
-    - 50
-    - 100 (much smaller data files).
+  - ``resolution``: the voxel resolution of the template and annotation volumes
+  to use, in μm\ :sup:`3`. Options are:
+
+  - 10 (results in very large data files)
+  - 25
+  - 50
+  - 100 (much smaller data files).
+
+There is an additional, optional, field ``epochs``, with which you may specify
+experimental epochs. It takes the following format:
+
+.. code-block:: json
+
+  {
+    ...
+    "epochs": [
+        {"label": "Sample", "bounds": [-1.85, -1.2]},
+        {"label": "Delay", "bounds": [-1.2, 0]},
+        {"label": "Response", "bounds": [0, 3]}
+    ]
+  }
+
+
+Each epoch has two fields, ``label``, a unique string label for the epoch, and
+``bounds``, which specify start and end times for that epoch.
 
 If you don't have a settings file in the current working directory, the
 activity viewer will try to use a default settings file, installed in a
 system-dependent user config directory (a dot folder on a Unix-like OS, or
-C:\\Users\\me\\AppData\\Local on Windows). If that file can't be found, it will be
-created and populated with default values (see below).
+C:\\Users\\me\\AppData\\Local on Windows). If that file can't be found, it will
+be created and populated with default values (see below).
 
 The default settings file
 +++++++++++++++++++++++++

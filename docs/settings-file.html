@@ -153,10 +153,10 @@
 <h1>The settings file<a class="headerlink" href="#the-settings-file" title="Permalink to this headline">¶</a></h1>
 <p>A JSON file allowing you to specify configuration options before running the
 program. There are two main sections, namely:</p>
-<ul class="simple">
+<ul>
 <li><p><code class="docutils literal notranslate"><span class="pre">compartment</span></code>, containing fields related to the compartments shown or made
 available in the hierarchy by default. Those fields are:</p>
-<ul>
+<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">maxDepth</span></code>: the maximum number of levels below the root node (i.e., the
 whole brain) in the compartment hierarchy to make available by default.
 The minimum value is 0 (so just the root node is available), and the
@@ -172,7 +172,7 @@ precedence over</strong> <code class="docutils literal notranslate"><span class=
 </li>
 <li><p><code class="docutils literal notranslate"><span class="pre">system</span></code>, containing fields related to the fetching, storage, and display
 of data. Those fields are:</p>
-<ul>
+<ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">atlasVersion</span></code>: the version of the Allen Brain Atlas to use. Options are:</p>
 <ul>
 <li><p>“ccf_2017” (October 2017) (the default value)</p></li>
@@ -185,10 +185,11 @@ don’t specify a cache directory, this defaults to a subdirectory of your
 system’s user cache directory (a dot folder on a Unix-like OS, or
 C:\Users\me\AppData\Local on Windows).</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">dataFiles</span></code>: a list of <a class="reference internal" href="usage.html#input-data"><span class="std std-ref">data files</span></a> to visualize in the
-current session.</p></li>
-<li><p><code class="docutils literal notranslate"><span class="pre">resolution</span></code>: the voxel resolution of the template and annotation volumes
-to use, in μm<sup>3</sup>. Options are:</p>
-<ul>
+current session. This can be a glob, a list of file names, or a list of file names and globs.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">resolution</span></code>: the voxel resolution of the template and annotation volumes</p></li>
+</ul>
+<p>to use, in μm<sup>3</sup>. Options are:</p>
+<ul class="simple">
 <li><p>10 (results in very large data files)</p></li>
 <li><p>25</p></li>
 <li><p>50</p></li>
@@ -196,13 +197,25 @@ to use, in μm<sup>3</sup>. Options are:</p>
 </ul>
 </li>
 </ul>
-</li>
-</ul>
+<p>There is an additional, optional, field <code class="docutils literal notranslate"><span class="pre">epochs</span></code>, with which you may specify
+experimental epochs. It takes the following format:</p>
+<div class="highlight-json notranslate"><div class="highlight"><pre><span></span>{
+  ...
+  &quot;epochs&quot;: [
+      {&quot;label&quot;: &quot;Sample&quot;, &quot;bounds&quot;: [-1.85, -1.2]},
+      {&quot;label&quot;: &quot;Delay&quot;, &quot;bounds&quot;: [-1.2, 0]},
+      {&quot;label&quot;: &quot;Response&quot;, &quot;bounds&quot;: [0, 3]}
+  ]
+}
+</pre></div>
+</div>
+<p>Each epoch has two fields, <code class="docutils literal notranslate"><span class="pre">label</span></code>, a unique string label for the epoch, and
+<code class="docutils literal notranslate"><span class="pre">bounds</span></code>, which specify start and end times for that epoch.</p>
 <p>If you don’t have a settings file in the current working directory, the
 activity viewer will try to use a default settings file, installed in a
 system-dependent user config directory (a dot folder on a Unix-like OS, or
-C:\Users\me\AppData\Local on Windows). If that file can’t be found, it will be
-created and populated with default values (see below).</p>
+C:\Users\me\AppData\Local on Windows). If that file can’t be found, it will
+be created and populated with default values (see below).</p>
 <div class="section" id="the-default-settings-file">
 <h2>The default settings file<a class="headerlink" href="#the-default-settings-file" title="Permalink to this headline">¶</a></h2>
 <p>Note that <code class="docutils literal notranslate"><span class="pre">dataDirectory</span></code> is system dependent and so is not defined here.</p>
@@ -354,8 +367,10 @@ created and populated with default values (see below).</p>
     <span class="p">},</span>
     <span class="nt">&quot;system&quot;</span><span class="p">:</span> <span class="p">{</span>
         <span class="nt">&quot;atlasVersion&quot;</span><span class="p">:</span> <span class="s2">&quot;ccf_2017&quot;</span><span class="p">,</span>
+        <span class="nt">&quot;dataFiles&quot;</span><span class="p">:</span> <span class="p">[],</span>
         <span class="nt">&quot;resolution&quot;</span><span class="p">:</span> <span class="mi">100</span>
-    <span class="p">}</span>
+    <span class="p">},</span>
+    <span class="nt">&quot;epochs&quot;</span><span class="p">:</span> <span class="p">[]</span>
 <span class="p">}</span>
 </pre></div>
 </div>
