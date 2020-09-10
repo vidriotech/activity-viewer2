@@ -1,9 +1,7 @@
 from pathlib import Path
 from typing import List, Union
 
-from allensdk.api.queries.ontologies_api import OntologiesApi
 from allensdk.api.queries.reference_space_api import ReferenceSpaceApi
-from allensdk.core.structure_tree import StructureTree
 import appdirs
 
 from activity_viewer.base import DefaultSerializable, type_check, snake_to_camel

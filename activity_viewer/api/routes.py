@@ -206,6 +206,19 @@ def settings():
     return state.settings.to_dict()
 
 
+@app.route("/slices/coronal/<ap_coordinate>")
+def get_coronal_slices(ap_coordinate: float):
+    ap_coordinate = float(ap_coordinate)
+    template_slice = state.get_coronal_template_slice(ap_coordinate)
+    annotation_slice = state.get_coronal_annotation_slice(ap_coordinate)
+
+    return {
+        "annotation_slice": annotation_slice.ravel().tolist(),
+        "template_slice": template_slice.ravel().tolist(),
+        "stride": annotation_slice.shape[1]
+    }
+
+
 @app.route("/timeseries/<timeseries_id>")
 def get_timeseries_by_id(timeseries_id: str):
     response = {"timeseries": []}

@@ -35,16 +35,16 @@ export class BrainViewer {
     private epochSlider: THREE.Object3D = null;
     private epochMarker: THREE.Object3D = null;
 
+    private penetrationPointsMap: Map<string, THREE.Points>;
+    private penetrationViewModelsMap: Map<string, PenetrationViewModel>;
+
+    // animation
+    private _timeVal: number = 0;
+
     public HEIGHT: number;
     public WIDTH: number;
     public container = 'container';
     public flip = true; // flip y axis
-
-    private penetrationPointsMap: Map<string, THREE.Points>;
-    private penetrationViewModelsMap: Map<string, PenetrationViewModel>;
-
-    //animation
-    private _timeVal: number = 0;
 
     constructor(constants: AVConstants, epochs: IEpoch[]) {
         this.constants = constants;

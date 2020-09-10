@@ -73,6 +73,7 @@
     "@types/d3": "^5.7.2",
     "@types/dom-mediacapture-record": "^1.0.7",
     "@types/lodash": "^4.14.161",
+    "@types/plotly.js": "^1.50.18",
     "@types/react": "^16.9.43",
     "@types/react-dom": "^16.9.8",
     "@types/react-virtualized": "^9.21.10",
@@ -93,8 +94,6 @@
     "url-loader": "^4.1.0"
   },
   "dependencies": {
-    "@bokeh/bokehjs": "^2.1.1",
-    "@kassellabs/react-semantic-ui-range": "^1.0.0",
     "@material-ui/core": "^4.11.0",
     "@material-ui/icons": "^4.9.1",
     "@material-ui/lab": "^4.0.0-alpha.56",
@@ -107,9 +106,11 @@
     "html-webpack-plugin": "^4.3.0",
     "lodash": "^4.17.20",
     "ndb-three-orbit-controls": "^82.1.3",
+    "plotly.js": "^1.55.2",
     "python-shell": "^2.0.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
+    "react-plotly.js": "^2.4.0",
     "react-virtualized": "^9.22.2",
     "semantic-ui-react": "^1.1.1",
     "three": "^0.118.3",

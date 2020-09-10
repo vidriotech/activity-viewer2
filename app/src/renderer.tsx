@@ -39,7 +39,7 @@ import { AVConstants } from './constants';
 import { CompartmentTree } from './compartmentTree';
 import { ICompartmentNode, ISettingsResponse } from './models/apiModels';
 
-import { App, IAppProps } from './components/App';
+import { App, AppProps } from './components/App';
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
 let root = document.createElement('div');
@@ -49,7 +49,7 @@ document.body.appendChild(root);
 const constants = new AVConstants();
 const apiClient = new APIClient(constants.apiEndpoint);
 
-let props: IAppProps = {
+let props: AppProps = {
     compartmentTree: null,
     constants: constants,
     settings: null

@@ -8,17 +8,18 @@ import { AVConstants } from '../constants';
 import { CompartmentTree } from '../compartmentTree';
 import { ISettingsResponse } from '../models/apiModels';
 
-import { MainView, IMainViewProps } from './MainView';
+// eslint-disable-next-line import/no-unresolved
+import { MainView, IMainViewProps } from "./MainView";
 
 
-export interface IAppProps {
+export interface AppProps {
     compartmentTree: CompartmentTree,
     constants: AVConstants,
     settings: ISettingsResponse,
 }
 
-export function App(props: IAppProps) {
-    let mainViewProps: IMainViewProps = {
+export function App(props: AppProps) {
+    const mainViewProps: IMainViewProps = {
         compartmentTree: props.compartmentTree,
         constants: props.constants,
         settings: props.settings,

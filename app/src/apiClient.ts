@@ -1,10 +1,10 @@
-const axios = require('axios');
-
-import { IUnitExport, ISettingsRequest, IPenetrationRequest } from './models/apiModels';
+import axios from 'axios';
+// eslint-disable-next-line import/no-unresolved
+import { IUnitExport, ISettingsRequest, PenetrationRequest } from './models/apiModels';
 
 
 export class APIClient {
-    private endpoint: string;
+    private readonly endpoint: string;
 
     constructor(endpoint: string) {
         this.endpoint = endpoint;
@@ -19,7 +19,7 @@ export class APIClient {
             data: exportData,
         };
 
-        return await axios({
+        return axios({
             'method': 'post',
             'url': `${this.endpoint}/data-file`,
             'data': data,
@@ -56,24 +56,26 @@ export class APIClient {
     }
 
     async setPenetrations(dataPaths: string[]) {
-        let penReqData: IPenetrationRequest = {
+        const penReqData: PenetrationRequest = {
+            // eslint-disable-next-line @typescript-eslint/camelcase
             data_paths: dataPaths,
         };
 
-        return await axios({
+        return axios({
             'method': 'post',
             'url': `${this.endpoint}/penetrations`,
             'data': penReqData,
-            'timeout': 5000
+            'timeout': 15000
         });
     }
 
     async setSettings(settingsPath: string) {
-        let settingsReqData: ISettingsRequest = {
+        const settingsReqData: ISettingsRequest = {
+            // eslint-disable-next-line @typescript-eslint/camelcase
             settings_path: settingsPath,
         }
 
-        let settings = await axios({
+        const settings = await axios({
             'method': 'post',
             'url': `${this.endpoint}/settings`,
             'data': settingsReqData,

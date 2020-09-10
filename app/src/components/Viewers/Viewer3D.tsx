@@ -64,7 +64,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
         return { width, height };
     }
 
-    private async createViewer() {
+    private async createViewer3D() {
         if (this.viewer !== null) {
             return;
         }
@@ -139,7 +139,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     public componentDidMount() {
         window.addEventListener('resize', () => this.updateDims());
 
-        this.createViewer()
+        this.createViewer3D()
             .then(() => {
                 this.renderCompartments();
                 this.renderPenetrations();

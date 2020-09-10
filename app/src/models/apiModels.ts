@@ -49,7 +49,7 @@ export interface IPenetrationData {
     visible: boolean[],
 }
 
-export interface IPenetrationRequest {
+export interface PenetrationRequest {
     data_paths: string[],
 }
 
