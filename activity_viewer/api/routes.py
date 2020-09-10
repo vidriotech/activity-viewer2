@@ -8,9 +8,9 @@ from flask import Flask, make_response, request, send_file
 from flask_cors import CORS
 import numpy as np
 
+from activity_viewer.api.state import APIState
+from activity_viewer.api.compute import colormap
 from activity_viewer.settings import AVSettings, make_default_settings
-from activity_viewer.loaders import NpzLoader
-from .state import APIState
 
 app = Flask(__name__)
 CORS(app)
@@ -20,6 +20,15 @@ state = APIState()
 @app.route("/")
 def hello():
     return "Hello, world!"
+
+
+@app.route("/color-map/<map_name>")
+def get_colormap(map_name: str):
+    mapping = colormap(map_name)
+    if mapping is None:
+        return make_response(f"Color map identifier '{map_name}' not found.", 404)
+
+    return {"mapping": mapping.tolist()}
 
 
 @app.route("/compartments")
