@@ -12,14 +12,14 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
 import { CompartmentTree } from '../../compartmentTree';
-import { IPenetrationData } from '../../models/apiModels';
+import { PenetrationData } from '../../models/apiModels';
 import { PointModel } from '../../models/pointModel';
 import { Predicate, PropPredicate, StatPredicate, PredicateChain, ANDPredicateChain, ORPredicateChain, FuzzyPredicate } from '../../models/predicateModels';
 
 import { PredicateListNode } from './PredicateListNode';
 
 export interface IPredicateListProps {
-    availablePenetrations: IPenetrationData[],
+    availablePenetrations: PenetrationData[],
     compartmentTree: CompartmentTree,
     filterPredicate: Predicate,
     onFilterPredicateUpdate(predicate: Predicate, newStat: string): void,

@@ -26,30 +26,35 @@
  * ```
  */
 
-import React from 'react';
-import ReactDOM from 'react-dom';
+import React from "react";
+import ReactDOM from "react-dom";
 
 // Import styling
-import './assets/css/index.css';
-// import 'fomantic-ui-css/semantic.css';
-import 'fontsource-roboto';
+import "./assets/css/index.css";
+// import "fomantic-ui-css/semantic.css";
+import "fontsource-roboto";
 
-import { APIClient } from './apiClient';
-import { AVConstants } from './constants';
-import { CompartmentTree } from './compartmentTree';
-import { ICompartmentNode, ISettingsResponse } from './models/apiModels';
+// eslint-disable-next-line import/no-unresolved
+import { APIClient } from "./apiClient";
+// eslint-disable-next-line import/no-unresolved
+import { AVConstants } from "./constants";
+// eslint-disable-next-line import/no-unresolved
+import { CompartmentTree } from "./compartmentTree";
+// eslint-disable-next-line import/no-unresolved
+import { ICompartmentNode, SettingsData } from "./models/apiModels";
 
-import { App, AppProps } from './components/App';
+// eslint-disable-next-line import/no-unresolved
+import { App, AppProps } from "./components/App";
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
-let root = document.createElement('div');
-root.id = 'root';
+const root = document.createElement("div");
+root.id = "root";
 document.body.appendChild(root);
 
 const constants = new AVConstants();
 const apiClient = new APIClient(constants.apiEndpoint);
 
-let props: AppProps = {
+const props: AppProps = {
     compartmentTree: null,
     constants: constants,
     settings: null
@@ -57,12 +62,9 @@ let props: AppProps = {
 
 apiClient.fetchSettings()
     .then((res: any) => res.data)
-    .then((data: ISettingsResponse) => {
+    .then((data: SettingsData) => {
         props.settings = data;
 
-        return apiClient.setPenetrations(data.system.dataFiles);
-    })
-    .then((_res:any) => {
         return apiClient.fetchCompartmentTree();
     })
     .then((res: any) => res.data)
@@ -71,7 +73,7 @@ apiClient.fetchSettings()
 
         ReactDOM.render(
             <App {...props}/>,
-            document.getElementById('root')
+            document.getElementById("root")
         );
     })
     .catch((err: any) => {

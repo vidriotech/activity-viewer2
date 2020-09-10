@@ -9,8 +9,8 @@ import { AVConstants } from '../constants';
 import {
     IUnitExport,
     IExportRequest,
-    ISettingsResponse,
-    IPenetrationData,
+    SettingsData,
+    PenetrationData,
     IPenetrationResponse,
     ITimeseriesListResponse,
     IUnitStatsListResponse,
@@ -24,7 +24,7 @@ import { ICompartmentNodeView } from '../viewmodels/compartmentViewModel';
 
 import { CompartmentList, ICompartmentListProps } from './CompartmentList/CompartmentList';
 import { FilterControls, IFilterControlsProps } from './FilterControls/FilterControls';
-import { TimeseriesControls, ITimeseriesControlsProps } from './TimeseriesControls/TimeseriesControls';
+import { TimeseriesControls, TimeseriesControlsProps } from './TimeseriesControls/TimeseriesControls';
 import { ViewerContainer, IViewerContainerProps } from './Viewers/ViewerContainer';
 import { UnitTable, IUnitTableProps } from './UnitTable/UnitTable';
 
@@ -43,12 +43,12 @@ interface IUnitStatsData {
 export interface IMainViewProps {
     compartmentTree: CompartmentTree,
     constants: AVConstants,
-    settings: ISettingsResponse,
+    settings: SettingsData,
 }
 
 interface IMainViewState {
     aesthetics: IAesthetics[],
-    availablePenetrations: IPenetrationData[],
+    availablePenetrations: PenetrationData[],
     colorBounds: number[],
     compartmentSubsetOnly: boolean,
     compartmentViewTree: ICompartmentNodeView,
@@ -75,7 +75,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     constructor(props: IMainViewProps) {
         super(props);
 
-        let compartmentViewTree = this.props.compartmentTree.getCompartmentNodeViewTree(true);
+        const compartmentViewTree = this.props.compartmentTree.getCompartmentNodeViewTree(true);
         compartmentViewTree.isVisible = true;
  
         this.state = {
@@ -391,7 +391,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
     }
 
     private updateFilter(predicate: Predicate) {
-        let availablePenetrations: IPenetrationData[] = [];
+        let availablePenetrations: PenetrationData[] = [];
 
         this.state.availablePenetrations.forEach((penetrationData) => {
             const penetrationId = penetrationData.penetrationId;
@@ -445,7 +445,7 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
         });
     }
 
-    public componentDidMount() {
+    public componentDidMount(): void {
         this.apiClient.fetchPenetrations()
             .then((res: any) => res.data)
             .then((data: IPenetrationResponse) => {
@@ -474,12 +474,12 @@ export class MainView extends React.Component<IMainViewProps, IMainViewState> {
             compartmentViewTree: this.state.compartmentViewTree,
         }
 
-        const timeseriesControlsProps: ITimeseriesControlsProps = {
+        const timeseriesControlsProps: TimeseriesControlsProps = {
             opacityBounds: this.state.opacityBounds,
             radiusBounds: this.state.radiusBounds,
             selectedOpacity: this.state.selectedOpacity,
             selectedRadius: this.state.selectedRadius,
-            timeseries: _.uniq(
+            timeseriesList: _.uniq(
                 _.flatten(this.state.availablePenetrations.map(
                     pen => pen.timeseries
                 )).sort(), true

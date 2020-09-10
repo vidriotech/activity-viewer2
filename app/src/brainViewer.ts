@@ -9,7 +9,7 @@ import * as _ from 'underscore';
 
 import { AVConstants } from './constants';
 
-import { IEpoch, IPenetrationData } from './models/apiModels';
+import { Epoch, PenetrationData } from './models/apiModels';
 
 import { IAesthetics } from './viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from './viewmodels/compartmentViewModel';
@@ -17,7 +17,7 @@ import { PenetrationViewModel } from './viewmodels/penetrationViewModel';
 
 export class BrainViewer {
     private constants: AVConstants;
-    private epochs: IEpoch[];
+    private epochs: Epoch[];
 
     private loadedCompartments: string[] = [];
     private _visibleCompartments: string[] = [];
@@ -46,7 +46,7 @@ export class BrainViewer {
     public container = 'container';
     public flip = true; // flip y axis
 
-    constructor(constants: AVConstants, epochs: IEpoch[]) {
+    constructor(constants: AVConstants, epochs: Epoch[]) {
         this.constants = constants;
         this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
 
@@ -141,7 +141,7 @@ export class BrainViewer {
         return root;
     }
 
-    private makeLabelCanvas(baseWidth: number, fontSize: number, epochs: IEpoch[]) {
+    private makeLabelCanvas(baseWidth: number, fontSize: number, epochs: Epoch[]) {
         const borderSize = 2;
         const ctx = document.createElement('canvas').getContext('2d');
         const font =  `${fontSize}px sans-serif`;
@@ -267,7 +267,7 @@ export class BrainViewer {
         this.epochSlider = this.makeEpochSlider(1200, 28);
     }
 
-    public loadPenetration(penetrationData: IPenetrationData) {
+    public loadPenetration(penetrationData: PenetrationData) {
         const centerPoint = this.constants.centerPoint.map((t: number) => -t);
         const defaultAesthetics: IAesthetics = {
             penetrationId: penetrationData.penetrationId,

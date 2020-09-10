@@ -8,7 +8,7 @@ import { APIClient } from '../../apiClient';
 import { BrainViewer } from '../../brainViewer';
 import { AVConstants } from '../../constants';
 
-import { ISettingsResponse, IPenetrationData, ICompartmentNode, ICompartment } from '../../models/apiModels';
+import { SettingsData, PenetrationData, ICompartmentNode, ICompartment } from '../../models/apiModels';
 
 import { IAesthetics } from '../../viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
@@ -17,14 +17,14 @@ import { PenetrationViewModel } from '../../viewmodels/penetrationViewModel';
 
 export interface IViewer3DProps {
     aesthetics: IAesthetics[],
-    availablePenetrations: IPenetrationData[],
+    availablePenetrations: PenetrationData[],
     canvasId: string,
     constants: AVConstants,
     compartmentViewTree: ICompartmentNodeView,
     frameRate: number,
     isPlaying: boolean,
     loopAnimation: 'once' | 'repeat',
-    settings: ISettingsResponse,
+    settings: SettingsData,
     timeMin: number,
     timeMax: number,
     timeStep: number,
@@ -83,7 +83,7 @@ export class Viewer3D extends React.Component<IViewer3DProps, IViewer3DState> {
     }
 
     private renderPenetrations() {
-        this.props.availablePenetrations.forEach((penetration: IPenetrationData) => {
+        this.props.availablePenetrations.forEach((penetration: PenetrationData) => {
             if (penetration.ids.length == 0) {
                 return;
             }

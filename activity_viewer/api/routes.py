@@ -200,7 +200,7 @@ def settings():
             try:
                 state.settings = AVSettings.from_file(data["settings_path"])
             except Exception as e:
-                app.logger.warning(f"Settings file {data['settings_path']} was not found. Using default settings.")
+                app.logger.warning(f"Error: {e}. Using default settings.")
                 state.settings = make_default_settings()
     
     return state.settings.to_dict()

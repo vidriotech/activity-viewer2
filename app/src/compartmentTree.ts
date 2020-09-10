@@ -1,13 +1,13 @@
 import * as _ from 'underscore';
 
-import { ICompartment, ICompartmentNode, ISettingsResponse } from './models/apiModels';
+import { ICompartment, ICompartmentNode, SettingsData } from './models/apiModels';
 import { ICompartmentNodeView } from './viewmodels/compartmentViewModel';
 
 export class CompartmentTree {
     private root: ICompartmentNode;
-    private settings: ISettingsResponse;
+    private settings: SettingsData;
 
-    constructor(root: ICompartmentNode, settings: ISettingsResponse) {
+    constructor(root: ICompartmentNode, settings: SettingsData) {
         this.root = root;
         this.settings = settings;
     }

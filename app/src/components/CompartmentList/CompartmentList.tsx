@@ -9,7 +9,7 @@ import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
 import { AVConstants } from '../../constants';
-import { ISettingsResponse } from '../../models/apiModels';
+import { SettingsData } from '../../models/apiModels';
 import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
 import { CompartmentListNode, ICompartmentListNodeProps } from './CompartmentListNode';
@@ -19,7 +19,7 @@ export interface ICompartmentListProps {
     compartmentSubsetOnly: boolean,
     compartmentViewTree: ICompartmentNodeView,
     constants: AVConstants,
-    settings: ISettingsResponse,
+    settings: SettingsData,
     onToggleCompartmentVisible(rootNode: ICompartmentNodeView): void,
 }
 

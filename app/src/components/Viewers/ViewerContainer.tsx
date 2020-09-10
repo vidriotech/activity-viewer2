@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 
 import { AVConstants } from '../../constants';
 
-import { IPenetrationData, ISettingsResponse } from '../../models/apiModels';
+import { PenetrationData, SettingsData } from '../../models/apiModels';
 
 import { IAesthetics } from '../../viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
@@ -17,10 +17,10 @@ import { Viewer3D, IViewer3DProps } from './Viewer3D';
 
 export interface IViewerContainerProps {
     aesthetics: IAesthetics[],
-    availablePenetrations: IPenetrationData[],
+    availablePenetrations: PenetrationData[],
     compartmentViewTree: ICompartmentNodeView,
     constants: AVConstants,
-    settings: ISettingsResponse,
+    settings: SettingsData,
     timeMax: number,
     timeMin: number,
     timeStep: number,

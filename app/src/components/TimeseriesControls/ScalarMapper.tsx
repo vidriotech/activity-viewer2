@@ -1,34 +1,34 @@
-import React from 'react';
-import * as _ from 'underscore';
+import React from "react";
+import * as _ from "underscore";
 
-import FormControl from '@material-ui/core/FormControl';
-import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import Slider from '@material-ui/core/Slider';
-import Typography from '@material-ui/core/Typography';
+import FormControl from "@material-ui/core/FormControl";
+import Grid from "@material-ui/core/Grid";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
+import Slider from "@material-ui/core/Slider";
+import Typography from "@material-ui/core/Typography";
 
 
-export interface IScalarMapperProps {
-    mapperLabel: string,
-    sliderMax: number,
-    sliderMin: number,
-    sliderStep: number,
-    sliderVal: number[],
-    selectedTimeseries: string,
-    timeseries: string[],
+export interface ScalarMapperProps {
+    mapperLabel: string;
+    sliderMax: number;
+    sliderMin: number;
+    sliderStep: number;
+    sliderVal: number[];
+    selectedTimeseries: string;
+    timeseriesList: string[];
     onSelectionChange(event: React.ChangeEvent<{
         name?: string;
         value: any;
-    }>): void,
-    onSliderChange(event: any, newData: number[], commit: boolean): void,
+    }>): void;
+    onSliderChange(event: any, newData: number[], commit: boolean): void;
 }
 
-export function ScalarMapper(props: IScalarMapperProps) {
+export function ScalarMapper(props: ScalarMapperProps) {
     const menuItems = _.union(
-        [<MenuItem key='nothing' value='nothing'>No mapping</MenuItem>],
-        props.timeseries.map(series => {
+        [<MenuItem key="nothing" value="nothing">No mapping</MenuItem>],
+        props.timeseriesList.map(series => {
             return <MenuItem value={series}
                                 key={series}>
                 {series}
@@ -56,7 +56,7 @@ export function ScalarMapper(props: IScalarMapperProps) {
                     <Select
                         labelId={`aesthetic-mapper-${props.mapperLabel}-select`}
                         id={`aesthetic-mapper-${props.mapperLabel}`}
-                        defaultValue='nothing'
+                        defaultValue="nothing"
                         value={props.selectedTimeseries}
                         onChange={props.onSelectionChange}>
                         {menuItems}
@@ -65,8 +65,8 @@ export function ScalarMapper(props: IScalarMapperProps) {
             </Grid>
             <Grid item
                   xs={9} >
-                <Typography variant='caption'
-                            display='block'
+                <Typography variant="caption"
+                            display="block"
                             gutterBottom>
                     Transformation range
                 </Typography>
@@ -77,7 +77,7 @@ export function ScalarMapper(props: IScalarMapperProps) {
                         value={props.sliderVal}
                         onChange={(evt, newData) => props.onSliderChange(evt, newData as number[], false)}
                         onChangeCommitted={(evt, newData) => props.onSliderChange(evt, newData as number[], true)}
-                        disabled={props.selectedTimeseries === 'nothing'} />
+                        disabled={props.selectedTimeseries === "nothing"} />
             </Grid>
         </Grid>
     );

@@ -50,11 +50,13 @@ def make_settings(app: Flask, filename: Optional[PathType]) -> AVSettings:
 
 class APIState:
     """Class representing state of the HTTP API."""
-    def __init__(self):
+    def __init__(self, settings: AVSettings = None):
         self._settings = None
-        self._cache = Cache(self.settings)
+        self._penetrations = {}
+        self._active_penetration = None
         self._npz_loader = NpzLoader()
-        self.clear_penetrations()
+
+        self.settings = settings
 
     def _annotation_to_rgb(self, vals: np.ndarray):
         # encode colors
@@ -266,7 +268,12 @@ class APIState:
         return self._settings
 
     @settings.setter
-    def settings(self, val: AVSettings):
+    def settings(self, val: Optional[AVSettings]):
+        if val is None:
+            val = make_default_settings()
+
         type_check(val, AVSettings)
         self._settings = val
         self._cache = Cache(self._settings)
+
+        self.add_penetrations(self._settings.system.data_files)

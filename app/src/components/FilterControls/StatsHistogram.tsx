@@ -15,12 +15,12 @@ import Typography from '@material-ui/core/Typography';
 
 import { AVConstants } from '../../constants';
 
-import { IPenetrationData } from '../../models/apiModels';
+import { PenetrationData } from '../../models/apiModels';
 import { IFilterCondition } from '../../models/filter';
 import { Predicate, StatPredicate } from '../../models/predicateModels';
 
 export interface IStatsHistogramProps {
-    availablePenetrations: IPenetrationData[],
+    availablePenetrations: PenetrationData[],
     constants: AVConstants
     data: number[],
     height: number,

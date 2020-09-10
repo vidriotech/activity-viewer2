@@ -1,6 +1,6 @@
-import axios from 'axios';
+import axios from "axios";
 // eslint-disable-next-line import/no-unresolved
-import { IUnitExport, ISettingsRequest, PenetrationRequest } from './models/apiModels';
+import { IUnitExport, SettingsRequest, PenetrationRequest } from "./models/apiModels";
 
 
 export class APIClient {
@@ -20,10 +20,10 @@ export class APIClient {
         };
 
         return axios({
-            'method': 'post',
-            'url': `${this.endpoint}/data-file`,
-            'data': data,
-            'timeout': 5000
+            "method": "post",
+            "url": `${this.endpoint}/data-file`,
+            "data": data,
+            "timeout": 5000
         });
     }
 
@@ -62,24 +62,24 @@ export class APIClient {
         };
 
         return axios({
-            'method': 'post',
-            'url': `${this.endpoint}/penetrations`,
-            'data': penReqData,
-            'timeout': 15000
+            "method": "post",
+            "url": `${this.endpoint}/penetrations`,
+            "data": penReqData,
+            "timeout": 15000
         });
     }
 
     async setSettings(settingsPath: string) {
-        const settingsReqData: ISettingsRequest = {
+        const settingsReqData: SettingsRequest = {
             // eslint-disable-next-line @typescript-eslint/camelcase
             settings_path: settingsPath,
         }
 
         const settings = await axios({
-            'method': 'post',
-            'url': `${this.endpoint}/settings`,
-            'data': settingsReqData,
-            'timeout': 5000
+            "method": "post",
+            "url": `${this.endpoint}/settings`,
+            "data": settingsReqData,
+            "timeout": 5000
         })
         .catch((error: any) => {
             console.error(error);

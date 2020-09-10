@@ -4,14 +4,14 @@ import * as Plotly from 'plotly.js';
 
 import { AVConstants } from './constants'
 
-import { IEpoch, IPenetrationData } from './models/apiModels';
+import { Epoch, PenetrationData } from './models/apiModels';
 
 import { PenetrationViewModel } from './viewmodels/penetrationViewModel';
 import { IAesthetics } from './viewmodels/aestheticMapping';
 
 export class SliceViewer {
     private constants: AVConstants;
-    private epochs: IEpoch[];
+    private epochs: Epoch[];
 
     private annotationSlice: number[];
     private templateSlice: number[];
@@ -26,7 +26,7 @@ export class SliceViewer {
     public WIDTH: number;
     public container = 'container';
 
-    constructor(constants: AVConstants, epochs: IEpoch[]) {
+    constructor(constants: AVConstants, epochs: Epoch[]) {
         this.constants = constants;
         this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
 
@@ -37,7 +37,7 @@ export class SliceViewer {
 
     }
 
-    public loadPenetration(penetrationData: IPenetrationData) {
+    public loadPenetration(penetrationData: PenetrationData) {
         
     }
 

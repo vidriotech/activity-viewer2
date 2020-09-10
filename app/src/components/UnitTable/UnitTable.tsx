@@ -9,7 +9,7 @@ import TableCell from '@material-ui/core/TableCell';
 
 import SaveIcon from '@material-ui/icons/Save';
 
-import { IPenetrationData } from '../../models/apiModels';
+import { PenetrationData } from '../../models/apiModels';
 
 declare module '@material-ui/core/styles/withStyles' {
     // Augment the BaseCSSProperties so that we can control jss-rtl
@@ -166,7 +166,7 @@ interface UnitData {
 }
 
 export interface IUnitTableProps {
-    availablePenetrations: IPenetrationData[],
+    availablePenetrations: PenetrationData[],
     onUnitExportRequest(): void,
 }
 

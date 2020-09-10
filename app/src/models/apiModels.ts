@@ -2,16 +2,16 @@
  * Endpoint: /settings
  * Settings may be queried and updated from this endpoint.
  */
-export interface ISettingsRequest {
-    settings_path: string,
+export interface SettingsRequest {
+    settings_path: string;
 }
 
-export interface IEpoch {
-    label: string,
-    bounds: [number, number],
+export interface Epoch {
+    label: string;
+    bounds: [number, number];
 }
 
-export interface ISettingsResponse {
+export interface SettingsData {
     compartment: {
         include: string[],
         exclude: string[],
@@ -23,7 +23,7 @@ export interface ISettingsResponse {
         dataFiles: string[],
         resolution: number,
     },
-    epochs: IEpoch[],
+    epochs: Epoch[],
 }
 
 export interface IUnitExport {
@@ -39,7 +39,7 @@ export interface IExportRequest {
  * Endpoint: /penetrations
  * Penetrations may be added and queried from this endpoint.
  */
-export interface IPenetrationData {
+export interface PenetrationData {
     penetrationId: string,
     ids: number[],
     compartments: ICompartment[]
@@ -54,7 +54,7 @@ export interface PenetrationRequest {
 }
 
 export interface IPenetrationResponse {
-    penetrations: IPenetrationData[],
+    penetrations: PenetrationData[],
 }
 
 /*
