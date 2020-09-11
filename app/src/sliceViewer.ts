@@ -7,7 +7,7 @@ import { AVConstants } from './constants'
 import { Epoch, PenetrationData } from './models/apiModels';
 
 import { PenetrationViewModel } from './viewmodels/penetrationViewModel';
-import { IAesthetics } from './viewmodels/aestheticMapping';
+import { AestheticMapping } from './viewmodels/aestheticMapping';
 
 export class SliceViewer {
     private constants: AVConstants;

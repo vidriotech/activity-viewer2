@@ -11,7 +11,7 @@ import { CompartmentTree } from "../compartmentTree";
 import { SettingsData } from "../models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
-import { MainView, IMainViewProps } from "./MainView";
+import { MainView, MainViewProps } from "./MainView";
 
 
 export interface AppProps {
@@ -21,7 +21,7 @@ export interface AppProps {
 }
 
 export function App(props: AppProps) {
-    const mainViewProps: IMainViewProps = {
+    const mainViewProps: MainViewProps = {
         compartmentTree: props.compartmentTree,
         constants: props.constants,
         settings: props.settings,

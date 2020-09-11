@@ -26,14 +26,19 @@ export interface ScalarMapperProps {
 }
 
 export function ScalarMapper(props: ScalarMapperProps) {
-    const menuItems = _.union(
-        [<MenuItem key="nothing" value="nothing">No mapping</MenuItem>],
-        props.timeseriesList.map(series => {
-            return <MenuItem value={series}
-                                key={series}>
-                {series}
-            </MenuItem>
-        })
+    const menuItems = [
+        <MenuItem key={"nothing"}
+                  value={"nothing"}>
+            No mapping
+        </MenuItem>
+    ].concat(
+        props.timeseriesList.map(
+            series => (
+                <MenuItem key={series} value={series}>
+                    {series}
+                </MenuItem>
+            )
+        )
     );
 
     const sliderMarks = [

@@ -1,4 +1,12 @@
 /*
+ * Endpoint: /color-map/<map_name>
+ */
+export interface ColorLUT {
+    name: string;
+    mapping: number[];
+}
+
+/*
  * Endpoint: /settings
  * Settings may be queried and updated from this endpoint.
  */
@@ -13,26 +21,26 @@ export interface Epoch {
 
 export interface SettingsData {
     compartment: {
-        include: string[],
-        exclude: string[],
-        maxDepth: number,
-    },
+        include: string[];
+        exclude: string[];
+        maxDepth: number;
+    };
     system: {
-        atlasVersion: string,
-        cacheDirectory: string,
-        dataFiles: string[],
-        resolution: number,
-    },
-    epochs: Epoch[],
+        atlasVersion: string;
+        cacheDirectory: string;
+        dataFiles: string[];
+        resolution: number;
+    };
+    epochs: Epoch[];
 }
 
-export interface IUnitExport {
-    penetrationId: string,
-    unitIds: number[],
+export interface ExportingUnit {
+    penetrationId: string;
+    unitIds: number[];
 }
 
-export interface IExportRequest {
-    data: IUnitExport[],
+export interface UnitExportRequest {
+    data: ExportingUnit[];
 }
 
 /*

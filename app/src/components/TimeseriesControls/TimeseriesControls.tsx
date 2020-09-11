@@ -8,15 +8,19 @@ import {ColorMapper, ColorMapperProps} from './ColorMapper';
 import { ScalarMapper, ScalarMapperProps } from './ScalarMapper';
 
 export interface TimeseriesControlsProps {
-    opacityBounds: number[],
-    radiusBounds: number[],
-    selectedOpacity: string,
-    selectedRadius: string,
-    timeseriesList: string[],
-    onOpacitySelectionChange(event: React.ChangeEvent<{ name?: string; value: any; }>): void,
-    onOpacitySliderChange(event: any, newData: number[], commit: boolean): void,
-    onRadiusSelectionChange(event: React.ChangeEvent<{ name?: string; value: any; }>): void,
-    onRadiusSliderChange(event: any, newData: number[], commit: boolean): void,
+    opacityBounds: number[];
+    radiusBounds: number[];
+    selectedColor: string;
+    selectedColorMapping: string;
+    selectedOpacity: string;
+    selectedRadius: string;
+    timeseriesList: string[];
+    onColorSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
+    onMapperSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
+    onOpacitySelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
+    onOpacitySliderChange(event: never, newData: number[], commit: boolean): void;
+    onRadiusSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
+    onRadiusSliderChange(event: never, newData: number[], commit: boolean): void;
 }
 
 export function TimeseriesControls(props: TimeseriesControlsProps) {
@@ -45,8 +49,11 @@ export function TimeseriesControls(props: TimeseriesControlsProps) {
     }
 
     const colorMapperProps: ColorMapperProps = {
-        selectedTimeseries: "Color",
+        selectedColorMapping: props.selectedColorMapping,
+        selectedTimeseries: props.selectedColor,
         timeseriesList: props.timeseriesList,
+        onSelectionChange: props.onColorSelectionChange,
+        onMappingChange: props.onMapperSelectionChange,
     }
 
     return (

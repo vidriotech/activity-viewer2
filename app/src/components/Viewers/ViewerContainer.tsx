@@ -8,15 +8,15 @@ import { AVConstants } from '../../constants';
 
 import { PenetrationData, SettingsData } from '../../models/apiModels';
 
-import { IAesthetics } from '../../viewmodels/aestheticMapping';
+import { AestheticMapping } from '../../viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
 import { PlayerSlider, IPlayerSliderProps } from './PlayerSlider';
-import { Viewer3D, IViewer3DProps } from './Viewer3D';
+import { Viewer3D, Viewer3DProps } from './Viewer3D';
 
 
 export interface IViewerContainerProps {
-    aesthetics: IAesthetics[],
+    aesthetics: AestheticMapping[],
     availablePenetrations: PenetrationData[],
     compartmentViewTree: ICompartmentNodeView,
     constants: AVConstants,
@@ -185,7 +185,7 @@ export class ViewerContainer extends React.Component<IViewerContainerProps, IVie
     }
 
     public render() {
-        const viewer3DProps: IViewer3DProps = {
+        const viewer3DProps: Viewer3DProps = {
             aesthetics: this.props.aesthetics,
             availablePenetrations: this.props.availablePenetrations,
             canvasId: this.canvasContainerId,

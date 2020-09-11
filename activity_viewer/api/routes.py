@@ -28,7 +28,10 @@ def get_colormap(map_name: str):
     if mapping is None:
         return make_response(f"Color map identifier '{map_name}' not found.", 404)
 
-    return {"mapping": mapping.tolist()}
+    return {
+        "name": map_name,
+        "mapping": mapping.tolist()
+    }
 
 
 @app.route("/compartments")

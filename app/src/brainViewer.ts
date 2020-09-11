@@ -11,7 +11,7 @@ import { AVConstants } from './constants';
 
 import { Epoch, PenetrationData } from './models/apiModels';
 
-import { IAesthetics } from './viewmodels/aestheticMapping';
+import { AestheticMapping } from './viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from './viewmodels/compartmentViewModel';
 import { PenetrationViewModel } from './viewmodels/penetrationViewModel';
 
@@ -39,7 +39,7 @@ export class BrainViewer {
     private penetrationViewModelsMap: Map<string, PenetrationViewModel>;
 
     // animation
-    private _timeVal: number = 0;
+    private _timeVal = 0;
 
     public HEIGHT: number;
     public WIDTH: number;
@@ -72,8 +72,8 @@ export class BrainViewer {
             return;
         }
 
-        let compartmentId = compartmentNodeView.id;
-        let compartmentColor = '#' + this.rgb2Hex(compartmentNodeView.rgbTriplet);
+        const compartmentId = compartmentNodeView.id;
+        const compartmentColor = '#' + this.rgb2Hex(compartmentNodeView.rgbTriplet);
 
         const loader = new THREE.OBJLoader();    
         const path = `${this.constants.apiEndpoint}/mesh/${compartmentId}`;
@@ -136,7 +136,7 @@ export class BrainViewer {
         root.position.set(0, -3.5, -10);
 
         // time slider
-        let geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
+        const geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
 
         return root;
     }
@@ -269,7 +269,7 @@ export class BrainViewer {
 
     public loadPenetration(penetrationData: PenetrationData) {
         const centerPoint = this.constants.centerPoint.map((t: number) => -t);
-        const defaultAesthetics: IAesthetics = {
+        const defaultAesthetics: AestheticMapping = {
             penetrationId: penetrationData.penetrationId,
             color: null,
             opacity: null,
@@ -279,24 +279,24 @@ export class BrainViewer {
 
         const viewModel = new PenetrationViewModel(defaultAesthetics, penetrationData.ids.length);
 
-        let positions = new Float32Array(penetrationData.coordinates.map(t => t + 10 * (Math.random() - 0.5)));
-        let colors = viewModel.getColor(0);
-        let opacities = viewModel.getOpacity(0);
-        let sizes = viewModel.getRadius(0);
-        let visible = viewModel.getVisible();
+        const positions = new Float32Array(penetrationData.coordinates.map(t => t + 10 * (Math.random() - 0.5)));
+        const colors = viewModel.getColor(0);
+        const opacities = viewModel.getOpacity(0);
+        const sizes = viewModel.getRadius(0);
+        const visible = viewModel.getVisible();
 
-        let geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
+        const geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
         geometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
         geometry.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
         geometry.setAttribute('opacity', new THREE.Float32BufferAttribute(opacities, 1));
         geometry.setAttribute('size', new THREE.Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage));
         geometry.setAttribute('visible', new THREE.Float32BufferAttribute(visible, 1));
 
-        let penetration: THREE.Points = new THREE.Points(geometry, this.pointsMaterial);
+        const penetration: THREE.Points = new THREE.Points(geometry, this.pointsMaterial);
         penetration.position.set(centerPoint[0], centerPoint[1], centerPoint[2]);
 
         this.penetrationPointsMap.set(penetrationData.penetrationId, penetration);
-        this.penetrationViewModelsMap.set(penetrationData.penetrationId, viewModel);
+        this.setAesthetics(penetrationData.penetrationId, viewModel);
 
         this.scene.add(penetration);
     }
@@ -305,9 +305,9 @@ export class BrainViewer {
         this.renderer.render(this.scene, this.camera);
     }
 
-    public setAesthetics(penetrationId: string, aesthetics: PenetrationViewModel) {
+    public setAesthetics(penetrationId: string, viewModel: PenetrationViewModel) {
         this.penetrationViewModelsMap.set(
-            penetrationId, aesthetics // new PenetrationViewModel(aes, nPoints)
+            penetrationId, viewModel // new PenetrationViewModel(aes, nPoints)
         );
     }
 

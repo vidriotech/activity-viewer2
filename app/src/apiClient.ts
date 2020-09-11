@@ -1,6 +1,6 @@
 import axios from "axios";
 // eslint-disable-next-line import/no-unresolved
-import { IUnitExport, SettingsRequest, PenetrationRequest } from "./models/apiModels";
+import { PenetrationRequest, ExportingUnit, SettingsRequest, } from "./models/apiModels";
 
 
 export class APIClient {
@@ -10,11 +10,15 @@ export class APIClient {
         this.endpoint = endpoint;
     }
 
+    async fetchColorMapping(mapping: string) {
+        return await axios.get(`${this.endpoint}/color-map/${mapping}`);
+    }
+
     async fetchCompartmentTree() {
         return await axios.get(`${this.endpoint}/compartments`);
     }
 
-    async fetchExportedData(exportData: IUnitExport[]) {
+    async fetchExportedData(exportData: ExportingUnit[]) {
         const data = {
             data: exportData,
         };

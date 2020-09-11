@@ -1,3 +1,6 @@
+// eslint-disable-next-line import/no-unresolved
+import { ColorLUT } from "./models/apiModels";
+
 export class AVConstants {
     private SagittalMax = 11400;
     private HorizontalMax = 8000;
@@ -97,10 +100,6 @@ export class AVConstants {
         return this._compartmentVertexShader;
     }
 
-    public get discTexture() {
-        return this._discTexture;
-    }
-
     public get defaultColor() {
         return this._defaultColor;
     }
@@ -109,12 +108,30 @@ export class AVConstants {
         return this._defaultColorFaded;
     }
 
+    public get defaultColorLUT(): ColorLUT {
+        const mapping = new Array(768);
+        for (let i = 0; i < 768; i += 3) {
+            mapping[i] = 0;
+            mapping[i + 1] = 0.50196078;
+            mapping[i + 2] = 1;
+        }
+
+        return {
+            name: "default",
+            mapping
+        };
+    }
+
     public get defaultOpacity() {
         return this._defaultOpacity;
     }
 
     public get defaultRadius() {
         return this._defaultRadius;
+    }
+
+    public get discTexture() {
+        return this._discTexture;
     }
 
     public get pointFragmentShader() {
