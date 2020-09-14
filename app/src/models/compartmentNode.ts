@@ -1,4 +1,4 @@
-import { ICompartmentNode } from './apiModels';
+import { CompartmentNode } from './apiModels';
 
 export class CompartmentNode {
     id: number;
@@ -7,13 +7,13 @@ export class CompartmentNode {
     toggled: boolean;
     children: CompartmentNode[];
 
-    public constructor(compartment: ICompartmentNode, toggled: boolean) {
+    public constructor(compartment: CompartmentNode, toggled: boolean) {
         this.id = compartment.id;
         this.acronym = compartment.acronym;
         this.name = compartment.name;
         this.toggled = toggled;
         this.children = compartment.children.map(
-            (child: ICompartmentNode) => new CompartmentNode(child, false)
+            (child: CompartmentNode) => new CompartmentNode(child, false)
         );
     }
 

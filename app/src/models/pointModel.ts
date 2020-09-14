@@ -1,8 +1,8 @@
-import { ICompartment } from './apiModels';
+import { Compartment } from './apiModels';
 
 
 interface IPointSummary {
-    compartment: ICompartment,
+    compartment: Compartment,
     coordinates: number[],
     id: number,
     penetrationId: string,

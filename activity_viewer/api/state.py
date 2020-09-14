@@ -59,6 +59,9 @@ class APIState:
         self.settings = settings
 
     def _annotation_to_rgb(self, vals: np.ndarray):
+        if vals is None:
+            return
+
         # encode colors
         tree = StructureTree(self.cache.load_structure_graph())
         color_map = tree.get_colormap()
@@ -74,7 +77,6 @@ class APIState:
         XtX = X.T * X
         Xty = X.T * y
         b = np.linalg.solve(XtX, Xty)
-        xhat = np.array(X * b).flatten()
 
         # predict x coordinates
         headers = self.cache.load_annotation_volume_headers()
@@ -83,6 +85,30 @@ class APIState:
         X2 = np.asmatrix(np.hstack((np.ones((ymax, 1)), np.arange(ymax)[:, np.newaxis])))
 
         return np.array(X2 * b).flatten().astype(np.int)
+
+    def _get_coronal_slice(self, ap_coordinate: float, volume: np.ndarray):
+        ap_coordinate = int(ap_coordinate / self.settings.system.resolution)
+
+        try:
+            return volume[ap_coordinate, :, :].squeeze()
+        except IndexError:
+            return None
+
+    def _get_horizontal_slice(self, dv_coordinate: float, volume: np.ndarray):
+        dv_coordinate = int(dv_coordinate / self.settings.system.resolution)
+
+        try:
+            return volume[:, dv_coordinate, :].squeeze()
+        except IndexError:
+            return None
+
+    def _get_sagittal_slice(self, lr_coordinate: float, volume: np.ndarray):
+        lr_coordinate = int(lr_coordinate / self.settings.system.resolution)
+
+        try:
+            return volume[:, :, lr_coordinate].squeeze()
+        except IndexError:
+            return None
 
     def add_penetrations(self, file_paths: List[PathType]):
         """Add one or more penetrations to the set of current penetrations.
@@ -138,13 +164,49 @@ class APIState:
 
         return tree.get_structures_by_id(cids)
 
-    def get_coronal_annotation_slice(self, ap_coordinate: float):
-        ap_coordinate = int(ap_coordinate / self.settings.system.resolution)
-        
-        volume, _ = self.cache.load_annotation_volume()
-        ref_slice = volume[ap_coordinate, np.arange(volume.shape[1]), :].squeeze()
+    def get_coronal_annotation_rgb(self, ap_coordinate: float):
+        ref_slice = self.get_coronal_annotation_slice(ap_coordinate)
         
         return self._annotation_to_rgb(ref_slice)
+
+    def get_coronal_annotation_slice(self, ap_coordinate: float):
+        volume, _ = self.cache.load_annotation_volume()
+
+        return self._get_coronal_slice(ap_coordinate, volume)
+
+    def get_coronal_template_slice(self, ap_coordinate: float):
+        volume, _ = self.cache.load_template_volume()
+
+        return self._get_coronal_slice(ap_coordinate, volume).astype(np.uint8)
+
+    def get_horizontal_annotation_rgb(self, dv_coordinate: float):
+        ref_slice = self.get_horizontal_annotation_slice(dv_coordinate)
+
+        return self._annotation_to_rgb(ref_slice)
+
+    def get_horizontal_annotation_slice(self, dv_coordinate: float):
+        volume, _ = self.cache.load_annotation_volume()
+
+        return self._get_horizontal_slice(dv_coordinate, volume)
+
+    def get_horizontal_template_slice(self, dv_coordinate: float):
+        volume, _ = self.cache.load_template_volume()
+
+        return self._get_horizontal_slice(dv_coordinate, volume).astype(np.uint8)
+
+    def get_sagittal_annotation_slice(self, lr_coordinate: float):
+        volume, _ = self.cache.load_annotation_volume()
+        return self._get_sagittal_slice(lr_coordinate, volume)
+
+    def get_sagittal_annotation_rgb(self, lr_coordinate: float):
+        ref_slice = self.get_sagittal_annotation_slice(lr_coordinate)
+
+        return self._annotation_to_rgb(ref_slice)
+
+    def get_sagittal_template_slice(self, lr_coordinate: float):
+        volume, _ = self.cache.load_template_volume()
+
+        return self._get_sagittal_slice(lr_coordinate, volume).astype(np.uint8)
 
     def get_coordinates(self, penetration_id: str):
         """Get CCF coordinates for `penetration_id`."""
@@ -173,14 +235,6 @@ class APIState:
         ref_slice = volume[indices, np.arange(volume.shape[1]), :].squeeze()
 
         return ref_slice
-
-    def get_coronal_template_slice(self, ap_coordinate: float):
-        ap_coordinate = int(ap_coordinate / self.settings.system.resolution)
-        
-        volume, _ = self.cache.load_template_volume()
-        temp_slice = volume[ap_coordinate, np.arange(volume.shape[1]), :].squeeze()
-
-        return temp_slice
 
     def get_timeseries(self, penetration_id: str, timeseries_id: str):
         """Get a specific timeseries' values for a specific penetration."""

@@ -41,7 +41,7 @@ import { AVConstants } from "./constants";
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentTree } from "./compartmentTree";
 // eslint-disable-next-line import/no-unresolved
-import { ICompartmentNode, SettingsData } from "./models/apiModels";
+import { CompartmentNode, AVSettings } from "./models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
 import { App, AppProps } from "./components/App";
@@ -62,13 +62,13 @@ const props: AppProps = {
 
 apiClient.fetchSettings()
     .then((res: any) => res.data)
-    .then((data: SettingsData) => {
+    .then((data: AVSettings) => {
         props.settings = data;
 
         return apiClient.fetchCompartmentTree();
     })
     .then((res: any) => res.data)
-    .then((root: ICompartmentNode) => {
+    .then((root: CompartmentNode) => {
         props.compartmentTree = new CompartmentTree(root, props.settings);
 
         ReactDOM.render(

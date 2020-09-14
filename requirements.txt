@@ -1,7 +1,8 @@
 appdirs==1.4.4
-allensdk==2.1.0
+allensdk==2.2.0
 click==7.1.2
+Pillow==7.2.0
 Flask==1.1.2
-Flask-Cors==3.0.8
-numpy==1.18.5
+Flask-Cors==3.0.9
+numpy==1.19.2
 requests==2.24.0

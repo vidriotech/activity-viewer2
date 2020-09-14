@@ -8,7 +8,7 @@ import { AVConstants } from "../constants";
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentTree } from "../compartmentTree";
 // eslint-disable-next-line import/no-unresolved
-import { SettingsData } from "../models/apiModels";
+import { AVSettings } from "../models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
 import { MainView, MainViewProps } from "./MainView";
@@ -17,7 +17,7 @@ import { MainView, MainViewProps } from "./MainView";
 export interface AppProps {
     compartmentTree: CompartmentTree;
     constants: AVConstants;
-    settings: SettingsData;
+    settings: AVSettings;
 }
 
 export function App(props: AppProps) {

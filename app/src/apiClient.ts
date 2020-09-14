@@ -14,6 +14,10 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/color-map/${mapping}`);
     }
 
+    async fetchCoronalSlice(apCoordinate: number) {
+        return await axios.get(`${this.endpoint}/slices/coronal/${apCoordinate}`);
+    }
+
     async fetchCompartmentTree() {
         return await axios.get(`${this.endpoint}/compartments`);
     }
@@ -31,12 +35,20 @@ export class APIClient {
         });
     }
 
+    async fetchHorizontalSlice(dvCoordinate: number) {
+        return await axios.get(`${this.endpoint}/slices/horizontal/${dvCoordinate}`);
+    }
+
     async fetchPenetrations() {
         return await axios.get(`${this.endpoint}/penetrations`);
     }
 
     async fetchPenetrationVitals(penetrationId: string) {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
+    }
+
+    async fetchSagittalSlice(lrCoordinate: number) {
+        return await axios.get(`${this.endpoint}/slices/sagittal/${lrCoordinate}`);
     }
 
     async fetchSettings() {

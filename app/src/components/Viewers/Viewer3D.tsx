@@ -5,10 +5,10 @@ import Grid from '@material-ui/core/Grid';
 import Paper from '@material-ui/core/Paper';
 
 import { APIClient } from '../../apiClient';
-import { BrainViewer } from '../../brainViewer';
+import { BrainViewer } from '../../viewers/brainViewer';
 import { AVConstants } from '../../constants';
 
-import { SettingsData, PenetrationData, ICompartmentNode, ICompartment } from '../../models/apiModels';
+import { AVSettings, PenetrationData, CompartmentNode, Compartment } from '../../models/apiModels';
 
 import { AestheticMapping } from '../../viewmodels/aestheticMapping';
 import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
@@ -16,19 +16,19 @@ import { PenetrationViewModel } from '../../viewmodels/penetrationViewModel';
 
 
 export interface Viewer3DProps {
-    aesthetics: AestheticMapping[],
-    availablePenetrations: PenetrationData[],
-    canvasId: string,
-    constants: AVConstants,
-    compartmentViewTree: ICompartmentNodeView,
-    frameRate: number,
-    isPlaying: boolean,
-    loopAnimation: 'once' | 'repeat',
-    settings: SettingsData,
-    timeMin: number,
-    timeMax: number,
-    timeStep: number,
-    timeVal: number,
+    aesthetics: AestheticMapping[];
+    availablePenetrations: PenetrationData[];
+    canvasContainerId: string;
+    constants: AVConstants;
+    compartmentViewTree: ICompartmentNodeView;
+    frameRate: number;
+    isPlaying: boolean;
+    loopAnimation: "once" | "repeat";
+    settings: AVSettings;
+    timeMin: number;
+    timeMax: number;
+    timeStep: number;
+    timeVal: number;
 }
 
 interface Viewer3DState {
@@ -53,18 +53,18 @@ export class Viewer3D extends React.Component<Viewer3DProps, Viewer3DState> {
     }
 
     private computeDims() {
-        const container = document.getElementById(this.props.canvasId);
+        const container = document.getElementById(this.props.canvasContainerId);
         if (!container) {
             return { width: 0, height: 0 };
         }
 
-        let width = container.clientWidth;
-        let height = width / 1.85; // 1.85:1 aspect ratio
+        const width = container.clientWidth;
+        const height = width / 1.85; // 1.85:1 aspect ratio
 
         return { width, height };
     }
 
-    private async createViewer3D() {
+    private async createViewer() {
         if (this.viewer !== null) {
             return;
         }
@@ -72,7 +72,7 @@ export class Viewer3D extends React.Component<Viewer3DProps, Viewer3DState> {
         const { width, height } = this.computeDims();
         const v = new BrainViewer(this.props.constants, this.props.settings.epochs);
 
-        v.container = this.props.canvasId; // div is created in render()
+        v.container = this.props.canvasContainerId; // div is created in render()
         v.WIDTH = width;
         v.HEIGHT = height;
 
@@ -138,7 +138,7 @@ export class Viewer3D extends React.Component<Viewer3DProps, Viewer3DState> {
     public componentDidMount() {
         window.addEventListener('resize', () => this.updateDims());
 
-        this.createViewer3D()
+        this.createViewer()
             .then(() => {
                 this.renderCompartments();
                 this.renderPenetrations();
@@ -159,13 +159,8 @@ export class Viewer3D extends React.Component<Viewer3DProps, Viewer3DState> {
 
     public render() {
         return (
-            <Grid container
-                  direction='column'
-                  spacing={3}
-                  style={{ padding: 40 }}
-                  id='container-container'>
-                <Grid item id={this.props.canvasId} xs />
-            </Grid>
+            <div style={{ padding: 40 }}
+                 id={this.props.canvasContainerId} />
         )
     }
 }

@@ -9,7 +9,7 @@ from flask_cors import CORS
 import numpy as np
 
 from activity_viewer.api.state import APIState
-from activity_viewer.api.compute import colormap
+from activity_viewer.api.compute import colormap, slice_to_data_uri
 from activity_viewer.settings import AVSettings, make_default_settings
 
 app = Flask(__name__)
@@ -203,7 +203,7 @@ def get_pseudocoronal_annotation_slice(penetration_id: str):
 
 
 @app.route("/settings", methods=["GET", "POST"])
-def settings():
+def get_settings():
     """Update or fetch settings in use."""
     if request.method == "POST":
         data = json.loads(request.data)
@@ -218,16 +218,33 @@ def settings():
     return state.settings.to_dict()
 
 
-@app.route("/slices/coronal/<ap_coordinate>")
-def get_coronal_slices(ap_coordinate: float):
-    ap_coordinate = float(ap_coordinate)
-    template_slice = state.get_coronal_template_slice(ap_coordinate)
-    annotation_slice = state.get_coronal_annotation_slice(ap_coordinate)
+@app.route("/slices/<slice_type>/<coordinate>")
+def get_slices(slice_type: str, coordinate: float):
+    coordinate = float(coordinate)
+
+    if slice_type == "coronal":
+        template_slice = state.get_coronal_template_slice(coordinate)
+        annotation_rgb = state.get_coronal_annotation_rgb(coordinate)
+        annotation_slice = state.get_coronal_annotation_slice(coordinate)
+    elif slice_type == "horizontal":
+        template_slice = state.get_horizontal_template_slice(coordinate)
+        annotation_rgb = state.get_horizontal_annotation_rgb(coordinate)
+        annotation_slice = state.get_horizontal_annotation_slice(coordinate)
+    elif slice_type == "sagittal":
+        template_slice = state.get_sagittal_template_slice(coordinate)
+        annotation_rgb = state.get_sagittal_annotation_rgb(coordinate)
+        annotation_slice = state.get_sagittal_template_slice(coordinate)
+    else:
+        template_slice = annotation_rgb = annotation_slice = None
+
+    if template_slice is None or annotation_rgb is None or annotation_slice is None:
+        return make_response(f"No slices found for slice type '{slice_type}' and coordinate '{coordinate}'.")
 
     return {
-        "annotation_slice": annotation_slice.ravel().tolist(),
-        "template_slice": template_slice.ravel().tolist(),
-        "stride": annotation_slice.shape[1]
+        "annotationImage": slice_to_data_uri(annotation_rgb),
+        "annotationSlice": annotation_slice.ravel().tolist(),
+        "stride": annotation_slice.shape[1],
+        "templateImage": slice_to_data_uri(template_slice),
     }
 
 

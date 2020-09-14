@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 
-import { ICompartmentNode } from './apiModels';
+import { CompartmentNode } from './apiModels';
 import { PointModel } from './pointModel';
 
 
@@ -133,9 +133,9 @@ export class PropPredicate extends Predicate {
 }
 
 export class FuzzyPredicate extends Predicate {
-    private parentCompartment: ICompartmentNode;
+    private parentCompartment: CompartmentNode;
 
-    constructor(parentCompartment: ICompartmentNode, ) {
+    constructor(parentCompartment: CompartmentNode, ) {
         super('string');
 
         this.parentCompartment = parentCompartment;

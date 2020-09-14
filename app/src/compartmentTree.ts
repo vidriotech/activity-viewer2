@@ -1,19 +1,19 @@
 import * as _ from 'underscore';
 
-import { ICompartment, ICompartmentNode, SettingsData } from './models/apiModels';
+import { Compartment, CompartmentNode, AVSettings } from './models/apiModels';
 import { ICompartmentNodeView } from './viewmodels/compartmentViewModel';
 
 export class CompartmentTree {
-    private root: ICompartmentNode;
-    private settings: SettingsData;
+    private root: CompartmentNode;
+    private settings: AVSettings;
 
-    constructor(root: ICompartmentNode, settings: SettingsData) {
+    constructor(root: CompartmentNode, settings: AVSettings) {
         this.root = root;
         this.settings = settings;
     }
 
-    private getCompartmentNodesByAttr(attr: keyof(ICompartmentNode), vals: any[]) {
-        let nodes: ICompartmentNode[] = [];
+    private getCompartmentNodesByAttr(attr: keyof(CompartmentNode), vals: any[]) {
+        let nodes: CompartmentNode[] = [];
         let queue = [this.root];
 
         while (queue.length > 0) {
@@ -36,30 +36,30 @@ export class CompartmentTree {
         return nodes;
     }
 
-    private getCompartmentNodeByAttr(attr: keyof(ICompartmentNode), val: number | string): ICompartmentNode {
+    private getCompartmentNodeByAttr(attr: keyof(CompartmentNode), val: number | string): CompartmentNode {
         let nodes = this.getCompartmentNodesByAttr(attr, [val]);
 
         return nodes.length === 0 ? null : nodes[0];
     }
 
-    private getCompartmentsByAttr(attr: keyof(ICompartmentNode), vals: any[]): ICompartment[] {
+    private getCompartmentsByAttr(attr: keyof(CompartmentNode), vals: any[]): Compartment[] {
         let nodes = this.getCompartmentNodesByAttr(attr, vals);
 
-        return nodes.map((node: ICompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as ICompartment);
+        return nodes.map((node: CompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as Compartment);
     }
 
-    private getCompartmentByAttr(attr: keyof(ICompartmentNode), val: number | string): ICompartment {
+    private getCompartmentByAttr(attr: keyof(CompartmentNode), val: number | string): Compartment {
         let nodes = this.getCompartmentsByAttr(attr, [val]);
 
         return nodes.length === 0 ? null : nodes[0];
     }
 
-    public getCompartmentNodesByDepth(maxDepth: number): ICompartmentNode[] {
-        let compartments: ICompartmentNode[] = [];
+    public getCompartmentNodesByDepth(maxDepth: number): CompartmentNode[] {
+        let compartments: CompartmentNode[] = [];
 
         let node;
         let currentLevel = [this.root];
-        let nextLevel: ICompartmentNode[] = [];
+        let nextLevel: CompartmentNode[] = [];
 
         for (let depth = 0; depth < maxDepth + 1; depth++) {
             while (currentLevel.length > 0) {
@@ -75,11 +75,11 @@ export class CompartmentTree {
     }
 
     public getCompartmentNodeViewTree(subset: boolean): ICompartmentNodeView {
-        let root: ICompartmentNode = subset ?
+        let root: CompartmentNode = subset ?
             this.getCompartmentSubsetTree() :
             this.root;
 
-        const node2NodeView = (node: ICompartmentNode): ICompartmentNodeView => {
+        const node2NodeView = (node: CompartmentNode): ICompartmentNodeView => {
             return {
                 acronym: node.acronym,
                 id: node.id,
@@ -94,12 +94,12 @@ export class CompartmentTree {
         return node2NodeView(root);
     }
 
-    public getCompartmentsByDepth(maxDepth: number): ICompartment[] {
+    public getCompartmentsByDepth(maxDepth: number): Compartment[] {
         let compartments = this.getCompartmentNodesByDepth(maxDepth);
-        return compartments.map((node: ICompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as ICompartment);
+        return compartments.map((node: CompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as Compartment);
     }
 
-    public getCompartmentSubset(): ICompartmentNode[] {
+    public getCompartmentSubset(): CompartmentNode[] {
         const cSettings = this.settings.compartment;
 
         let compartmentNodes = this.getCompartmentNodesByDepth(cSettings.maxDepth);
@@ -138,7 +138,7 @@ export class CompartmentTree {
         return compartmentNodes;
     }
 
-    public getCompartmentSubsetTree(): ICompartmentNode {
+    public getCompartmentSubsetTree(): CompartmentNode {
         /* 
          * Note depths of all compartments in subset.
          * Sort by depth, ascending.
@@ -153,19 +153,19 @@ export class CompartmentTree {
         subset.sort((left, right) => left.structure_id_path.length - right.structure_id_path.length);
 
         // root node is always required in the tree
-        let refRoot: ICompartmentNode;
+        let refRoot: CompartmentNode;
         if (subset[0].name !== 'root') {
             refRoot = this.getCompartmentNodeByName('root');
         } else {
             refRoot = subset.splice(0, 1)[0];
         }
 
-        let rootNode: ICompartmentNode = _.extend(
+        let rootNode: CompartmentNode = _.extend(
             _.pick(refRoot, _.without(_.keys(refRoot), 'children')),
             {'children': []}
         )
 
-        let node: ICompartmentNode;
+        let node: CompartmentNode;
         while (subset.length > 0) {
             let node = subset.splice(0, 1)[0];
             let levelNode = rootNode;
@@ -187,51 +187,51 @@ export class CompartmentTree {
         return rootNode;
     }
 
-    public getCompartmentsByName(names: string[]): ICompartment[] {
+    public getCompartmentsByName(names: string[]): Compartment[] {
         return this.getCompartmentsByAttr('name', names);
     }
 
-    public getCompartmentByName(name: string): ICompartment {
+    public getCompartmentByName(name: string): Compartment {
         return this.getCompartmentByAttr('name', name);
     }
 
-    public getCompartmentNodesByName(names: string[]): ICompartmentNode[] {
+    public getCompartmentNodesByName(names: string[]): CompartmentNode[] {
         return this.getCompartmentNodesByAttr('name', names);
     }
 
-    public getCompartmentNodeByName(name: string): ICompartmentNode {
+    public getCompartmentNodeByName(name: string): CompartmentNode {
         return this.getCompartmentNodeByAttr('name', name);
     }
 
-    public getCompartmentsByAcronym(acronyms: string[]): ICompartment[] {
+    public getCompartmentsByAcronym(acronyms: string[]): Compartment[] {
         return this.getCompartmentsByAttr('acronym', acronyms);
     }
 
-    public getCompartmentByAcronym(acronym: string): ICompartment {
+    public getCompartmentByAcronym(acronym: string): Compartment {
         return this.getCompartmentByAttr('acronym', acronym);
     }
 
-    public getCompartmentNodesByAcronym(acronyms: string[]): ICompartmentNode[] {
+    public getCompartmentNodesByAcronym(acronyms: string[]): CompartmentNode[] {
         return this.getCompartmentNodesByAttr('acronym', acronyms);
     }
 
-    public getCompartmentNodeByAcronym(acronym: string): ICompartmentNode {
+    public getCompartmentNodeByAcronym(acronym: string): CompartmentNode {
         return this.getCompartmentNodeByAttr('acronym', acronym);
     }
 
-    public getCompartmentsById(ids: number[]): ICompartment[] {
+    public getCompartmentsById(ids: number[]): Compartment[] {
         return this.getCompartmentsByAttr('id', ids);
     }
 
-    public getCompartmentById(id: number): ICompartment {
+    public getCompartmentById(id: number): Compartment {
         return this.getCompartmentByAttr('id', id);
     }
 
-    public getCompartmentNodesById(ids: number[]): ICompartmentNode[] {
+    public getCompartmentNodesById(ids: number[]): CompartmentNode[] {
         return this.getCompartmentNodesByAttr('id', ids);
     }
 
-    public getCompartmentNodeById(id: number): ICompartmentNode {
+    public getCompartmentNodeById(id: number): CompartmentNode {
         return this.getCompartmentNodeByAttr('id', id);
     }
 }

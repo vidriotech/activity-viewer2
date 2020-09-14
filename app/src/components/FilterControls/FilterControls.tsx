@@ -6,7 +6,7 @@ import Grid from '@material-ui/core/Grid';
 import { CompartmentTree } from '../../compartmentTree';
 import { AVConstants } from '../../constants';
 
-import { PenetrationData, SettingsData } from '../../models/apiModels';
+import { PenetrationData, AVSettings } from '../../models/apiModels';
 import { Predicate } from '../../models/predicateModels';
 
 import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
@@ -24,7 +24,7 @@ export interface IFilterControlsProps {
     statsData: number[],
     filterPredicate: Predicate,
     selectedStat: string,
-    settings: SettingsData,
+    settings: AVSettings,
     onFilterPredicateUpdate(predicate: Predicate, newStat: string): void,
     onStatSelectionChange(event: any): void,
     onToggleCompartmentVisible(rootNode: ICompartmentNodeView): void,

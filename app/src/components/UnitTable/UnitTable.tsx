@@ -165,12 +165,12 @@ interface UnitData {
     compartmentName: string,
 }
 
-export interface IUnitTableProps {
+export interface UnitTableProps {
     availablePenetrations: PenetrationData[],
     onUnitExportRequest(): void,
 }
 
-export function UnitTable(props: IUnitTableProps) {
+export function UnitTable(props: UnitTableProps) {
     const rows: UnitData[] = [];
 
     let k = 0;

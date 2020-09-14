@@ -1,5 +1,6 @@
 import React from 'react';
 import * as _ from 'underscore';
+import {AxiosResponse} from "axios";
 
 import Grid from '@material-ui/core/Grid';
 
@@ -12,11 +13,11 @@ import {
     ColorLUT,
     ExportingUnit,
     UnitExportRequest,
-    SettingsData,
+    AVSettings,
     PenetrationData,
-    IPenetrationResponse,
-    ITimeseriesListResponse,
-    IUnitStatsListResponse,
+    PenetrationResponse,
+    TimeseriesListResponse,
+    UnitStatesListResponse,
 } from '../models/apiModels';
 import { CompartmentTree } from '../compartmentTree';
 import { PointModel } from '../models/pointModel';
@@ -28,9 +29,8 @@ import { ICompartmentNodeView } from '../viewmodels/compartmentViewModel';
 import { CompartmentList, ICompartmentListProps } from './CompartmentList/CompartmentList';
 import { FilterControls, IFilterControlsProps } from './FilterControls/FilterControls';
 import { TimeseriesControls, TimeseriesControlsProps } from './TimeseriesControls/TimeseriesControls';
-import { ViewerContainer, IViewerContainerProps } from './Viewers/ViewerContainer';
-import { UnitTable, IUnitTableProps } from './UnitTable/UnitTable';
-import {AxiosResponse} from "axios";
+import { ViewerContainer, ViewerContainerProps } from './Viewers/ViewerContainer';
+import { UnitTable, UnitTableProps } from './UnitTable/UnitTable';
 
 
 interface TimeseriesData {
@@ -47,7 +47,7 @@ interface UnitStatsData {
 export interface MainViewProps {
     compartmentTree: CompartmentTree,
     constants: AVConstants,
-    settings: SettingsData,
+    settings: AVSettings,
 }
 
 interface MainViewState {
@@ -112,7 +112,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         if (value !== 'nothing' && !this.timeseriesData.has(value)) {
             this.apiClient.fetchTimeseriesById(value)
                 .then((res: any) => res.data)
-                .then((responseData: ITimeseriesListResponse) => {
+                .then((responseData: TimeseriesListResponse) => {
                     const seriesData: TimeseriesData[] = [];
 
                     responseData.timeseries.forEach((data) => {
@@ -140,7 +140,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         if (value !== 'nothing' && !this.statsData.has(value)) {
             this.apiClient.fetchUnitStatsById(value)
                 .then((res: any) => res.data)
-                .then((responseData: IUnitStatsListResponse) => {
+                .then((responseData: UnitStatesListResponse) => {
                     const statsData: UnitStatsData[] = [];
 
                     responseData.unitStats.forEach((data) => {
@@ -190,7 +190,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         if (newStat !== 'nothing' && !this.statsData.has(newStat)) {
             this.apiClient.fetchUnitStatsById(newStat)
                 .then((res: any) => res.data)
-                .then((responseData: IUnitStatsListResponse) => {
+                .then((responseData: UnitStatesListResponse) => {
                     const statsData: UnitStatsData[] = [];
 
                     responseData.unitStats.forEach((data) => {
@@ -490,7 +490,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     public componentDidMount(): void {
         this.apiClient.fetchPenetrations()
             .then((res: any) => res.data)
-            .then((data: IPenetrationResponse) => {
+            .then((data: PenetrationResponse) => {
                 this.setState({
                     availablePenetrations: data.penetrations.map((penetration) => (
                         _.extend(penetration, { 'visible': penetration.ids.map(_x => true)})
@@ -504,7 +504,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     }
 
     public render() {
-        const viewerContainerProps: IViewerContainerProps = {
+        const viewerContainerProps: ViewerContainerProps = {
             aesthetics: this.state.aesthetics,
             availablePenetrations: this.state.availablePenetrations,
             constants: this.props.constants,
@@ -512,7 +512,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             timeMax: this.state.timeMax,
             timeMin: this.state.timeMin,
             timeStep: this.state.timeStep,
-            viewerType: '3D',
             compartmentViewTree: this.state.compartmentViewTree,
         }
 

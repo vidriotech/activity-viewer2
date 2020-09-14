@@ -26,7 +26,7 @@ const useStyles = makeStyles((theme: Theme) =>
     }),
 );
 
-export interface IPlayerSliderProps {
+export interface PlayerSliderProps {
     frameRate: number,
     isPlaying: boolean,
     isRecording: boolean,
@@ -43,7 +43,7 @@ export interface IPlayerSliderProps {
     onStopClick(): void,
 }
 
-export function PlayerSlider(props: IPlayerSliderProps) {
+export function PlayerSlider(props: PlayerSliderProps) {
     const classes = useStyles();
 
     let marks = [{

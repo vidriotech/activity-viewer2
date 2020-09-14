@@ -1,5 +1,5 @@
 import * as THREEM from 'three';
-import { Object3D, AnimationClip, AnimationMixer, BufferGeometry, Float32BufferAttribute } from 'three';
+import { Object3D, BufferGeometry, Float32BufferAttribute } from 'three';
 
 const THREE = require('three');
 require("three-obj-loader")(THREE);
@@ -7,18 +7,22 @@ const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
 import * as _ from 'underscore';
 
-import { AVConstants } from './constants';
+// eslint-disable-next-line import/no-unresolved
+import { AVConstants } from "../constants";
 
-import { Epoch, PenetrationData } from './models/apiModels';
+// eslint-disable-next-line import/no-unresolved
+import { Epoch, PenetrationData } from "../models/apiModels";
 
-import { AestheticMapping } from './viewmodels/aestheticMapping';
-import { ICompartmentNodeView } from './viewmodels/compartmentViewModel';
-import { PenetrationViewModel } from './viewmodels/penetrationViewModel';
+// eslint-disable-next-line import/no-unresolved
+import { AestheticMapping } from "../viewmodels/aestheticMapping";
+// eslint-disable-next-line import/no-unresolved
+import { ICompartmentNodeView } from "../viewmodels/compartmentViewModel";
+// eslint-disable-next-line import/no-unresolved
+import { PenetrationViewModel } from "../viewmodels/penetrationViewModel";
+// eslint-disable-next-line import/no-unresolved
+import {BaseViewer} from "./baseViewer";
 
-export class BrainViewer {
-    private constants: AVConstants;
-    private epochs: Epoch[];
-
+export class BrainViewer extends BaseViewer {
     private loadedCompartments: string[] = [];
     private _visibleCompartments: string[] = [];
     private backgroundColor = 0xffffff;
@@ -36,19 +40,11 @@ export class BrainViewer {
     private epochMarker: THREE.Object3D = null;
 
     private penetrationPointsMap: Map<string, THREE.Points>;
-    private penetrationViewModelsMap: Map<string, PenetrationViewModel>;
 
-    // animation
-    private _timeVal = 0;
-
-    public HEIGHT: number;
-    public WIDTH: number;
-    public container = 'container';
     public flip = true; // flip y axis
 
     constructor(constants: AVConstants, epochs: Epoch[]) {
-        this.constants = constants;
-        this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
+        super(constants, epochs);
 
         this.pointsMaterial = new THREE.ShaderMaterial({
             uniforms: {
@@ -62,7 +58,6 @@ export class BrainViewer {
         });
 
         this.penetrationPointsMap = new Map<string, THREE.Points>();
-        this.penetrationViewModelsMap = new Map<string, PenetrationViewModel>();
     }
 
     private loadCompartment(compartmentNodeView: ICompartmentNodeView) {
@@ -75,10 +70,10 @@ export class BrainViewer {
         const compartmentId = compartmentNodeView.id;
         const compartmentColor = '#' + this.rgb2Hex(compartmentNodeView.rgbTriplet);
 
-        const loader = new THREE.OBJLoader();    
+        const loader = new THREE.OBJLoader();
         const path = `${this.constants.apiEndpoint}/mesh/${compartmentId}`;
         const that = this;
-    
+
         loader.load(path, (obj: Object3D) => {
             obj.traverse(function (child: any) {
                 child.material = new THREE.ShaderMaterial({
@@ -93,7 +88,7 @@ export class BrainViewer {
                     side: THREE.DoubleSide,
                 });
             });
-    
+
             obj.name = name;
             let x, y, z;
             [x, y, z] = this.constants.centerPoint.map((t: number) => -t);
@@ -131,7 +126,7 @@ export class BrainViewer {
 
         labels.scale.x = canvas.width * labelBaseScale;
         labels.scale.y = canvas.height * labelBaseScale;
-    
+
         this.camera.add(root);
         root.position.set(0, -3.5, -10);
 
@@ -303,12 +298,6 @@ export class BrainViewer {
 
     public render() {
         this.renderer.render(this.scene, this.camera);
-    }
-
-    public setAesthetics(penetrationId: string, viewModel: PenetrationViewModel) {
-        this.penetrationViewModelsMap.set(
-            penetrationId, viewModel // new PenetrationViewModel(aes, nPoints)
-        );
     }
 
     public updatePenetrationAesthetics() {
