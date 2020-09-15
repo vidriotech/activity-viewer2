@@ -41,6 +41,10 @@ export interface PenetrationRequest {
     data_paths: string[];
 }
 
+export interface PenetrationResponse {
+    penetrations: PenetrationData[];
+}
+
 /*
  * Endpoint: /penetrations/<penetrationId>
  * Data pertinent to a given penetration may be queried from here.

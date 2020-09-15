@@ -2,6 +2,12 @@ import React from "react";
 import * as _ from "underscore";
 
 import AppBar from "@material-ui/core/AppBar";
+import Button from '@material-ui/core/Button';
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
 import Grid from "@material-ui/core/Grid";
 import Tab from "@material-ui/core/Tab";
 import Tabs from "@material-ui/core/Tabs";
@@ -23,9 +29,15 @@ import { ICompartmentNodeView } from "../../viewmodels/compartmentViewModel";
 // eslint-disable-next-line import/no-unresolved
 import { PlayerSlider, PlayerSliderProps } from "./PlayerSlider";
 // eslint-disable-next-line import/no-unresolved
-import { Viewer3D, Viewer3DProps } from "./Viewer3D";
+import {APIClient} from "../../apiClient";
 // eslint-disable-next-line import/no-unresolved
-import { Viewer2D, Viewer2DProps, Viewer2DType } from "./Viewer2D";
+import {BaseViewer} from "../../viewers/baseViewer";
+// eslint-disable-next-line import/no-unresolved
+import {BrainViewer} from "../../viewers/brainViewer";
+// eslint-disable-next-line import/no-unresolved
+import {PenetrationViewModel} from "../../viewmodels/penetrationViewModel";
+// eslint-disable-next-line import/no-unresolved
+import {SliceControl, SliceType} from "./SliceControl";
 
 
 type ViewerType = "3D" | "slice" | "penetration";
@@ -42,10 +54,13 @@ export interface ViewerContainerProps {
 }
 
 interface ViewerContainerState {
+    dialogOpen: boolean;
     frameRate: number;
     isPlaying: boolean;
     isRecording: boolean;
     loopAnimation: "once" | "repeat";
+    renderHeight: number;
+    renderWidth: number;
     timeVal: number;
     viewerType: ViewerType;
 }
@@ -55,27 +70,33 @@ interface CanvasElement extends HTMLCanvasElement {
 }
 
 export class ViewerContainer extends React.Component<ViewerContainerProps, ViewerContainerState> {
+    private apiClient: APIClient;
     private canvasContainerId = "viewer-container";
     private mediaRecorder: MediaRecorder = null;
     private recordedBlobs: Blob[];
     private viewerOptions = ["3D", "slice", "penetration"];
+    private viewer: BaseViewer = null;
 
     constructor(props: ViewerContainerProps) {
         super(props);
 
         this.state = {
+            dialogOpen: false,
             frameRate: 30,
             isPlaying: false,
             isRecording: false,
             loopAnimation: "once",
+            renderHeight: 0,
+            renderWidth: 0,
             timeVal: 0,
             viewerType: "3D",
         };
 
+        this.apiClient = new APIClient(this.props.constants.apiEndpoint);
         this.recordedBlobs = [];
     }
 
-    private animate() {
+    private animate(): void {
         if (this.state.isPlaying) {
             const newVal = this.state.timeVal + this.props.timeStep > this.props.timeMax ?
                             this.props.timeMin : this.state.timeVal + this.props.timeStep;
@@ -91,6 +112,40 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
             this.setState(newState, callback);
         }
+    }
+
+    private computeDims(): { width: number; height: number } {
+        const container = document.getElementById(this.canvasContainerId);
+        if (!container) {
+            return { width: 0, height: 0 };
+        }
+
+        const width = container.clientWidth;
+        const height = width / 1.85; // 1.85:1 aspect ratio
+
+        return { width, height };
+    }
+
+    private createAndRender(): void {
+        this.createViewer()
+            .then(() => {
+                this.renderCompartments();
+                this.renderPenetrations();
+            })
+    }
+
+    private async createViewer(): Promise<any> {
+        const { width, height } = this.computeDims();
+        const v = new BrainViewer(this.props.constants, this.props.settings.epochs);
+
+        v.container = this.canvasContainerId; // div is created in render()
+        v.WIDTH = width;
+        v.HEIGHT = height;
+
+        v.initialize();
+        v.animate();
+
+        this.viewer = v;
     }
 
     private downloadRecording() {
@@ -115,18 +170,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         a.click();
 
         window.URL.revokeObjectURL(url);
-    }
-
-    private handleStreamDataAvailable(evt: BlobEvent) {
-        if (evt.data.size > 0) {
-            this.recordedBlobs.push(evt.data);
-
-            if (!this.state.isRecording) {
-                this.downloadRecording();
-                this.mediaRecorder = null;
-                this.recordedBlobs = [];
-            }
-        }
     }
 
     private handleFrameRateUpdate(frameRate: number) {
@@ -163,6 +206,12 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         });
     }
 
+    private handleSliceCommit(sliceType: SliceType, bounds: number[]): void {
+        console.log(sliceType);
+        console.log(bounds);
+        this.setState({dialogOpen: false});
+    }
+
     private handleSliderChange(_event: any, timeVal: number) {
         this.setState({ timeVal });
     }
@@ -175,6 +224,18 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }, () => {
             this.onRecordingStop();
         });
+    }
+
+    private handleStreamDataAvailable(evt: BlobEvent) {
+        if (evt.data.size > 0) {
+            this.recordedBlobs.push(evt.data);
+
+            if (!this.state.isRecording) {
+                this.downloadRecording();
+                this.mediaRecorder = null;
+                this.recordedBlobs = [];
+            }
+        }
     }
 
     private handleViewerTabSelect(_event: never, value: number) {
@@ -201,13 +262,83 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    public componentDidUpdate(prevProps: Readonly<ViewerContainerProps>) {
-        if (prevProps.timeMin !== this.props.timeMin || prevProps.timeMax !== this.props.timeMax) {
-            this.setState({ timeVal: this.props.timeMin });
+    private renderCompartments() {
+        if (this.viewer === null || !(this.viewer instanceof BrainViewer)) {
+            return;
+        }
+
+        const viewer = this.viewer as BrainViewer;
+
+        // traverse the compartment tree and set visible or invisible
+        let queue: ICompartmentNodeView[] = [this.props.compartmentViewTree];
+        while (queue.length > 0) {
+            const compartmentNodeView: ICompartmentNodeView = queue.splice(0, 1)[0];
+            viewer.setCompartmentVisible(compartmentNodeView);
+            queue = queue.concat(compartmentNodeView.children);
         }
     }
 
-    public render() {
+    private renderPenetrations() {
+        this.props.availablePenetrations.forEach((penetration) => {
+            if (penetration.ids.length == 0) {
+                return;
+            }
+
+            if (!this.viewer.hasPenetration(penetration.penetrationId)) {
+                this.viewer.loadPenetration(penetration);
+            }
+
+            // find aesthetics for this penetration
+            let aesthetics: AestheticMapping = null;
+            this.props.aesthetics.forEach((mapping) => {
+                if (mapping.penetrationId == penetration.penetrationId) {
+                    aesthetics = mapping;
+                }
+            });
+
+            if (aesthetics === null) {
+                return;
+            }
+
+            // create a view model for this penetration
+            const viewModel = new PenetrationViewModel(aesthetics, penetration.ids.length);
+            this.viewer.setAesthetics(penetration.penetrationId, viewModel);
+        });
+
+        this.viewer.updatePenetrationAesthetics();
+    }
+
+    private updateDims(): void {
+        const { width, height } = this.computeDims();
+        this.setState({ renderWidth: width, renderHeight: height });
+
+        if (this.viewer !== null) {
+            this.viewer.setSize(width, height);
+        }
+    }
+
+    public componentDidMount(): void {
+        window.addEventListener("resize", () => this.updateDims());
+
+        this.createAndRender();
+    }
+
+    public componentDidUpdate(
+        prevProps: Readonly<ViewerContainerProps>,
+        prevState: Readonly<ViewerContainerState>
+    ): void {
+        if (prevProps.aesthetics !== this.props.aesthetics || prevProps.availablePenetrations !== this.props.availablePenetrations) {
+            this.renderPenetrations();
+        }
+
+        if (prevProps.timeMin !== this.props.timeMin || prevProps.timeMax !== this.props.timeMax) {
+            this.setState({ timeVal: this.props.timeMin });
+        } else if (prevState.timeVal !== this.state.timeVal) {
+            this.viewer.timeVal = this.state.timeVal;
+        }
+    }
+
+    public render(): React.ReactNode {
         const playerSliderProps: PlayerSliderProps = {
             frameRate: this.state.frameRate,
             isPlaying: this.state.isPlaying,
@@ -234,51 +365,72 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
         const tabValue = this.viewerOptions.indexOf(this.state.viewerType);
 
-        let viewer: any = null;
-        if (tabValue === 0) {
-            const viewer3DProps: Viewer3DProps = {
-                aesthetics: this.props.aesthetics,
-                availablePenetrations: this.props.availablePenetrations,
-                canvasContainerId: this.canvasContainerId,
-                constants: this.props.constants,
-                frameRate: this.state.frameRate,
-                isPlaying: this.state.isPlaying,
-                loopAnimation: this.state.loopAnimation,
-                settings: this.props.settings,
-                timeMin: this.props.timeMin,
-                timeMax: this.props.timeMax,
-                timeStep: this.props.timeStep,
-                timeVal: this.state.timeVal,
-                compartmentViewTree: this.props.compartmentViewTree,
-            };
-
-            viewer = <Viewer3D {...viewer3DProps} />;
-        } else if (tabValue === 1) {
-            const viewer2DProps: Viewer2DProps = {
-                canvasContainerId: this.canvasContainerId,
-                constants: this.props.constants,
-                settings: this.props.settings,
-                viewerType: this.state.viewerType as Viewer2DType,
-            };
-
-            viewer = <Viewer2D {...viewer2DProps} />;
-        }
+        // let viewer: any = null;
+        // if (tabValue === 0) {
+        //     const viewer3DProps: Viewer3DProps = {
+        //         aesthetics: this.props.aesthetics,
+        //         availablePenetrations: this.props.availablePenetrations,
+        //         canvasContainerId: "viewer-container-3d",
+        //         constants: this.props.constants,
+        //         frameRate: this.state.frameRate,
+        //         isPlaying: this.state.isPlaying,
+        //         loopAnimation: this.state.loopAnimation,
+        //         settings: this.props.settings,
+        //         timeMin: this.props.timeMin,
+        //         timeMax: this.props.timeMax,
+        //         timeStep: this.props.timeStep,
+        //         timeVal: this.state.timeVal,
+        //         compartmentViewTree: this.props.compartmentViewTree,
+        //     };
+        //
+        //     viewer = <Viewer3D {...viewer3DProps} />;
+        // } else if (tabValue === 1) {
+        //     const viewer2DProps: Viewer2DProps = {
+        //         aesthetics: this.props.aesthetics,
+        //         availablePenetrations: this.props.availablePenetrations,
+        //         canvasContainerId: "viewer-container-slice",
+        //         constants: this.props.constants,
+        //         settings: this.props.settings,
+        //         viewerType: this.state.viewerType as Viewer2DType,
+        //     };
+        //
+        //     viewer = <Viewer2D {...viewer2DProps} />;
+        // }
 
         return (
-            <Grid container direction="column">
-                <Grid item xs>
-                    <AppBar position="static">
-                    <Tabs value={tabValue}
-                          onChange={this.handleViewerTabSelect.bind(this)} aria-label="simple tabs example">
-                        <Tab label="3D View" {...a11yProps("3D")} />
-                        <Tab label="Slice View" {...a11yProps("slice")} />
-                        <Tab label="Penetration View" {...a11yProps("penetration")} />
-                    </Tabs>
-                </AppBar>
-                    {viewer}
+            <Grid container>
+                <Grid item xs={12}>
+                    {/*<AppBar position="static">*/}
+                    {/*    <Tabs value={tabValue}*/}
+                    {/*          onChange={this.handleViewerTabSelect.bind(this)} aria-label="simple tabs example">*/}
+                    {/*        <Tab label="3D View" {...a11yProps("3D")} />*/}
+                    {/*        <Tab label="Slice View" {...a11yProps("slice")} />*/}
+                    {/*        <Tab label="Penetration View" {...a11yProps("penetration")} />*/}
+                    {/*    </Tabs>*/}
+                    {/*    <Typography>This is some text.</Typography>*/}
+                    {/*</AppBar>*/}
+                    <div style={{ padding: 40 }}
+                         id={this.canvasContainerId} />
                 </Grid>
-                <Grid item>
+                <Grid item xs={4}>
+                    <Button color={"primary"}
+                            variant={"contained"}
+                            onClick={(): void => this.setState({dialogOpen: true})}>
+                        Slice and dice
+                    </Button>
+                </Grid>
+                <Grid item xs={8}>
                     <PlayerSlider {...playerSliderProps} />
+                </Grid>
+                <Grid item xs>
+                    <Dialog open={this.state.dialogOpen}
+                            onClose={(): void => this.setState({dialogOpen: false})}>
+                        <DialogTitle id={"form-dialog-title"}>Slice and dice</DialogTitle>
+                        <DialogContent>
+                            <SliceControl constants={this.props.constants}
+                                          onCommit={this.handleSliceCommit.bind(this)} />
+                        </DialogContent>
+                    </Dialog>
                 </Grid>
             </Grid>
         );

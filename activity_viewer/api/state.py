@@ -156,7 +156,7 @@ class APIState:
             return
 
         ccf_coord = self.get_coordinates(penetration_id)  # loads this penetration
-        annotation_volume, _ = self.cache.load_annotation_volume()
+        annotation_volume = self.cache.load_annotation_volume()
         tree = StructureTree(self.cache.load_structure_graph())
 
         i,j,k = (ccf_coord.T / self.settings.system.resolution).astype(np.int)
@@ -170,12 +170,12 @@ class APIState:
         return self._annotation_to_rgb(ref_slice)
 
     def get_coronal_annotation_slice(self, ap_coordinate: float):
-        volume, _ = self.cache.load_annotation_volume()
+        volume = self.cache.load_annotation_volume()
 
         return self._get_coronal_slice(ap_coordinate, volume)
 
     def get_coronal_template_slice(self, ap_coordinate: float):
-        volume, _ = self.cache.load_template_volume()
+        volume = self.cache.load_template_volume()
 
         return self._get_coronal_slice(ap_coordinate, volume).astype(np.uint8)
 
@@ -185,17 +185,17 @@ class APIState:
         return self._annotation_to_rgb(ref_slice)
 
     def get_horizontal_annotation_slice(self, dv_coordinate: float):
-        volume, _ = self.cache.load_annotation_volume()
+        volume = self.cache.load_annotation_volume()
 
         return self._get_horizontal_slice(dv_coordinate, volume)
 
     def get_horizontal_template_slice(self, dv_coordinate: float):
-        volume, _ = self.cache.load_template_volume()
+        volume = self.cache.load_template_volume()
 
         return self._get_horizontal_slice(dv_coordinate, volume).astype(np.uint8)
 
     def get_sagittal_annotation_slice(self, lr_coordinate: float):
-        volume, _ = self.cache.load_annotation_volume()
+        volume = self.cache.load_annotation_volume()
         return self._get_sagittal_slice(lr_coordinate, volume)
 
     def get_sagittal_annotation_rgb(self, lr_coordinate: float):
@@ -204,7 +204,7 @@ class APIState:
         return self._annotation_to_rgb(ref_slice)
 
     def get_sagittal_template_slice(self, lr_coordinate: float):
-        volume, _ = self.cache.load_template_volume()
+        volume = self.cache.load_template_volume()
 
         return self._get_sagittal_slice(lr_coordinate, volume).astype(np.uint8)
 
@@ -231,7 +231,7 @@ class APIState:
 
         ccf_coord = self.npz_loader.get("ccf_coord") / self.settings.system.resolution
         indices = self._find_pseudocoronal_indices(ccf_coord)
-        volume, _ = self.cache.load_annotation_volume()
+        volume = self.cache.load_annotation_volume()
         ref_slice = volume[indices, np.arange(volume.shape[1]), :].squeeze()
 
         return ref_slice

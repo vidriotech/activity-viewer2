@@ -1,10 +1,12 @@
 import * as _ from 'underscore';
 
-import { Compartment, CompartmentNode, AVSettings } from './models/apiModels';
-import { ICompartmentNodeView } from './viewmodels/compartmentViewModel';
+// eslint-disable-next-line import/no-unresolved
+import { Compartment, CompartmentNode, AVSettings } from "./models/apiModels";
+// eslint-disable-next-line import/no-unresolved
+import { ICompartmentNodeView } from "./viewmodels/compartmentViewModel";
 
 export class CompartmentTree {
-    private root: CompartmentNode;
+    private readonly root: CompartmentNode;
     private settings: AVSettings;
 
     constructor(root: CompartmentNode, settings: AVSettings) {
@@ -13,16 +15,12 @@ export class CompartmentTree {
     }
 
     private getCompartmentNodesByAttr(attr: keyof(CompartmentNode), vals: any[]) {
-        let nodes: CompartmentNode[] = [];
+        const nodes: CompartmentNode[] = [];
         let queue = [this.root];
 
         while (queue.length > 0) {
-            let node = queue.splice(0, 1)[0];
-            if (node.hasOwnProperty('children')) {
-                queue = queue.concat(node.children);
-            } else {
-                console.log(node);
-            }
+            const node = queue.splice(0, 1)[0];
+            queue = queue.concat(node.children);
 
             if (vals.includes(node[attr])) {
                 nodes.push(node);

@@ -21,6 +21,10 @@ class Cache:
     settings : AVSettings
     """
     def __init__(self, settings: AVSettings):
+        self._annotation_header = None
+        self._annotation_volume = None
+        self._template_header = None
+        self._template_volume = None
         self._settings = None
         self._ontologies_api = OntologiesApi()
         self._reference_space_api = ReferenceSpaceApi()
@@ -49,29 +53,32 @@ class Cache:
 
     def load_annotation_volume_headers(self) -> dict:
         """Read the header only from the annotation volume file."""
+        if self._annotation_header is not None:
+            return self._annotation_header
+
         if not self.annotation_volume_exists:
             self.save_annotation_volume()
-        
+
         try:
-            header = nrrd.read_header(str(self.annotation_volume_path))
+            self._annotation_header = nrrd.read_header(str(self.annotation_volume_path))
         except nrrd.NRRDError:
             self.save_annotation_volume(force=True)
-            header = nrrd.read_header(str(self.annotation_volume_path))
+            self._annotation_header = nrrd.read_header(str(self.annotation_volume_path))
 
-        return header
+        return self._annotation_header
 
-    def load_annotation_volume(self) -> (np.ndarray, dict):
+    def load_annotation_volume(self) -> np.ndarray:
         """Load annotation volume from cache."""
-        try:
-            data, header = nrrd.read(self.annotation_volume_path)
-        except FileNotFoundError:
-            self.save_annotation_volume()
-            data, header = nrrd.read(self.annotation_volume_path)
-        except nrrd.NRRDError:
-            self.save_annotation_volume(force=True)
-            data, header = nrrd.read(self.annotation_volume_path)
+        if self._annotation_volume is not None:
+            return self._annotation_volume
 
-        return data, header
+        try:
+            self._annotation_volume, self._annotation_header = nrrd.read(self.annotation_volume_path)
+        except (FileNotFoundError, nrrd.NRRDError):
+            self.save_annotation_volume(force=True)
+            self._annotation_volume, self._annotation_header = nrrd.read(self.annotation_volume_path)
+
+        return self._annotation_volume
 
     def load_structure_graph(self, recache_on_error: bool = True) -> Optional[dict]:
         """Load the structure graph from cache, downloading and saving if necessary."""
@@ -109,18 +116,18 @@ class Cache:
 
         return pd.read_csv(self.structure_centers_path)
 
-    def load_template_volume(self) -> (np.ndarray, dict):
+    def load_template_volume(self) -> np.ndarray:
         """Load template volume from cache."""
         if not self.template_volume_exists():
             self.save_template_volume()
 
         try:
-            data, header = nrrd.read(self.template_volume_path)
-        except nrrd.NRRDError:
+            self._template_volume, self._template_header = nrrd.read(self.template_volume_path)
+        except (FileNotFoundError, nrrd.NRRDError):
             self.save_template_volume(force=True)
-            data, header = nrrd.read(self.template_volume_path)
+            self._template_volume, self._template_header = nrrd.read(self.template_volume_path)
 
-        return data, header
+        return self._template_volume
 
     def save_annotation_volume(self, force: bool = False):
         """Download and cache annotation volume."""

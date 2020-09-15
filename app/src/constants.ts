@@ -2,10 +2,6 @@
 import { ColorLUT } from "./models/apiModels";
 
 export class AVConstants {
-    private SagittalMax = 11400;
-    private HorizontalMax = 8000;
-    private CoronalMax = 13200;
-    
     private endpoint = 'http://localhost:3030';
     private _rootId = 997;
     private _rootColor = [135, 135, 135];
@@ -70,6 +66,10 @@ export class AVConstants {
         gl_FragColor = vec4( vColor, vOpacity * vVisible );
         gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
     }`;
+
+    public SagittalMax = 11400;
+    public HorizontalMax = 8000;
+    public CoronalMax = 13200;
 
     public get apiEndpoint() {
         return this.endpoint;

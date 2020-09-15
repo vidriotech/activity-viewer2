@@ -1,11 +1,12 @@
-import { CompartmentNode } from './apiModels';
+// eslint-disable-next-line import/no-unresolved
+import { CompartmentNode } from "./apiModels";
 
-export class CompartmentNode {
+export class CompartmentTreeNode {
     id: number;
     acronym: string;
     name: string;
     toggled: boolean;
-    children: CompartmentNode[];
+    children: CompartmentTreeNode[];
 
     public constructor(compartment: CompartmentNode, toggled: boolean) {
         this.id = compartment.id;
@@ -13,7 +14,7 @@ export class CompartmentNode {
         this.name = compartment.name;
         this.toggled = toggled;
         this.children = compartment.children.map(
-            (child: CompartmentNode) => new CompartmentNode(child, false)
+            (child: CompartmentNode) => new CompartmentTreeNode(child, false)
         );
     }
 
