@@ -38,6 +38,8 @@ import {BrainViewer} from "../../viewers/brainViewer";
 import {PenetrationViewModel} from "../../viewmodels/penetrationViewModel";
 // eslint-disable-next-line import/no-unresolved
 import {SliceControl, SliceType} from "./SliceControl";
+// eslint-disable-next-line import/no-unresolved
+import {Predicate, PropEqPredicate, PropIneqPredicate} from "../../models/predicateModels";
 
 
 type ViewerType = "3D" | "slice" | "penetration";
@@ -51,6 +53,7 @@ export interface ViewerContainerProps {
     timeMax: number;
     timeMin: number;
     timeStep: number;
+    onFilterPredicateUpdate(predicate: Predicate, newStat?: string): void;
 }
 
 interface ViewerContainerState {
@@ -208,9 +211,26 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     private handleSliceCommit(sliceType: SliceType, bounds: number[]): void {
+        let lowerBound: PropEqPredicate, upperBound: PropEqPredicate;
+        let boundsPredicate: PropIneqPredicate;
+        switch (sliceType) {
+            case "Coronal":
+                boundsPredicate = new PropIneqPredicate("x", bounds[0], bounds[2]);
+                break;
+            case "Sagittal":
+                boundsPredicate = new PropIneqPredicate("z", bounds[0], bounds[2]);
+                break;
+            case "Horizontal":
+                boundsPredicate = new PropIneqPredicate("y", bounds[0], bounds[2]);
+                break;
+        }
+
+        console.log(boundsPredicate);
         console.log(sliceType);
         console.log(bounds);
-        this.setState({dialogOpen: false});
+        this.setState({dialogOpen: false}, () => {
+            this.props.onFilterPredicateUpdate(boundsPredicate)
+        });
     }
 
     private handleSliderChange(_event: any, timeVal: number) {
@@ -426,7 +446,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                     <PlayerSlider {...playerSliderProps} />
                 </Grid>
                 <Grid item xs>
-                    <Dialog open={this.state.dialogOpen}
+                    <Dialog fullWidth
+                            open={this.state.dialogOpen}
                             onClose={(): void => this.setState({dialogOpen: false})}>
                         <DialogTitle id={"form-dialog-title"}>Slice and dice</DialogTitle>
                         <DialogContent>

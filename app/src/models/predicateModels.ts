@@ -99,8 +99,8 @@ export class StatPredicate extends Predicate {
     }
 }
 
-// PropPredicates are EQUALITIES
-export class PropPredicate extends Predicate {
+// StringPropPredicate are (IN)EQUALITIES
+export class PropEqPredicate extends Predicate {
     private propName: keyof(PointModel);
     private propValue: string | number;
     private negate: boolean;
@@ -114,7 +114,7 @@ export class PropPredicate extends Predicate {
     }
 
     public eval(points: PointModel[]): boolean[] {
-        let result: boolean[] = new Array(points.length);
+        const result: boolean[] = new Array(points.length);
         points.forEach((point: PointModel, idx: number) => {
             const val = point[this.propName];
             result[idx] = (val === this.propValue);
@@ -132,7 +132,71 @@ export class PropPredicate extends Predicate {
     }
 }
 
-export class FuzzyPredicate extends Predicate {
+export class PropIneqPredicate extends Predicate {
+    private readonly _propName: keyof(PointModel);
+    protected _lowerBound: number;
+    protected _upperBound: number;
+    
+    constructor(propName: keyof(PointModel), lowerBound: number, upperBound: number) {
+        super('string');
+
+        this._propName = propName;
+        this._lowerBound = lowerBound;
+        this._upperBound = upperBound;
+    }
+
+    public and(other: Predicate | PropIneqPredicate): Predicate {
+        if (_.has(other, '_propName') && _.has(other, "_lowerBound") && ((other as PropIneqPredicate).propName === this.propName)) {
+            return new PropIneqPredicate(
+                this.propName,
+                Math.max(this.lowerBound, (other as PropIneqPredicate).lowerBound),
+                Math.min(this.upperBound, (other as PropIneqPredicate).upperBound),
+            );
+        } else {
+            return new ANDPredicateChain(this, other);
+        }
+    }
+
+    public or(other: Predicate | PropIneqPredicate): Predicate {
+        if (_.has(other, '_propName') && _.has(other, "_lowerBound") && ((other as PropIneqPredicate).propName === this.propName)) {
+            return new PropIneqPredicate(
+                this.propName,
+                Math.min(this.lowerBound, (other as PropIneqPredicate).lowerBound),
+                Math.max(this.upperBound, (other as PropIneqPredicate).upperBound),
+            );
+        } else {
+            return new ORPredicateChain(this, other);
+        }
+    }
+
+    public eval(points: PointModel[]): boolean[] {
+        const result: boolean[] = new Array(points.length);
+        points.forEach((point: PointModel, idx: number) => {
+            const val = point[this.propName];
+            result[idx] = (this._lowerBound <= val) && (val <= this._upperBound);
+        });
+
+        return result;
+    }
+
+    public toString(): string {
+        return `${this.lowerBound} ≤ ${this.propName} ≤ ${this.upperBound}`;
+    }
+
+    public get propName(): keyof(PointModel) {
+        return this._propName;
+    }
+
+    public get lowerBound(): number {
+        return this._lowerBound;
+    }
+
+    public get upperBound(): number {
+        return this._upperBound;
+    }
+}
+
+export class SubcompartmentPredicate extends Predicate {
     private parentCompartment: CompartmentNode;
 
     constructor(parentCompartment: CompartmentNode, ) {

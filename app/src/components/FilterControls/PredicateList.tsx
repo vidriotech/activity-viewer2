@@ -14,7 +14,7 @@ import Typography from '@material-ui/core/Typography';
 import { CompartmentTree } from '../../compartmentTree';
 import { PenetrationData } from '../../models/apiModels';
 import { PointModel } from '../../models/pointModel';
-import { Predicate, PropPredicate, StatPredicate, PredicateChain, ANDPredicateChain, ORPredicateChain, FuzzyPredicate } from '../../models/predicateModels';
+import { Predicate, PropEqPredicate, StatPredicate, PredicateChain, ANDPredicateChain, ORPredicateChain, SubcompartmentPredicate } from '../../models/predicateModels';
 
 import { PredicateListNode } from './PredicateListNode';
 
@@ -68,14 +68,14 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
         if (isPropPredicate) {
             if (this.state.ssValue !== '') {
                 let compartment = this.props.compartmentTree.getCompartmentNodeByName(this.state.ssValue);
-                predicate = new FuzzyPredicate(compartment);
+                predicate = new SubcompartmentPredicate(compartment);
             } else {
                 const propValue = this.state.neValue === '' ?
                 this.state.eValue :
                 this.state.neValue;
 
                 const negate = this.state.neValue !== '';
-                predicate = new PropPredicate(this.propKeys.get(this.state.currentCondition), propValue, negate);
+                predicate = new PropEqPredicate(this.propKeys.get(this.state.currentCondition), propValue, negate);
             }
         } else { // stat predicate
             const lowerBound = Number.isNaN(this.state.lowerBound) ? -Infinity : this.state.lowerBound;

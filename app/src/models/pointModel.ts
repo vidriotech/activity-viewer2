@@ -17,6 +17,14 @@ export class PointModel {
         this.stats = new Map<string, number>();
     }
 
+    public getStat(name: string) {
+        return this.stats.has(name) ? this.stats.get(name) : NaN;
+    }
+
+    public setStat(name: string, value: number) {
+        this.stats.set(name, value);
+    }
+
     public get compartmentId() {
         return this.summary.compartment ? this.summary.compartment.id : null;
     }
@@ -29,10 +37,6 @@ export class PointModel {
         return this.summary.compartment ? this.summary.compartment.name : null;
     }
 
-    public get coordinates() {
-        return this.summary.coordinates ? this.summary.coordinates.slice() : [];
-    }
-
     public get id() {
         return this.summary.id;
     }
@@ -41,11 +45,15 @@ export class PointModel {
         return this.summary.penetrationId;
     }
 
-    public getStat(name: string) {
-        return this.stats.has(name) ? this.stats.get(name) : NaN;
+    public get x() {
+        return this.summary.coordinates ? this.summary.coordinates[0] : Number.NaN;
     }
 
-    public setStat(name: string, value: number) {
-        this.stats.set(name, value);
+    public get y() {
+        return this.summary.coordinates ? this.summary.coordinates[1] : Number.NaN;
+    }
+
+    public get z() {
+        return this.summary.coordinates ? this.summary.coordinates[2] : Number.NaN;
     }
 }

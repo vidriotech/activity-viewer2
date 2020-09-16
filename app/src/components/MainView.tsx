@@ -45,41 +45,41 @@ import { UnitTable, UnitTableProps } from './UnitTable/UnitTable';
 
 
 interface TimeseriesData {
-    penetrationId: string,
-    times: number[],
-    values: number[],
+    penetrationId: string;
+    times: number[];
+    values: number[];
 }
 
 interface UnitStatsData {
-    penetrationId: string,
-    values: number[],
+    penetrationId: string;
+    values: number[];
 }
 
 export interface MainViewProps {
-    compartmentTree: CompartmentTree,
-    constants: AVConstants,
-    settings: AVSettings,
+    compartmentTree: CompartmentTree;
+    constants: AVConstants;
+    settings: AVSettings;
 }
 
 interface MainViewState {
-    aesthetics: AestheticMapping[],
-    availablePenetrations: PenetrationData[],
+    aesthetics: AestheticMapping[];
+    availablePenetrations: PenetrationData[];
     colorLUT: ColorLUT;
-    compartmentSubsetOnly: boolean,
-    compartmentViewTree: ICompartmentNodeView,
-    filterPredicate: Predicate,
-    frameRate: number,
-    isPlaying: boolean,
-    loopAnimation: 'once' | 'repeat',
-    opacityBounds: number[],
-    radiusBounds: number[],
+    compartmentSubsetOnly: boolean;
+    compartmentViewTree: ICompartmentNodeView;
+    filterPredicate: Predicate;
+    frameRate: number;
+    isPlaying: boolean;
+    loopAnimation: 'once' | 'repeat';
+    opacityBounds: number[];
+    radiusBounds: number[];
     selectedColor: string;
     selectedOpacity: string;
     selectedRadius: string;
     selectedStat: string;
-    timeMin: number,
-    timeMax: number,
-    timeStep: number,
+    timeMin: number;
+    timeMax: number;
+    timeStep: number;
 }
 
 export class MainView extends React.Component<MainViewProps, MainViewState> {
@@ -197,7 +197,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.handleAestheticSelectionChange("selectedColor", event.target.value as string);
     }
 
-    private handleFilterPredicateUpdate(predicate: Predicate, newStat: string): void {
+    private handleFilterPredicateUpdate(predicate: Predicate, newStat?: string = "nothing"): void {
         if (newStat !== 'nothing' && !this.statsData.has(newStat)) {
             this.apiClient.fetchUnitStatsById(newStat)
                 .then((res: any) => res.data)
@@ -524,6 +524,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             timeMin: this.state.timeMin,
             timeStep: this.state.timeStep,
             compartmentViewTree: this.state.compartmentViewTree,
+            onFilterPredicateUpdate: this.handleFilterPredicateUpdate.bind(this),
         }
 
         const timeseriesControlsProps: TimeseriesControlsProps = {
