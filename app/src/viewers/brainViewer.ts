@@ -1,16 +1,13 @@
 import {Mesh, Object3D} from 'three';
-import * as _ from 'underscore';
+import * as _ from "lodash";
 
 // eslint-disable-next-line import/no-unresolved
 import {AVConstants} from "../constants";
-
 // eslint-disable-next-line import/no-unresolved
 import {Epoch} from "../models/apiModels";
+// eslint-disable-next-line import/no-unresolved
+import {CompartmentNodeView} from "../viewmodels/compartmentViewModel";
 
-// eslint-disable-next-line import/no-unresolved
-// eslint-disable-next-line import/no-unresolved
-import {ICompartmentNodeView} from "../viewmodels/compartmentViewModel";
-// eslint-disable-next-line import/no-unresolved
 // eslint-disable-next-line import/no-unresolved
 import {BaseViewer} from "./baseViewer";
 
@@ -27,12 +24,22 @@ export class BrainViewer extends BaseViewer {
     constructor(constants: AVConstants, epochs: Epoch[]) {
         super(constants, epochs);
 
+        this.pointsMaterial = new THREE.ShaderMaterial({
+            uniforms: {
+                pointTexture: { value: new THREE.TextureLoader().load(this.constants.ballTexture) }
+            },
+            vertexShader: this.constants.pointVertexShader,
+            fragmentShader: this.constants.pointFragmentShader,
+            depthTest: false,
+            transparent: true,
+            vertexColors: true
+        });
+
         this.cameraPosition = [0, 0, -20000];
     }
 
-    private loadCompartment(compartmentNodeView: ICompartmentNodeView) {
+    private loadCompartment(compartmentNodeView: CompartmentNodeView): void {
         const name = compartmentNodeView.name;
-
         if (this.loadedCompartments.includes(name)) {
             return;
         }
@@ -44,7 +51,7 @@ export class BrainViewer extends BaseViewer {
         const path = `${this.constants.apiEndpoint}/mesh/${compartmentId}`;
 
         loader.load(path, (obj: Object3D) => {
-            const makeMaterial = (child: Mesh) => {
+            const makeMaterial = (child: Mesh): void => {
                 child.material = new THREE.ShaderMaterial({
                     uniforms: {
                         color: {type: 'c', value: new THREE.Color(compartmentColor)},
@@ -70,12 +77,7 @@ export class BrainViewer extends BaseViewer {
         });
     }
 
-    public initialize() {
-        // create a new renderer
-        super.initialize();
-    }
-
-    public setCompartmentVisible(compartmentNodeView: ICompartmentNodeView): void {
+    public setCompartmentVisible(compartmentNodeView: CompartmentNodeView): void {
         // loading sets visible as a side effect
         const name = compartmentNodeView.name;
         const visible = compartmentNodeView.isVisible;
@@ -97,7 +99,7 @@ export class BrainViewer extends BaseViewer {
         }
     }
 
-    public get visibleCompartments() {
+    public get visibleCompartments(): string[] {
         return this._visibleCompartments;
     }
 }

@@ -1,6 +1,6 @@
 import axios from "axios";
 // eslint-disable-next-line import/no-unresolved
-import { PenetrationRequest, ExportingUnit, SettingsRequest, } from "./models/apiModels";
+import {PenetrationRequest, ExportingUnit, SettingsRequest, SliceType,} from "./models/apiModels";
 
 
 export class APIClient {
@@ -14,8 +14,8 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/color-map/${mapping}`);
     }
 
-    async fetchCoronalSlice(apCoordinate: number) {
-        return await axios.get(`${this.endpoint}/slices/coronal/${apCoordinate}`);
+    async fetchSlice(sliceType: SliceType, coordinate: number) {
+        return await axios.get(`${this.endpoint}/slices/${sliceType}/${coordinate}`);
     }
 
     async fetchCompartmentTree() {
@@ -35,20 +35,12 @@ export class APIClient {
         });
     }
 
-    async fetchHorizontalSlice(dvCoordinate: number) {
-        return await axios.get(`${this.endpoint}/slices/horizontal/${dvCoordinate}`);
-    }
-
     async fetchPenetrations() {
         return await axios.get(`${this.endpoint}/penetrations`);
     }
 
     async fetchPenetrationVitals(penetrationId: string) {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
-    }
-
-    async fetchSagittalSlice(lrCoordinate: number) {
-        return await axios.get(`${this.endpoint}/slices/sagittal/${lrCoordinate}`);
     }
 
     async fetchSettings() {

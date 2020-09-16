@@ -10,21 +10,21 @@ import Typography from '@material-ui/core/Typography';
 
 import { AVConstants } from '../../constants';
 import { AVSettings } from '../../models/apiModels';
-import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
+import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
 import { CompartmentListNode, ICompartmentListNodeProps } from './CompartmentListNode';
 
 
 export interface ICompartmentListProps {
     compartmentSubsetOnly: boolean,
-    compartmentViewTree: ICompartmentNodeView,
+    compartmentViewTree: CompartmentNodeView,
     constants: AVConstants,
     settings: AVSettings,
-    onToggleCompartmentVisible(rootNode: ICompartmentNodeView): void,
+    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void,
 }
 
 interface ICompartmentListState {
-    filteredCompartments: ICompartmentNodeView[],
+    filteredCompartments: CompartmentNodeView[],
 }
 
 export class CompartmentList extends React.Component<ICompartmentListProps, ICompartmentListState> {
@@ -50,7 +50,7 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
         return flattenedList;
     }
 
-    private toggleCompartmentVisible(compartmentNodeView: ICompartmentNodeView) {
+    private toggleCompartmentVisible(compartmentNodeView: CompartmentNodeView) {
         let structureIdPath = compartmentNodeView.structureIdPath;
         
         // first structure is always root
@@ -72,7 +72,7 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
     public componentDidUpdate(prevProps: Readonly<ICompartmentListProps>) {
         if (prevProps.compartmentViewTree !== this.props.compartmentViewTree && this.state.filteredCompartments.length > 0) {
             let filteredCompartmentNames = this.state.filteredCompartments.map((c) => c.name);
-            let filteredCompartments: ICompartmentNodeView[] = [];
+            let filteredCompartments: CompartmentNodeView[] = [];
             let queue = [this.props.compartmentViewTree]
 
             let node;
@@ -107,7 +107,7 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
                           options={compartmentList}
                           getOptionLabel={(option) => option.name}
                           filterSelectedOptions
-                          onChange={(_evt, newValue: ICompartmentNodeView[] ) => this.setState({ filteredCompartments: newValue})}
+                          onChange={(_evt, newValue: CompartmentNodeView[] ) => this.setState({ filteredCompartments: newValue})}
                           renderInput={(params) => (
                               <TextField {...params}
                                          variant='outlined'

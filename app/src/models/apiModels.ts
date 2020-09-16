@@ -51,7 +51,7 @@ export interface PenetrationResponse {
  */
 export interface Compartment {
     acronym: string;
-    rgb_triplet: number[];
+    rgb_triplet: [number, number, number];
     graph_id: number;
     graph_order: number;
     id: number;
@@ -120,10 +120,13 @@ export interface AVSettings {
  * Endpoint: /slices/<slice_type>/<coordinate>
  * Allows to query slice data from the Allen volumes.
  */
+export type SliceType = "coronal" | "sagittal";
+
 export interface SliceImageData {
     annotationImage: string;
     templateImage: string;
     annotationSlice: number[];
+    sliceType: SliceType;
     stride: number;
 }
 

@@ -9,7 +9,7 @@ import { AVConstants } from '../../constants';
 import { PenetrationData, AVSettings } from '../../models/apiModels';
 import { Predicate } from '../../models/predicateModels';
 
-import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
+import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
 import { PredicateList, IPredicateListProps } from './PredicateList';
 import { StatsHistogram, IStatsHistogramProps } from './StatsHistogram';
@@ -19,7 +19,7 @@ export interface IFilterControlsProps {
     availablePenetrations: PenetrationData[],
     compartmentSubsetOnly: boolean,
     compartmentTree: CompartmentTree,
-    compartmentViewTree: ICompartmentNodeView,
+    compartmentViewTree: CompartmentNodeView,
     constants: AVConstants,
     statsData: number[],
     filterPredicate: Predicate,
@@ -27,7 +27,7 @@ export interface IFilterControlsProps {
     settings: AVSettings,
     onFilterPredicateUpdate(predicate: Predicate, newStat: string): void,
     onStatSelectionChange(event: any): void,
-    onToggleCompartmentVisible(rootNode: ICompartmentNodeView): void,
+    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void,
 }
 
 export function FilterControls(props: IFilterControlsProps) {

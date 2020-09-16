@@ -1,9 +1,9 @@
-export interface ICompartmentNodeView {
-    acronym: string
-    id: number,
-    name: string,
-    children: ICompartmentNodeView[],
-    isVisible: boolean,
-    rgbTriplet: number[],
-    structureIdPath: number[],
+export interface CompartmentNodeView {
+    acronym: string;
+    id: number;
+    name: string;
+    children: CompartmentNodeView[];
+    isVisible: boolean;
+    rgbTriplet: [number, number, number];
+    structureIdPath: number[];
 }

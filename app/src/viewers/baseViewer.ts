@@ -22,12 +22,12 @@ export abstract class BaseViewer {
     protected penetrationViewModelsMap: Map<string, PenetrationViewModel>;
 
     // animation
+    protected animFrameHandle: number = null;
     protected timeMax = 0;
     protected timeMin = 0;
     protected timeStep = 0.01;
     protected _timeVal = 0;
 
-    public readonly canvasId = "viewer-canvas";
     public HEIGHT: number;
     public WIDTH: number;
     public container = 'container';
@@ -54,17 +54,7 @@ export abstract class BaseViewer {
     protected constructor(constants: AVConstants, epochs: Epoch[]) {
         this.constants = constants;
         this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
-
-        this.pointsMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                pointTexture: { value: new THREE.TextureLoader().load(this.constants.ballTexture) }
-            },
-            vertexShader: this.constants.pointVertexShader,
-            fragmentShader: this.constants.pointFragmentShader,
-            depthTest: false,
-            transparent: true,
-            vertexColors: true
-        });
+        this.cameraPosition = [0, 0, 0];
 
         this.penetrationPointsMap = new Map<string, THREE.Points<BufferGeometry>>();
         this.penetrationViewModelsMap = new Map<string, PenetrationViewModel>();
@@ -156,11 +146,11 @@ export abstract class BaseViewer {
 
     protected initLights(): void {
         let light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(0, 0, 10000);
+        light.position.set(0, 0, this.cameraPosition[2] / 2);
         this.scene.add(light);
 
         light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(0, 0, -10000);
+        light.position.set(0, 0, -this.cameraPosition[2] / 2);
         this.scene.add(light);
     }
 
@@ -228,12 +218,13 @@ export abstract class BaseViewer {
 
     protected resetSlider(): void {
         this.camera.remove(this.epochLabels);
+
         this.initEpochLabels();
         this.initEpochSlider();
     }
 
-    protected rgb2Hex(val: number[]): string {
-        return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
+    protected rgb2Hex(rgb: [number, number, number]): string {
+        return `${rgb[0].toString(16)}${rgb[1].toString(16)}${rgb[2].toString(16)}`;
     }
 
     protected updateTimeSlider(): void {
@@ -249,14 +240,21 @@ export abstract class BaseViewer {
     public animate(timestamp: number = null): void {
         if (!this.lastTimestamp) {
             this.lastTimestamp = timestamp;
-            this.render();
         } else if (timestamp - this.lastTimestamp > 75) {
             this.lastTimestamp = timestamp;
             this.orbitControls.update();
-            this.render();
         }
 
-        window.requestAnimationFrame(this.animate.bind(this));
+        this.render();
+        this.animFrameHandle = window.requestAnimationFrame(this.animate.bind(this));
+    }
+
+    public destroy(): void {
+        if (this.animFrameHandle !== null) {
+            window.cancelAnimationFrame(this.animFrameHandle);
+        }
+
+        document.getElementById(this.container).removeChild(this.renderer.domElement);
     }
 
     public hasPenetration(penetrationId: string): boolean {

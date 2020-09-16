@@ -12,13 +12,13 @@ import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
-import { ICompartmentNodeView } from '../../viewmodels/compartmentViewModel';
+import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
 
 export interface ICompartmentListNodeProps {
-    compartmentNodeView: ICompartmentNodeView,
+    compartmentNodeView: CompartmentNodeView,
     showChildren: boolean,
-    onToggleDescendantVisible(descendentNode: ICompartmentNodeView): void,
+    onToggleDescendantVisible(descendentNode: CompartmentNodeView): void,
 }
 
 interface ICompartmentListNodeState {
@@ -39,7 +39,7 @@ export class CompartmentListNode extends React.Component<ICompartmentListNodePro
     }
 
     private handleToggleSelfVisible() {
-        const copyOfSelf: ICompartmentNodeView = _.extend(
+        const copyOfSelf: CompartmentNodeView = _.extend(
             _.pick(this.props.compartmentNodeView,
                 _.without(_.keys(this.props.compartmentNodeView), 'isVisible')
             ),
@@ -49,7 +49,7 @@ export class CompartmentListNode extends React.Component<ICompartmentListNodePro
         this.props.onToggleDescendantVisible(copyOfSelf);
     }
 
-    private handleToggleDescendantVisible(descendentNode: ICompartmentNodeView) {
+    private handleToggleDescendantVisible(descendentNode: CompartmentNodeView) {
         let children = this.props.compartmentNodeView.children.slice();
         const idx = children.map((child) => child.name).indexOf(descendentNode.name);
         children[idx] = descendentNode;

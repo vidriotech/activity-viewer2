@@ -1,15 +1,16 @@
 import React from "react";
-import InputLabel from "@material-ui/core/InputLabel";
-import Select from "@material-ui/core/Select";
-import MenuItem from "@material-ui/core/MenuItem";
+
+import Button from "@material-ui/core/Button";
 import FormControl from "@material-ui/core/FormControl";
+import InputLabel from "@material-ui/core/InputLabel";
+import MenuItem from "@material-ui/core/MenuItem";
+import Select from "@material-ui/core/Select";
+import Slider from "@material-ui/core/Slider";
 
 // eslint-disable-next-line import/no-unresolved
 import {AVConstants} from "../../constants";
-import Slider from "@material-ui/core/Slider";
-import Button from "@material-ui/core/Button";
-
-export type SliceType = "Coronal" | "Sagittal" | "Horizontal";
+// eslint-disable-next-line import/no-unresolved
+import {SliceType} from "../../models/apiModels";
 
 export interface SliceControlProps {
     constants: AVConstants;
@@ -27,7 +28,7 @@ export class SliceControl extends React.Component<SliceControlProps, SliceContro
 
         this.state = {
             projectionValues: [-500, 0, 500].map(x => x + this.props.constants.CoronalMax / 2),
-            selectedSliceType: "Coronal",
+            selectedSliceType: "coronal",
         };
     }
 
@@ -36,14 +37,11 @@ export class SliceControl extends React.Component<SliceControlProps, SliceContro
 
         let projectionCenter: number;
         switch (selectedSliceType) {
-            case "Coronal":
+            case "coronal":
                 projectionCenter = this.props.constants.CoronalMax / 2;
                 break;
-            case "Sagittal":
+            case "sagittal":
                 projectionCenter = this.props.constants.SagittalMax / 2;
-                break;
-            case "Horizontal":
-                projectionCenter = this.props.constants.HorizontalMax / 2;
                 break;
         }
 
@@ -66,8 +64,8 @@ export class SliceControl extends React.Component<SliceControlProps, SliceContro
     }
 
     public render(): React.ReactNode {
-        const menuItems = ["Coronal", "Sagittal", "Horizontal"].map((type) => (
-            <MenuItem key={type} value={type}>
+        const menuItems = ["Coronal", "Sagittal"].map((type) => (
+            <MenuItem key={type.toLowerCase()} value={type.toLowerCase()}>
                 {type}
             </MenuItem>
         ));
@@ -75,14 +73,11 @@ export class SliceControl extends React.Component<SliceControlProps, SliceContro
         const sliderMin = 0;
         let sliderMax: number;
         switch (this.state.selectedSliceType) {
-            case "Coronal":
+            case "coronal":
                 sliderMax = this.props.constants.CoronalMax;
                 break;
-            case "Sagittal":
+            case "sagittal":
                 sliderMax = this.props.constants.SagittalMax;
-                break;
-            case "Horizontal":
-                sliderMax = this.props.constants.HorizontalMax;
                 break;
         }
 

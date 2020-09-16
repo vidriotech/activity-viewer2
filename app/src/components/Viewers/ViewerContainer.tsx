@@ -19,12 +19,12 @@ import TabList from "@material-ui/lab/TabList";
 import { AVConstants } from "../../constants";
 
 // eslint-disable-next-line import/no-unresolved
-import { PenetrationData, AVSettings } from "../../models/apiModels";
+import {PenetrationData, AVSettings, SliceImageData} from "../../models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
 import { AestheticMapping } from "../../viewmodels/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
-import { ICompartmentNodeView } from "../../viewmodels/compartmentViewModel";
+import { CompartmentNodeView } from "../../viewmodels/compartmentViewModel";
 
 // eslint-disable-next-line import/no-unresolved
 import { PlayerSlider, PlayerSliderProps } from "./PlayerSlider";
@@ -37,9 +37,20 @@ import {BrainViewer} from "../../viewers/brainViewer";
 // eslint-disable-next-line import/no-unresolved
 import {PenetrationViewModel} from "../../viewmodels/penetrationViewModel";
 // eslint-disable-next-line import/no-unresolved
-import {SliceControl, SliceType} from "./SliceControl";
+import {SliceControl} from "./SliceControl";
 // eslint-disable-next-line import/no-unresolved
 import {Predicate, PropEqPredicate, PropIneqPredicate} from "../../models/predicateModels";
+// eslint-disable-next-line import/no-unresolved
+import {SliceType} from "../../models/apiModels";
+// eslint-disable-next-line import/no-unresolved
+import {ImageType, SliceViewer} from "../../viewers/sliceViewer";
+import {AxiosResponse} from "axios";
+import FormControl from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Radio from "@material-ui/core/Radio";
+import {Image} from "plotly.js";
 
 
 type ViewerType = "3D" | "slice" | "penetration";
@@ -47,7 +58,7 @@ type ViewerType = "3D" | "slice" | "penetration";
 export interface ViewerContainerProps {
     aesthetics: AestheticMapping[];
     availablePenetrations: PenetrationData[];
-    compartmentViewTree: ICompartmentNodeView;
+    compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
     settings: AVSettings;
     timeMax: number;
@@ -59,6 +70,7 @@ export interface ViewerContainerProps {
 interface ViewerContainerState {
     dialogOpen: boolean;
     frameRate: number;
+    imageType: ImageType;
     isPlaying: boolean;
     isRecording: boolean;
     loopAnimation: "once" | "repeat";
@@ -77,7 +89,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     private canvasContainerId = "viewer-container";
     private mediaRecorder: MediaRecorder = null;
     private recordedBlobs: Blob[];
-    private viewerOptions = ["3D", "slice", "penetration"];
+    private sliceBounds: number[];
+    private sliceType: SliceType;
     private viewer: BaseViewer = null;
 
     constructor(props: ViewerContainerProps) {
@@ -86,6 +99,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         this.state = {
             dialogOpen: false,
             frameRate: 30,
+            imageType: "annotation",
             isPlaying: false,
             isRecording: false,
             loopAnimation: "once",
@@ -138,18 +152,20 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     private async createViewer(): Promise<any> {
-        const { width, height } = this.computeDims();
-        const v = new BrainViewer(this.props.constants, this.props.settings.epochs);
+        let v: BaseViewer;
 
-        v.container = this.canvasContainerId; // div is created in render()
-        v.WIDTH = width;
-        v.HEIGHT = height;
-
-        v.initialize();
-        v.animate();
-        v.setTime(this.props.timeMin, this.props.timeMax, this.props.timeStep, this.state.timeVal);
-
-        this.viewer = v;
+        if (this.state.viewerType === "3D") {
+            v = new BrainViewer(this.props.constants, this.props.settings.epochs);
+            this.initViewer(v);
+        } else if (this.state.viewerType === "slice") {
+            return this.apiClient.fetchSlice(this.sliceType, this.sliceBounds[1])
+                .then((res: AxiosResponse<SliceImageData>) => res.data)
+                .then((sliceData) => {
+                    v = new SliceViewer(this.props.constants, this.props.settings.epochs, sliceData);
+                    (v as SliceViewer).imageType = this.state.imageType;
+                    this.initViewer(v);
+                });
+        }
     }
 
     private downloadRecording() {
@@ -210,30 +226,26 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         });
     }
 
-    private handleSliceCommit(sliceType: SliceType, bounds: number[]): void {
-        let lowerBound: PropEqPredicate, upperBound: PropEqPredicate;
+    private handleSliceCommit(sliceType: SliceType, sliceBounds: number[]): void {
         let boundsPredicate: PropIneqPredicate;
         switch (sliceType) {
-            case "Coronal":
-                boundsPredicate = new PropIneqPredicate("x", bounds[0], bounds[2]);
+            case "coronal":
+                boundsPredicate = new PropIneqPredicate("x", sliceBounds[0], sliceBounds[2]);
                 break;
-            case "Sagittal":
-                boundsPredicate = new PropIneqPredicate("z", bounds[0], bounds[2]);
-                break;
-            case "Horizontal":
-                boundsPredicate = new PropIneqPredicate("y", bounds[0], bounds[2]);
+            case "sagittal":
+                boundsPredicate = new PropIneqPredicate("z", sliceBounds[0], sliceBounds[2]);
                 break;
         }
 
-        console.log(boundsPredicate);
-        console.log(sliceType);
-        console.log(bounds);
-        this.setState({dialogOpen: false}, () => {
-            this.props.onFilterPredicateUpdate(boundsPredicate)
+        this.sliceType = sliceType;
+        this.sliceBounds = sliceBounds;
+
+        this.setState({dialogOpen: false, viewerType: "slice"}, () => {
+            this.props.onFilterPredicateUpdate(boundsPredicate);
         });
     }
 
-    private handleSliderChange(_event: any, timeVal: number) {
+    private handleSliderChange(_event: any, timeVal: number): void {
         this.setState({ timeVal });
     }
 
@@ -247,7 +259,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         });
     }
 
-    private handleStreamDataAvailable(evt: BlobEvent) {
+    private handleStreamDataAvailable(evt: BlobEvent): void {
         if (evt.data.size > 0) {
             this.recordedBlobs.push(evt.data);
 
@@ -259,12 +271,26 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    private handleViewerTabSelect(_event: never, value: number) {
-        const viewerType = this.viewerOptions[value] as ViewerType;
-
-        if (viewerType !== this.state.viewerType) {
-            this.setState({ viewerType });
+    private handleViewerChange(): void {
+        if (this.state.viewerType === "3D") {
+            this.setState({dialogOpen: true});
+        } else {
+            this.setState({viewerType: "3D"});
         }
+    }
+
+    private initViewer(v: BaseViewer): void {
+        const { width, height } = this.computeDims();
+
+        v.container = this.canvasContainerId; // div is created in render()
+        v.WIDTH = width;
+        v.HEIGHT = height;
+
+        v.initialize();
+        v.animate();
+        v.setTime(this.props.timeMin, this.props.timeMax, this.props.timeStep, this.state.timeVal);
+
+        this.viewer = v;
     }
 
     private onRecordingStart() {
@@ -283,6 +309,12 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
+    private reinitViewer(): void {
+        this.viewer.destroy();
+        this.viewer = null;
+        this.createAndRender();
+    }
+
     private renderCompartments() {
         if (this.viewer === null || !(this.viewer instanceof BrainViewer)) {
             return;
@@ -291,15 +323,19 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const viewer = this.viewer as BrainViewer;
 
         // traverse the compartment tree and set visible or invisible
-        let queue: ICompartmentNodeView[] = [this.props.compartmentViewTree];
+        let queue: CompartmentNodeView[] = [this.props.compartmentViewTree];
         while (queue.length > 0) {
-            const compartmentNodeView: ICompartmentNodeView = queue.splice(0, 1)[0];
+            const compartmentNodeView: CompartmentNodeView = queue.splice(0, 1)[0];
             viewer.setCompartmentVisible(compartmentNodeView);
             queue = queue.concat(compartmentNodeView.children);
         }
     }
 
     private renderPenetrations() {
+        if (this.viewer === null) {
+            return;
+        }
+
         this.props.availablePenetrations.forEach((penetration) => {
             if (penetration.ids.length == 0) {
                 return;
@@ -348,7 +384,11 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         prevProps: Readonly<ViewerContainerProps>,
         prevState: Readonly<ViewerContainerState>
     ): void {
-        if (prevProps.aesthetics !== this.props.aesthetics || prevProps.availablePenetrations !== this.props.availablePenetrations) {
+        if (prevState.viewerType !== this.state.viewerType) {
+            this.reinitViewer();
+        } else if (prevState.imageType !== this.state.imageType) {
+            (this.viewer as SliceViewer).imageType = this.state.imageType;
+        } else if (prevProps.aesthetics !== this.props.aesthetics || prevProps.availablePenetrations !== this.props.availablePenetrations) {
             this.renderPenetrations();
         }
 
@@ -379,82 +419,63 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             onStopClick: this.handleStopClick.bind(this),
         };
 
-        // function a11yProps(index: string): {id?: string; "aria-controls"?: string} {
-        //     return {
-        //         id: `simple-tab-${index}`,
-        //         'aria-controls': `simple-tabpanel-${index}`,
-        //     };
-        // }
+        const dialog = (
+            <Dialog fullWidth
+                    open={this.state.dialogOpen}
+                    onClose={(): void => this.setState({dialogOpen: false})}>
+                <DialogTitle id={"form-dialog-title"}>Slice and dice</DialogTitle>
+                <DialogContent>
+                    <SliceControl constants={this.props.constants}
+                                  onCommit={this.handleSliceCommit.bind(this)} />
+                </DialogContent>
+            </Dialog>
+        );
 
-        // const tabValue = this.viewerOptions.indexOf(this.state.viewerType);
+        const buttonText = this.state.viewerType === "3D" ?
+            "Slice and dice" :
+            "Return to 3D";
 
-        // let viewer: any = null;
-        // if (tabValue === 0) {
-        //     const viewer3DProps: Viewer3DProps = {
-        //         aesthetics: this.props.aesthetics,
-        //         availablePenetrations: this.props.availablePenetrations,
-        //         canvasContainerId: "viewer-container-3d",
-        //         constants: this.props.constants,
-        //         frameRate: this.state.frameRate,
-        //         isPlaying: this.state.isPlaying,
-        //         loopAnimation: this.state.loopAnimation,
-        //         settings: this.props.settings,
-        //         timeMin: this.props.timeMin,
-        //         timeMax: this.props.timeMax,
-        //         timeStep: this.props.timeStep,
-        //         timeVal: this.state.timeVal,
-        //         compartmentViewTree: this.props.compartmentViewTree,
-        //     };
-        //
-        //     viewer = <Viewer3D {...viewer3DProps} />;
-        // } else if (tabValue === 1) {
-        //     const viewer2DProps: Viewer2DProps = {
-        //         aesthetics: this.props.aesthetics,
-        //         availablePenetrations: this.props.availablePenetrations,
-        //         canvasContainerId: "viewer-container-slice",
-        //         constants: this.props.constants,
-        //         settings: this.props.settings,
-        //         viewerType: this.state.viewerType as Viewer2DType,
-        //     };
-        //
-        //     viewer = <Viewer2D {...viewer2DProps} />;
-        // }
+        const imageTypeSwitch = (
+            <FormControl component="fieldset">
+                <FormLabel component="legend">Image type</FormLabel>
+                <RadioGroup row
+                            aria-label="image type"
+                            name="imgType"
+                            value={this.state.imageType}
+                            onChange={(evt) => {
+                                this.setState({imageType: evt.target.value as ImageType})
+                            }}>
+                    <FormControlLabel value="annotation" control={<Radio />} label="A" />
+                    <FormControlLabel value="template" control={<Radio />} label="T" />
+                </RadioGroup>
+            </FormControl>
+        );
+
+        const switchButton = (
+            <div>
+                <Button color={"primary"}
+                        variant={"contained"}
+                        onClick={this.handleViewerChange.bind(this)}>
+                    {buttonText}
+                </Button>
+                {this.state.viewerType === "slice" ? imageTypeSwitch : null}
+            </div>
+        );
 
         return (
             <Grid container>
                 <Grid item xs={12}>
-                    {/*<AppBar position="static">*/}
-                    {/*    <Tabs value={tabValue}*/}
-                    {/*          onChange={this.handleViewerTabSelect.bind(this)} aria-label="simple tabs example">*/}
-                    {/*        <Tab label="3D View" {...a11yProps("3D")} />*/}
-                    {/*        <Tab label="Slice View" {...a11yProps("slice")} />*/}
-                    {/*        <Tab label="Penetration View" {...a11yProps("penetration")} />*/}
-                    {/*    </Tabs>*/}
-                    {/*    <Typography>This is some text.</Typography>*/}
-                    {/*</AppBar>*/}
                     <div style={{ padding: 40 }}
                          id={this.canvasContainerId} />
                 </Grid>
                 <Grid item xs={4}>
-                    <Button color={"primary"}
-                            variant={"contained"}
-                            onClick={(): void => this.setState({dialogOpen: true})}>
-                        Slice and dice
-                    </Button>
+                    {switchButton}
                 </Grid>
                 <Grid item xs={8}>
                     <PlayerSlider {...playerSliderProps} />
                 </Grid>
                 <Grid item xs>
-                    <Dialog fullWidth
-                            open={this.state.dialogOpen}
-                            onClose={(): void => this.setState({dialogOpen: false})}>
-                        <DialogTitle id={"form-dialog-title"}>Slice and dice</DialogTitle>
-                        <DialogContent>
-                            <SliceControl constants={this.props.constants}
-                                          onCommit={this.handleSliceCommit.bind(this)} />
-                        </DialogContent>
-                    </Dialog>
+                    {dialog}
                 </Grid>
             </Grid>
         );

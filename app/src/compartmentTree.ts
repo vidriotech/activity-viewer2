@@ -3,7 +3,7 @@ import * as _ from 'underscore';
 // eslint-disable-next-line import/no-unresolved
 import { Compartment, CompartmentNode, AVSettings } from "./models/apiModels";
 // eslint-disable-next-line import/no-unresolved
-import { ICompartmentNodeView } from "./viewmodels/compartmentViewModel";
+import { CompartmentNodeView } from "./viewmodels/compartmentViewModel";
 
 export class CompartmentTree {
     private readonly root: CompartmentNode;
@@ -14,7 +14,7 @@ export class CompartmentTree {
         this.settings = settings;
     }
 
-    private getCompartmentNodesByAttr(attr: keyof(CompartmentNode), vals: any[]) {
+    private getCompartmentNodesByAttr(attr: keyof(CompartmentNode), vals: any[]): CompartmentNode[] {
         const nodes: CompartmentNode[] = [];
         let queue = [this.root];
 
@@ -35,25 +35,22 @@ export class CompartmentTree {
     }
 
     private getCompartmentNodeByAttr(attr: keyof(CompartmentNode), val: number | string): CompartmentNode {
-        let nodes = this.getCompartmentNodesByAttr(attr, [val]);
-
+        const nodes = this.getCompartmentNodesByAttr(attr, [val]);
         return nodes.length === 0 ? null : nodes[0];
     }
 
     private getCompartmentsByAttr(attr: keyof(CompartmentNode), vals: any[]): Compartment[] {
-        let nodes = this.getCompartmentNodesByAttr(attr, vals);
-
+        const nodes = this.getCompartmentNodesByAttr(attr, vals);
         return nodes.map((node: CompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as Compartment);
     }
 
     private getCompartmentByAttr(attr: keyof(CompartmentNode), val: number | string): Compartment {
-        let nodes = this.getCompartmentsByAttr(attr, [val]);
-
+        const nodes = this.getCompartmentsByAttr(attr, [val]);
         return nodes.length === 0 ? null : nodes[0];
     }
 
     public getCompartmentNodesByDepth(maxDepth: number): CompartmentNode[] {
-        let compartments: CompartmentNode[] = [];
+        const compartments: CompartmentNode[] = [];
 
         let node;
         let currentLevel = [this.root];
@@ -72,12 +69,12 @@ export class CompartmentTree {
         return compartments;
     }
 
-    public getCompartmentNodeViewTree(subset: boolean): ICompartmentNodeView {
-        let root: CompartmentNode = subset ?
+    public getCompartmentNodeViewTree(subset: boolean): CompartmentNodeView {
+        const root: CompartmentNode = subset ?
             this.getCompartmentSubsetTree() :
             this.root;
 
-        const node2NodeView = (node: CompartmentNode): ICompartmentNodeView => {
+        const node2NodeView = (node: CompartmentNode): CompartmentNodeView => {
             return {
                 acronym: node.acronym,
                 id: node.id,
@@ -93,14 +90,14 @@ export class CompartmentTree {
     }
 
     public getCompartmentsByDepth(maxDepth: number): Compartment[] {
-        let compartments = this.getCompartmentNodesByDepth(maxDepth);
+        const compartments = this.getCompartmentNodesByDepth(maxDepth);
         return compartments.map((node: CompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as Compartment);
     }
 
     public getCompartmentSubset(): CompartmentNode[] {
         const cSettings = this.settings.compartment;
 
-        let compartmentNodes = this.getCompartmentNodesByDepth(cSettings.maxDepth);
+        const compartmentNodes = this.getCompartmentNodesByDepth(cSettings.maxDepth);
 
         // remove compartments in `exclude`
         cSettings.exclude.forEach((compId: string) => {
@@ -143,7 +140,7 @@ export class CompartmentTree {
          * Pop root node off and emplace.
          * For each node, traverse the structure id path array and emplace ancestors as necessary.
         */
-        let subset = this.getCompartmentSubset();
+        const subset = this.getCompartmentSubset();
         if (subset.length === 0) {
             return this.root;
         }
@@ -158,14 +155,14 @@ export class CompartmentTree {
             refRoot = subset.splice(0, 1)[0];
         }
 
-        let rootNode: CompartmentNode = _.extend(
+        const rootNode: CompartmentNode = _.extend(
             _.pick(refRoot, _.without(_.keys(refRoot), 'children')),
             {'children': []}
         )
 
         let node: CompartmentNode;
         while (subset.length > 0) {
-            let node = subset.splice(0, 1)[0];
+            node = subset.splice(0, 1)[0];
             let levelNode = rootNode;
 
             for (let i = 1; i < node.structure_id_path.length; i++) {

@@ -30,7 +30,7 @@ import { Predicate } from '../models/predicateModels';
 // eslint-disable-next-line import/no-unresolved
 import { AestheticMapping } from '../viewmodels/aestheticMapping';
 // eslint-disable-next-line import/no-unresolved
-import { ICompartmentNodeView } from '../viewmodels/compartmentViewModel';
+import { CompartmentNodeView } from '../viewmodels/compartmentViewModel';
 
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentList, ICompartmentListProps } from './CompartmentList/CompartmentList';
@@ -66,7 +66,7 @@ interface MainViewState {
     availablePenetrations: PenetrationData[];
     colorLUT: ColorLUT;
     compartmentSubsetOnly: boolean;
-    compartmentViewTree: ICompartmentNodeView;
+    compartmentViewTree: CompartmentNodeView;
     filterPredicate: Predicate;
     frameRate: number;
     isPlaying: boolean;
@@ -197,7 +197,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.handleAestheticSelectionChange("selectedColor", event.target.value as string);
     }
 
-    private handleFilterPredicateUpdate(predicate: Predicate, newStat?: string = "nothing"): void {
+    private handleFilterPredicateUpdate(predicate: Predicate, newStat = "nothing"): void {
         if (newStat !== 'nothing' && !this.statsData.has(newStat)) {
             this.apiClient.fetchUnitStatsById(newStat)
                 .then((res: any) => res.data)
@@ -270,11 +270,11 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.fetchAndUpdateUnitStats(value);
     }
 
-    private handleToggleCompartmentVisible(rootNode: ICompartmentNodeView) {
+    private handleToggleCompartmentVisible(rootNode: CompartmentNodeView) {
         this.setState({ compartmentViewTree: rootNode });
     }
 
-    public handleUpdateCompartmentViews(compartmentViewTree: ICompartmentNodeView) {
+    public handleUpdateCompartmentViews(compartmentViewTree: CompartmentNodeView) {
         this.setState({ compartmentViewTree });
     }
 

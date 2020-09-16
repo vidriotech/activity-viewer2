@@ -9,7 +9,7 @@ from flask_cors import CORS
 import numpy as np
 
 from activity_viewer.api.state import APIState
-from activity_viewer.api.compute import colormap, rgb_to_data_uri, slice_to_data_uri
+from activity_viewer.api.compute import colormap, slice_to_data_uri
 from activity_viewer.settings import AVSettings, make_default_settings
 
 app = Flask(__name__)
@@ -221,21 +221,16 @@ def get_settings():
 @app.route("/slices/<slice_type>/<coordinate>")
 def get_slices(slice_type: str, coordinate: float):
     coordinate = float(coordinate)
+    rotate = 0
 
     if slice_type == "coronal":
         template_slice = state.get_coronal_template_slice(coordinate)
         annotation_rgb = state.get_coronal_annotation_rgb(coordinate)
         annotation_slice = state.get_coronal_annotation_slice(coordinate)
-        rotate = 0
-    elif slice_type == "horizontal":
-        template_slice = state.get_horizontal_template_slice(coordinate)
-        annotation_rgb = state.get_horizontal_annotation_rgb(coordinate)
-        annotation_slice = state.get_horizontal_annotation_slice(coordinate)
-        rotate = 1
     elif slice_type == "sagittal":
         template_slice = state.get_sagittal_template_slice(coordinate)
         annotation_rgb = state.get_sagittal_annotation_rgb(coordinate)
-        annotation_slice = state.get_sagittal_template_slice(coordinate)
+        annotation_slice = state.get_sagittal_annotation_slice(coordinate)
         rotate = 1
     else:
         template_slice = annotation_rgb = annotation_slice = None
@@ -244,10 +239,21 @@ def get_slices(slice_type: str, coordinate: float):
         return make_response(f"No slices found for slice type '{slice_type}' and coordinate '{coordinate}'.")
 
     return {
-        "annotationImage": rgb_to_data_uri(annotation_rgb, rotate),
+        "annotationImage": slice_to_data_uri(
+            annotation_rgb,
+            annotation_slice,
+            rotate,
+            "RGBA"
+        ),
         "annotationSlice": annotation_slice.ravel().tolist(),
+        "sliceType": slice_type,
         "stride": annotation_slice.shape[1],
-        "templateImage": slice_to_data_uri(template_slice, rotate),
+        "templateImage": slice_to_data_uri(
+            template_slice[:, :, np.newaxis],
+            annotation_slice,
+            rotate,
+            "LA"
+        ),
     }
 
 

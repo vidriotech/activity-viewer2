@@ -28,8 +28,18 @@ def colormap(cmap: str) -> Optional[np.ndarray]:
     return np.concatenate([color_map(i)[:3] for i in range(256)])
 
 
-def array_to_data_uri(slice_data: np.ndarray, mode: str):
-    img = Image.fromarray(slice_data, mode=mode)
+def slice_to_data_uri(slice_data: np.ndarray, annotation: np.ndarray, rotate: int, mode: str) -> str:
+    if rotate != 0:
+        slice_data = np.rot90(slice_data, rotate)
+        annotation = np.rot90(annotation, rotate)
+
+    alpha_channel = (255 * (annotation != 0)).astype(np.uint8)
+    slice_alpha = np.concatenate(
+        (slice_data, alpha_channel[:, :, np.newaxis]),
+        axis=2
+    )
+
+    img = Image.fromarray(slice_alpha, mode=mode)
 
     # convert image to PNG
     img_io = BytesIO()
@@ -39,24 +49,3 @@ def array_to_data_uri(slice_data: np.ndarray, mode: str):
     img_b64 = base64.b64encode(img_io.getvalue())
 
     return "data:image/png;base64," + img_b64.decode()
-
-
-def rgb_to_data_uri(slice_data: np.array, rotate: int):
-    if rotate != 0:
-        slice_data = np.rot90(slice_data, rotate)
-
-    # all-white pixels get transparency
-    alpha_channel = 255 * np.ones_like(slice_data, shape=slice_data.shape[:2])
-    clear_mask = np.mean(slice_data, axis=2) == 255
-    alpha_channel[clear_mask] = 0
-
-    slice_alpha = np.concatenate((slice_data, alpha_channel[:, :, np.newaxis]), axis=2)
-
-    return array_to_data_uri(slice_alpha, "RGBA")
-
-
-def slice_to_data_uri(slice_data: np.ndarray, rotate: int):
-    if rotate != 0:
-        slice_data = np.rot90(slice_data, rotate)
-
-    return array_to_data_uri(slice_data, "L")
