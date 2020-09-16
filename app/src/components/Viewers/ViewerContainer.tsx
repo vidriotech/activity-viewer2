@@ -144,6 +144,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
         v.initialize();
         v.animate();
+        v.setTime(this.props.timeMin, this.props.timeMax, this.props.timeStep, this.state.timeVal);
 
         this.viewer = v;
     }
@@ -332,7 +333,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
 
         if (prevProps.timeMin !== this.props.timeMin || prevProps.timeMax !== this.props.timeMax) {
-            this.setState({ timeVal: this.props.timeMin });
+            this.setState({ timeVal: this.props.timeMin }, () => {
+                this.viewer.setTime(this.props.timeMin, this.props.timeMax, this.props.timeStep, this.state.timeVal);
+            });
         } else if (prevState.timeVal !== this.state.timeVal) {
             this.viewer.timeVal = this.state.timeVal;
         }
@@ -356,14 +359,14 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             onStopClick: this.handleStopClick.bind(this),
         };
 
-        function a11yProps(index: string): {id?: string; "aria-controls"?: string} {
-            return {
-                id: `simple-tab-${index}`,
-                'aria-controls': `simple-tabpanel-${index}`,
-            };
-        }
+        // function a11yProps(index: string): {id?: string; "aria-controls"?: string} {
+        //     return {
+        //         id: `simple-tab-${index}`,
+        //         'aria-controls': `simple-tabpanel-${index}`,
+        //     };
+        // }
 
-        const tabValue = this.viewerOptions.indexOf(this.state.viewerType);
+        // const tabValue = this.viewerOptions.indexOf(this.state.viewerType);
 
         // let viewer: any = null;
         // if (tabValue === 0) {

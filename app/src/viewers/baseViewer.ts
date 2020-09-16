@@ -1,4 +1,6 @@
 import {BufferGeometry, Float32BufferAttribute} from "three";
+import * as _ from "lodash";
+
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping} from "../viewmodels/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
@@ -20,6 +22,9 @@ export abstract class BaseViewer {
     protected penetrationViewModelsMap: Map<string, PenetrationViewModel>;
 
     // animation
+    protected timeMax = 0;
+    protected timeMin = 0;
+    protected timeStep = 0.01;
     protected _timeVal = 0;
 
     public readonly canvasId = "viewer-canvas";
@@ -27,24 +32,24 @@ export abstract class BaseViewer {
     public WIDTH: number;
     public container = 'container';
 
-    protected cameraPosition: [number, number, number];
     protected backgroundColor = 0xffffff;
+    protected cameraPosition: [number, number, number];
     protected fov = 45;
 
     protected renderer: THREE.WebGLRenderer = null;
     protected scene: THREE.Scene = null;
     protected camera: THREE.PerspectiveCamera = null;
+    protected orbitControls: any = null;
 
     protected lastTimestamp: number = null;
 
     protected pointsMaterial: THREE.PointsMaterial;
-    protected epochSlider: THREE.Object3D = null;
+    protected epochLabels: THREE.Object3D = null;
+    protected epochSlider: THREE.Line = null;
 
     protected penetrationPointsMap: Map<string, THREE.Points<BufferGeometry>>;
 
     public flip = true; // flip y axis
-
-    protected orbitControls: any = null;
 
     protected constructor(constants: AVConstants, epochs: Epoch[]) {
         this.constants = constants;
@@ -65,10 +70,24 @@ export abstract class BaseViewer {
         this.penetrationViewModelsMap = new Map<string, PenetrationViewModel>();
     }
 
-    protected initEpochSlider(labelWidth: number, fontSize: number): void {
+    protected initCamera(): void {
+        const cameraPosition = this.cameraPosition[2];
+        this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, 1, cameraPosition * 5);
+        this.scene.add(this.camera);
+        this.camera.position.set(...this.cameraPosition);
+
+        if (this.flip) {
+            this.camera.up.setY(-1);
+        }
+    }
+
+    protected initEpochLabels(): void {
         if (this.epochs.length === 0) {
             return null;
         }
+
+        const labelWidth = 1200;
+        const fontSize = 28;
 
         const epochs = this.epochs;
 
@@ -95,24 +114,47 @@ export abstract class BaseViewer {
         this.camera.add(root);
         root.position.set(0, -3.5, -10);
 
-        // time slider
-        const geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
-
-        this.epochSlider = root;
+        this.epochLabels = root;
     }
 
-    protected initCamera(): void {
-        const cameraPosition = this.cameraPosition[2];
-        this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, 1, cameraPosition * 5);
-        this.scene.add(this.camera);
-        this.camera.position.set(...this.cameraPosition);
-
-        if (this.flip) {
-            this.camera.up.setY(-1);
+    protected initEpochSlider(): void {
+        if (this.timeMax === this.timeMin) {
+            return;
         }
+
+        const sprite = this.epochLabels.children[0] as THREE.Sprite;
+
+        const sliderWidth = sprite.scale.x;
+        const nSteps = Math.round((this.timeMax - this.timeMin) / this.timeStep);
+        const stepSize = sliderWidth / nSteps;
+
+        let step = -(sliderWidth - 0.01) / 2;
+        const positions = new Float32Array(nSteps * 3);
+        for (let i = 0; i < positions.length; i += 3) {
+            positions[i] = step;
+            positions[i + 1] = 0;
+            positions[i + 2] = 0;
+
+            step += stepSize;
+        }
+
+        const geometry: THREE.BufferGeometry = new THREE.BufferGeometry();
+        geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+
+        const material = new THREE.LineBasicMaterial({
+            color: 0xff0000,
+            linewidth: 100,
+        });
+
+        const line = new THREE.Line(geometry, material);
+        line.position.set(0, -sprite.scale.y / 2, 0.001);
+        line.name = "slider";
+
+        this.epochLabels.add(line);
+        this.epochSlider = line;
     }
 
-    protected initLights() {
+    protected initLights(): void {
         let light = new THREE.DirectionalLight(0xffffff);
         light.position.set(0, 0, 10000);
         this.scene.add(light);
@@ -141,37 +183,7 @@ export abstract class BaseViewer {
         this.scene = new THREE.Scene();
     }
 
-    public animate(timestamp: number = null) {
-        if (!this.lastTimestamp) {
-            this.lastTimestamp = timestamp;
-            this.render();
-        } else if (timestamp - this.lastTimestamp > 75) {
-            this.lastTimestamp = timestamp;
-            this.orbitControls.update();
-            this.render();
-        }
-
-        window.requestAnimationFrame(this.animate.bind(this));
-    }
-
-    public initialize(): void {
-        this.initRenderer();
-        this.initScene();
-        this.initCamera();
-        this.initLights();
-        this.initOrbitControls();
-        this.initEpochSlider(1200, 28);
-
-        document.getElementById(this.container).appendChild(this.renderer.domElement);
-    }
-
-    public setAesthetics(penetrationId: string, viewModel: PenetrationViewModel): void {
-        this.penetrationViewModelsMap.set(
-            penetrationId, viewModel // new PenetrationViewModel(aes, nPoints)
-        );
-    }
-
-    private makeLabelCanvas(baseWidth: number, fontSize: number, epochs: Epoch[]) {
+    protected makeLabelCanvas(baseWidth: number, fontSize: number, epochs: Epoch[]): HTMLCanvasElement {
         const borderSize = 2;
         const ctx = document.createElement('canvas').getContext('2d');
         const font = `${fontSize}px sans-serif`;
@@ -191,8 +203,8 @@ export abstract class BaseViewer {
         ctx.textAlign = 'center';
 
         // fill in epochs
-        const startTime = epochs[0].bounds[0];
-        const totalTime = epochs[epochs.length - 1].bounds[1] - startTime;
+        const startTime = Math.min(this.timeMin, epochs[0].bounds[0]);
+        const totalTime = Math.max(this.timeMax, epochs[epochs.length - 1].bounds[1]) - startTime;
 
         epochs.forEach((epoch, idx) => {
             ctx.fillStyle = idx % 2 === 0 ? 'grey' : 'black';
@@ -214,12 +226,53 @@ export abstract class BaseViewer {
         return ctx.canvas;
     }
 
+    protected resetSlider(): void {
+        this.camera.remove(this.epochLabels);
+        this.initEpochLabels();
+        this.initEpochSlider();
+    }
+
     protected rgb2Hex(val: number[]): string {
         return `${val[0].toString(16)}${val[1].toString(16)}${val[2].toString(16)}`;
     }
 
-    public hasPenetration(penetrationId: string) {
+    protected updateTimeSlider(): void {
+        if (this.epochSlider === null) {
+            return;
+        }
+
+        const step = (this._timeVal - this.timeMin) / this.timeStep;
+        const geom = this.epochSlider.geometry as BufferGeometry;
+        geom.setDrawRange(0, step);
+    }
+
+    public animate(timestamp: number = null): void {
+        if (!this.lastTimestamp) {
+            this.lastTimestamp = timestamp;
+            this.render();
+        } else if (timestamp - this.lastTimestamp > 75) {
+            this.lastTimestamp = timestamp;
+            this.orbitControls.update();
+            this.render();
+        }
+
+        window.requestAnimationFrame(this.animate.bind(this));
+    }
+
+    public hasPenetration(penetrationId: string): boolean {
         return this.penetrationPointsMap.has(penetrationId);
+    }
+
+    public initialize(): void {
+        this.initRenderer();
+        this.initScene();
+        this.initCamera();
+        this.initLights();
+        this.initOrbitControls();
+        this.initEpochLabels();
+        this.initEpochSlider();
+
+        document.getElementById(this.container).appendChild(this.renderer.domElement);
     }
 
     public loadPenetration(penetrationData: PenetrationData) {
@@ -256,20 +309,17 @@ export abstract class BaseViewer {
         this.scene.add(penetration);
     }
 
-    public render() {
+    public render(): void {
         this.renderer.render(this.scene, this.camera);
     }
 
-    public setPenetrationVisible(name: string, visible: boolean) {
-        if (!this.penetrationPointsMap.has(name)) {
-            return;
-        }
-
-        const pen = this.penetrationPointsMap.get(name);
-        pen.visible = visible;
+    public setAesthetics(penetrationId: string, viewModel: PenetrationViewModel): void {
+        this.penetrationViewModelsMap.set(
+            penetrationId, viewModel // new PenetrationViewModel(aes, nPoints)
+        );
     }
 
-    public setSize(width: number, height: number) {
+    public setSize(width: number, height: number): void {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
 
@@ -279,6 +329,16 @@ export abstract class BaseViewer {
         this.WIDTH = width;
 
         this.render();
+    }
+
+    public setTime(timeMin: number, timeMax: number, timeStep: number, timeVal: number): void {
+        this.timeMin = timeMin;
+        this.timeMax = timeMax;
+        this.timeStep = timeStep;
+
+        this.resetSlider();
+
+        this.timeVal = timeVal;
     }
 
     public updatePenetrationAesthetics(): void {
@@ -308,13 +368,10 @@ export abstract class BaseViewer {
         this.render();
     }
 
-    public get timeVal() {
-        return this._timeVal;
-    }
-
     public set timeVal(t: number) {
         this._timeVal = t;
         this.updatePenetrationAesthetics();
+        this.updateTimeSlider();
     }
 
     // private orientPlane(plane: THREE.) {
