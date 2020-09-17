@@ -1,6 +1,16 @@
-import axios from "axios";
+import axios, {AxiosResponse} from "axios";
+import {
+    PenetrationRequest,
+    ExportingUnit,
+    SettingsRequest,
+    SliceType,
+    SliceData,
 // eslint-disable-next-line import/no-unresolved
-import {PenetrationRequest, ExportingUnit, SettingsRequest, SliceType,} from "./models/apiModels";
+} from "./models/apiModels";
+// eslint-disable-next-line import/no-unresolved
+import {ColorLUT} from "./models/colorMap";
+// eslint-disable-next-line import/no-unresolved
+import {TimeseriesEntries, TimeseriesSummary} from "./models/timeseries";
 
 
 export class APIClient {
@@ -10,12 +20,8 @@ export class APIClient {
         this.endpoint = endpoint;
     }
 
-    async fetchColorMapping(mapping: string) {
+    async fetchColorMapping(mapping: string): Promise<AxiosResponse<ColorLUT>> {
         return await axios.get(`${this.endpoint}/color-map/${mapping}`);
-    }
-
-    async fetchSlice(sliceType: SliceType, coordinate: number) {
-        return await axios.get(`${this.endpoint}/slices/${sliceType}/${coordinate}`);
     }
 
     async fetchCompartmentTree() {
@@ -47,6 +53,10 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/settings`);
     }
 
+    async fetchSliceData(sliceType: SliceType, coordinate: number): Promise<AxiosResponse<SliceData>> {
+        return await axios.get(`${this.endpoint}/slices/${sliceType}/${coordinate}`);
+    }
+
     async fetchTimeseries(penetrationId: string, timeseriesId: string) {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries/${timeseriesId}`);
     }
@@ -55,8 +65,12 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries`);
     }
 
-    async fetchTimeseriesById(timeseriesId: string) {
+    async fetchTimeseriesById(timeseriesId: string): Promise<AxiosResponse<TimeseriesEntries>> {
         return await axios.get(`${this.endpoint}/timeseries/${timeseriesId}`);
+    }
+
+    async fetchTimeseriesSummary(timeseriesId: string): Promise<AxiosResponse<TimeseriesSummary>> {
+        return await axios.get(`${this.endpoint}/timeseries/${timeseriesId}/summary`);
     }
 
     async fetchUnitStatsById(statId: string) {

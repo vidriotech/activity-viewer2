@@ -19,10 +19,10 @@ import TabList from "@material-ui/lab/TabList";
 import { AVConstants } from "../../constants";
 
 // eslint-disable-next-line import/no-unresolved
-import {PenetrationData, AVSettings, SliceImageData} from "../../models/apiModels";
+import {PenetrationData, AVSettings, SliceData} from "../../models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
-import { AestheticMapping } from "../../viewmodels/aestheticMapping";
+import { AestheticMapping } from "../../models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentNodeView } from "../../viewmodels/compartmentViewModel";
 
@@ -158,8 +158,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             v = new BrainViewer(this.props.constants, this.props.settings.epochs);
             this.initViewer(v);
         } else if (this.state.viewerType === "slice") {
-            return this.apiClient.fetchSlice(this.sliceType, this.sliceBounds[1])
-                .then((res: AxiosResponse<SliceImageData>) => res.data)
+            return this.apiClient.fetchSliceData(this.sliceType, this.sliceBounds[1])
+                .then((res) => res.data)
                 .then((sliceData) => {
                     v = new SliceViewer(this.props.constants, this.props.settings.epochs, sliceData);
                     (v as SliceViewer).imageType = this.state.imageType;

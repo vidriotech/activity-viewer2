@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import { ColorLUT } from "./models/apiModels";
+import {ColorLUT} from "./models/colorMap";
 
 export class AVConstants {
     private endpoint = 'http://localhost:3030';

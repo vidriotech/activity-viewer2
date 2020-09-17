@@ -4,7 +4,7 @@ import {BufferAttribute, Mesh} from "three";
 import {AVConstants} from "../constants"
 
 // eslint-disable-next-line import/no-unresolved
-import {Epoch, PenetrationData, SliceImageData, SliceType} from "../models/apiModels";
+import {Epoch, PenetrationData, SliceData, SliceType} from "../models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
 import {BaseViewer} from "./baseViewer";
@@ -16,10 +16,10 @@ export type ImageType = "annotation" | "template";
 
 export class SliceViewer extends BaseViewer {
     private _imageType: ImageType = "annotation";
-    private sliceData: SliceImageData = null;
+    private sliceData: SliceData = null;
     private slice: Mesh = null;
 
-    constructor(constants: AVConstants, epochs: Epoch[], sliceData: SliceImageData) {
+    constructor(constants: AVConstants, epochs: Epoch[], sliceData: SliceData) {
         super(constants, epochs);
 
         this.pointsMaterial = new THREE.ShaderMaterial({

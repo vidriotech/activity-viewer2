@@ -10,13 +10,11 @@ import { APIClient } from '../apiClient';
 import { AVConstants } from '../constants';
 
 import {
-    ColorLUT,
     ExportingUnit,
     UnitExportRequest,
     AVSettings,
     PenetrationData,
     PenetrationResponse,
-    TimeseriesListResponse,
     UnitStatesListResponse,
 // eslint-disable-next-line import/no-unresolved
 } from '../models/apiModels';
@@ -28,7 +26,7 @@ import { PointModel } from '../models/pointModel';
 import { Predicate } from '../models/predicateModels';
 
 // eslint-disable-next-line import/no-unresolved
-import { AestheticMapping } from '../viewmodels/aestheticMapping';
+import { AestheticMapping } from '../models/aestheticMapping';
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentNodeView } from '../viewmodels/compartmentViewModel';
 
@@ -42,6 +40,8 @@ import { TimeseriesControls, TimeseriesControlsProps } from './TimeseriesControl
 import { ViewerContainer, ViewerContainerProps } from './Viewers/ViewerContainer';
 // eslint-disable-next-line import/no-unresolved
 import { UnitTable, UnitTableProps } from './UnitTable/UnitTable';
+import {ColorLUT} from "../models/colorMap";
+import {TimeseriesEntries} from "../models/timeseries";
 
 
 interface TimeseriesData {
@@ -122,19 +122,19 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     private fetchAndUpdateTimeseries(value: string) {
         if (value !== 'nothing' && !this.timeseriesData.has(value)) {
             this.apiClient.fetchTimeseriesById(value)
-                .then((res: any) => res.data)
-                .then((responseData: TimeseriesListResponse) => {
+                .then((res) => res.data)
+                .then((responseData: TimeseriesEntries) => {
                     const seriesData: TimeseriesData[] = [];
 
-                    responseData.timeseries.forEach((data) => {
-                        if (data.stride === 0) {
+                    responseData.timeseries.forEach((entry) => {
+                        if (entry.stride === 0) {
                             return;
                         }
 
                         seriesData.push({
-                            penetrationId: data.penetrationId,
-                            times: data.data.slice(0, data.stride),
-                            values: data.data.slice(data.stride),
+                            penetrationId: entry.penetrationId,
+                            times: entry.times,
+                            values: entry.values,
                         });
                     });
 
@@ -225,7 +225,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         console.log(value);
         if (value !== "default") {
             this.apiClient.fetchColorMapping(value)
-                .then((res: AxiosResponse<ColorLUT>) => res.data)
+                .then((res) => res.data)
                 .then((data: ColorLUT) => {
                     this.setState({ colorLUT: data }, () => {
                         this.updateColorMap();
@@ -415,7 +415,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                     times: penRadius.times,
                     values: this.transformValues(penRadius.values, this.state.radiusBounds)
                 },
-                visible: penetrationData.visible.map((p) => Number(p)),
+                visibility: penetrationData.visible.map((p) => Number(p)),
             };
             aesthetics.push(aesthetic);
         });
@@ -436,7 +436,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                     values: aesthetic.color.values,
                     colorLUT: this.state.colorLUT,
                 },
-                visible: aesthetic.visible,
+                visibility: aesthetic.visibility,
             })
         });
 

@@ -1,12 +1,4 @@
 /*
- * Endpoint: /color-map/<map_name>
- */
-export interface ColorLUT {
-    name: string;
-    mapping: number[];
-}
-
-/*
  * Endpoint: /compartments
  * Allows to query the compartment tree.
  */
@@ -70,16 +62,6 @@ export interface PenetrationTimeseriesResponse {
 }
 
 /*
- * Endpoint: /penetrations/<penetration_id>/timeseries/<timeseries_id>
- * Retrieve a specific timeseries' values for a specific penetration.
- */
-export interface TimeseriesValuesResponse {
-    penetrationId: string;
-    data: number[];
-    stride: number;
-}
-
-/*
  * Endpoint: /penetrations/<penetration_id>/unit-stats/<stat_id>
  * Retrieve a specific timeseries' values for a specific penetration.
  */
@@ -122,20 +104,12 @@ export interface AVSettings {
  */
 export type SliceType = "coronal" | "sagittal";
 
-export interface SliceImageData {
+export interface SliceData {
     annotationImage: string;
     templateImage: string;
     annotationSlice: number[];
     sliceType: SliceType;
     stride: number;
-}
-
-/*
- * Endpoint: /timeseries/<timeseries_id>
- * Allows to query all penetrations for a given timeseries id.
- */
-export interface TimeseriesListResponse {
-    timeseries: TimeseriesValuesResponse[];
 }
 
 /*

@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import { ColorLUT } from "../models/apiModels";
+import {ColorLUT} from "./colorMap";
 
 export interface ScalarMapping {
     timeseriesId: string;
@@ -16,5 +16,5 @@ export interface AestheticMapping {
     color: ColorMapping;
     opacity: ScalarMapping;
     radius: ScalarMapping;
-    visible: number[];
+    visibility: number[];
 }

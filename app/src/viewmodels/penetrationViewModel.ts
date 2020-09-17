@@ -4,7 +4,7 @@ import * as _ from 'underscore';
 // eslint-disable-next-line import/no-unresolved
 import { AVConstants } from "../constants";
 // eslint-disable-next-line import/no-unresolved
-import { AestheticMapping } from "./aestheticMapping";
+import { AestheticMapping } from "../models/aestheticMapping";
 
 
 export class PenetrationViewModel {
@@ -137,12 +137,12 @@ export class PenetrationViewModel {
     }
 
     public getVisible() {
-        if (this.aestheticMapping.visible === null) {
+        if (this.aestheticMapping.visibility === null) {
             const visible = new Float32Array(this.nPoints);
             visible.fill(1.0);
             return visible;
         }
 
-        return new Float32Array(this.aestheticMapping.visible);
+        return new Float32Array(this.aestheticMapping.visibility);
     }
 }

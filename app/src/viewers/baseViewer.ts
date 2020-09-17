@@ -2,11 +2,11 @@ import {BufferGeometry, Float32BufferAttribute} from "three";
 import * as _ from "lodash";
 
 // eslint-disable-next-line import/no-unresolved
-import {AestheticMapping} from "../viewmodels/aestheticMapping";
+import {AestheticMapping} from "../models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
 import {AVConstants} from "../constants";
 // eslint-disable-next-line import/no-unresolved
-import {Epoch, PenetrationData, SliceImageData} from "../models/apiModels";
+import {Epoch, PenetrationData, SliceData} from "../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {PenetrationViewModel} from "../viewmodels/penetrationViewModel";
 
@@ -280,7 +280,7 @@ export abstract class BaseViewer {
             color: null,
             opacity: null,
             radius: null,
-            visible: null,
+            visibility: null,
         };
 
         const viewModel = new PenetrationViewModel(defaultAesthetics, penetrationData.ids.length);
