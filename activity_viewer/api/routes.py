@@ -1,15 +1,16 @@
 import json
-import os
+from math import nan
 from pathlib import Path
 import shutil
-from tempfile import mkdtemp, mktemp
+from tempfile import mkdtemp
 
 from flask import Flask, make_response, request, send_file
 from flask_cors import CORS
 import numpy as np
 
 from activity_viewer.api.state import APIState
-from activity_viewer.api.compute import colormap, slice_to_data_uri
+from activity_viewer.api.compute import slice_to_data_uri, summarize_timeseries
+from activity_viewer.compute.mappings import color_map
 from activity_viewer.settings import AVSettings, make_default_settings
 
 app = Flask(__name__)
@@ -22,9 +23,18 @@ def hello():
     return "Hello, world!"
 
 
+@app.route("/aesthetics/<penetration_id>", methods=["POST"])
+def get_aesthetic_mapping(penetration_id: str):
+    if request.method == "POST" and hasattr(request, "data"):
+        params = json.loads(request.data)
+        mapping = state.make_aesthetic_mapping(penetration_id, params)
+
+        return mapping.to_dict()
+
+
 @app.route("/color-map/<map_name>")
 def get_colormap(map_name: str):
-    mapping = colormap(map_name)
+    mapping = color_map(map_name)
     if mapping is None:
         return make_response(f"Color map identifier '{map_name}' not found.", 404)
 
@@ -41,16 +51,6 @@ def get_compartment_tree():
 
 @app.route("/data-file", methods=["POST"])
 def get_export_data_file():
-    """
-    export interface IUnitExport {
-        penetrationId: string,
-        unitIds: number[],
-    }
-
-    export interface IExportRequest {
-        data: IUnitExport[],
-    }
-    """
     if request.method == "POST" and hasattr(request, "data"):
         tmpfile = Path(mkdtemp(), "export.npz")
 
@@ -242,8 +242,7 @@ def get_slices(slice_type: str, coordinate: float):
         "annotationImage": slice_to_data_uri(
             annotation_rgb,
             annotation_slice,
-            rotate,
-            "RGBA"
+            rotate
         ),
         "annotationSlice": annotation_slice.ravel().tolist(),
         "sliceType": slice_type,
@@ -251,31 +250,63 @@ def get_slices(slice_type: str, coordinate: float):
         "templateImage": slice_to_data_uri(
             template_slice[:, :, np.newaxis],
             annotation_slice,
-            rotate,
-            "LA"
+            rotate
         ),
     }
 
 
 @app.route("/timeseries/<timeseries_id>")
 def get_timeseries_by_id(timeseries_id: str):
-    response = {"timeseries": []}
+    response = {
+        "timeseries": [],
+        "minTime": None,
+        "maxTime": None,
+        "minStep": None,
+        "minVal": None,
+        "maxVal": None,
+    }
 
     for penetration_id in state.penetrations:
         entry = {
             "penetrationId": penetration_id,
-            "data": [],
-            "stride": 0
+            "times": [],
+            "values": [],
+            "stride": 0,
+            "minTime": nan,
+            "maxTime": nan,
+            "minStep": nan,
+            "minVal": nan,
+            "maxVal": nan,
         }
 
         data = state.get_timeseries(penetration_id, timeseries_id)
         if data is not None:
-            entry["data"] = data.ravel().tolist()
-            entry["stride"] = data.shape[1]
+            entry.update(summarize_timeseries(data))
+
+            if response["minTime"] is None or entry["minTime"] < response["minTime"]:
+                response["minTime"] = entry["minTime"]
+
+            if response["maxTime"] is None or entry["maxTime"] > response["maxTime"]:
+                response["maxTime"] = entry["maxTime"]
+
+            if response["minStep"] is None or entry["minStep"] < response["minStep"]:
+                response["minStep"] = entry["minStep"]
+
+            if response["minVal"] is None or entry["minVal"] < response["minVal"]:
+                response["minVal"] = entry["minVal"]
+
+            if response["maxVal"] is None or entry["maxVal"] > response["maxVal"]:
+                response["maxVal"] = entry["maxVal"]
         
         response["timeseries"].append(entry)
 
     return response
+
+
+@app.route("/timeseries/<timeseries_id>/summary")
+def get_timeseries_summary(timeseries_id: str):
+    summary = state.make_timeseries_summary(timeseries_id)
+    return summary.to_dict()
 
 
 @app.route("/unit-stats/<stat_id>")

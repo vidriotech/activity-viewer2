@@ -1,13 +1,13 @@
-from collections import deque
 from pathlib import Path
 from typing import List, Optional, Union
 
 from allensdk.core.structure_tree import StructureTree
 from flask import Flask
 import numpy as np
-import pandas as pd
 
 from activity_viewer.base import type_check
+from activity_viewer.compute.mappings import AestheticMapping, ColorMapping, ScalarMapping
+from activity_viewer.compute.summaries import TimeseriesSummary
 from activity_viewer.cache import Cache
 from activity_viewer.loaders import NpzLoader
 from activity_viewer.settings import AVSettings, make_default_settings
@@ -55,6 +55,7 @@ class APIState:
         self._penetrations = {}
         self._active_penetration = None
         self._npz_loader = NpzLoader()
+        self._timeseries_summaries = {}
 
         self.settings = settings
 
@@ -109,6 +110,37 @@ class APIState:
             return volume[:, :, lr_coordinate].squeeze()
         except IndexError:
             return None
+
+    def _make_color_mapping(self, penetration_id: str, params: dict):
+        timeseries_id = params["timeseriesId"]
+        mapping = params["mapping"]
+        bounds = params["bounds"]
+
+        if timeseries_id not in self._timeseries_summaries:
+            summary = self.make_timeseries_summary(timeseries_id)
+            if summary is None:
+                return None
+
+        data = self.get_timeseries(penetration_id, timeseries_id)
+        times = data[0, :]
+        values = data[1:, :]
+
+        return ColorMapping.from_bounds(timeseries_id, times, values, bounds, mapping)
+
+    def _make_scalar_mapping(self, penetration_id: str, params: dict):
+        timeseries_id = params["timeseriesId"]
+        bounds = params["bounds"]
+
+        if timeseries_id not in self._timeseries_summaries:
+            summary = self.make_timeseries_summary(timeseries_id)
+            if summary is None:
+                return None
+
+        data = self.get_timeseries(penetration_id, timeseries_id)
+        times = data[0, :]
+        values = data[1:, :]
+
+        return ScalarMapping.from_bounds(timeseries_id, times, values, bounds)
 
     def add_penetrations(self, file_paths: List[PathType]):
         """Add one or more penetrations to the set of current penetrations.
@@ -179,21 +211,6 @@ class APIState:
 
         return self._get_coronal_slice(ap_coordinate, volume).astype(np.uint8)
 
-    def get_horizontal_annotation_rgb(self, dv_coordinate: float):
-        ref_slice = self.get_horizontal_annotation_slice(dv_coordinate)
-
-        return self._annotation_to_rgb(ref_slice)
-
-    def get_horizontal_annotation_slice(self, dv_coordinate: float):
-        volume = self.cache.load_annotation_volume()
-
-        return self._get_horizontal_slice(dv_coordinate, volume)
-
-    def get_horizontal_template_slice(self, dv_coordinate: float):
-        volume = self.cache.load_template_volume()
-
-        return self._get_horizontal_slice(dv_coordinate, volume).astype(np.uint8)
-
     def get_sagittal_annotation_slice(self, lr_coordinate: float):
         volume = self.cache.load_annotation_volume()
         return self._get_sagittal_slice(lr_coordinate, volume)
@@ -236,7 +253,7 @@ class APIState:
 
         return ref_slice
 
-    def get_timeseries(self, penetration_id: str, timeseries_id: str):
+    def get_timeseries(self, penetration_id: str, timeseries_id: str) -> np.ndarray:
         """Get a specific timeseries' values for a specific penetration."""
         if not self.has_penetration(penetration_id):
             return
@@ -287,6 +304,41 @@ class APIState:
 
         # load once without validation (validation has already been performed at the add step)
         self.npz_loader.load_file(self._penetrations[penetration_id], validate=False)
+
+    def make_aesthetic_mapping(self, penetration_id: str, params: dict):
+        """Create an aesthetic mapping for a given penetration."""
+        if not self.has_penetration(penetration_id):
+            return
+
+        self.load_penetration(penetration_id)
+
+        color_mapping = self._make_color_mapping(
+            penetration_id, params["color"]
+        ) if "color" in params else None
+
+        opacity_mapping = self._make_scalar_mapping(
+            penetration_id, params["opacity"]
+        ) if "opacity" in params else None
+
+        radius_mapping = self._make_scalar_mapping(
+            penetration_id, params["radius"]
+        ) if "radius" in params else None
+
+        visibility = None
+
+        return AestheticMapping(penetration_id, color_mapping, opacity_mapping, radius_mapping, visibility)
+
+    def make_timeseries_summary(self, timeseries_id: str) -> TimeseriesSummary:
+        summary = TimeseriesSummary(timeseries_id)
+
+        for penetration_id in self.penetrations:
+            data = self.get_timeseries(penetration_id, timeseries_id)
+            if data is not None:
+                summary.update(data)
+
+        self._timeseries_summaries[timeseries_id] = summary
+
+        return summary
 
     def rm_penetrations(self, penetration_ids: List[str]):
         """Remove a penetration from state."""
