@@ -16,7 +16,6 @@ import Typography from '@material-ui/core/Typography';
 import { AVConstants } from '../../constants';
 
 import { PenetrationData } from '../../models/apiModels';
-import { IFilterCondition } from '../../models/filter';
 import { Predicate, StatPredicate } from '../../models/predicateModels';
 
 export interface IStatsHistogramProps {
