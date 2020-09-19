@@ -1,6 +1,9 @@
 import React from 'react';
 import * as _ from "lodash";
 
+import Backdrop from "@material-ui/core/Backdrop";
+import Modal from "@material-ui/core/Modal";
+import LinearProgress from "@material-ui/core/LinearProgress";
 import Grid from '@material-ui/core/Grid';
 
 // eslint-disable-next-line import/no-unresolved
@@ -10,10 +13,8 @@ import { AVConstants } from '../constants';
 
 import {
     ExportingUnit,
-    UnitExportRequest,
     AVSettings,
     PenetrationData,
-    PenetrationResponse,
     UnitStatsListResponse,
 // eslint-disable-next-line import/no-unresolved
 } from '../models/apiModels';
@@ -30,9 +31,9 @@ import {AestheticMapping, AestheticParams} from '../models/aestheticMapping';
 import { CompartmentNodeView } from '../viewmodels/compartmentViewModel';
 
 // eslint-disable-next-line import/no-unresolved
-import { CompartmentList, ICompartmentListProps } from './CompartmentList/CompartmentList';
+import { CompartmentList, CompartmentListProps } from './CompartmentList/CompartmentList';
 // eslint-disable-next-line import/no-unresolved
-import { FilterControls, IFilterControlsProps } from './FilterControls/FilterControls';
+import { FilterControls, FilterControlsProps } from './FilterControls/FilterControls';
 // eslint-disable-next-line import/no-unresolved
 import { TimeseriesControls, TimeseriesControlsProps } from './TimeseriesControls/TimeseriesControls';
 // eslint-disable-next-line import/no-unresolved
@@ -67,6 +68,7 @@ interface MainViewState {
     aestheticMappings: AestheticMapping[];
     availablePenetrations: PenetrationData[];
     busy: boolean;
+    colorBounds: [number, number];
     colorLUT: ColorLUT;
     compartmentSubsetOnly: boolean;
     compartmentViewTree: CompartmentNodeView;
@@ -74,7 +76,7 @@ interface MainViewState {
     frameRate: number;
     isPlaying: boolean;
     loopAnimation: 'once' | 'repeat';
-    colorBounds: [number, number];
+    progress: number;
     opacityBounds: [number, number];
     radiusBounds: [number, number];
     selectedColor: string;
@@ -105,13 +107,14 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             aestheticMappings: [],
             availablePenetrations: [],
             busy: false,
+            colorBounds: [0, 255],
             colorLUT: this.props.constants.defaultColorLUT,
             compartmentViewTree: compartmentViewTree,
             filterPredicate: null,
             frameRate: 30,
             isPlaying: false,
             loopAnimation: 'once',
-            colorBounds: [0, 255],
+            progress: 100,
             opacityBounds: [0.01, 1],
             radiusBounds: [5, 500],
             selectedColor: "nothing",
@@ -225,7 +228,8 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 this.setState({
                     availablePenetrations: _.concat(availablePenetrations, newPenetrations),
                     aestheticMappings: _.concat(aestheticMappings, newMappings),
-                    busy: !!(data.link)
+                    busy: !!(data.link),
+                    progress: 100 * availablePenetrations.length / data.info.totalCount,
                 }, () => {
                     if (data.link) {
                         this.fetchAndUpdatePenetrations(page + 1);
@@ -650,6 +654,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         const viewerContainerProps: ViewerContainerProps = {
             aesthetics: this.state.aestheticMappings,
             availablePenetrations: this.state.availablePenetrations,
+            busy: this.state.busy,
             constants: this.props.constants,
             settings: this.props.settings,
             timeMax: this.state.timeMax,
@@ -660,6 +665,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         }
 
         const timeseriesControlsProps: TimeseriesControlsProps = {
+            busy: this.state.busy,
             opacityBounds: this.state.opacityBounds,
             radiusBounds: this.state.radiusBounds,
             selectedColor: this.state.selectedColor,
@@ -679,9 +685,9 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             onRadiusSliderChange: this.handleRadiusSliderChange.bind(this),
         };
 
-        const filterControlProps: IFilterControlsProps = {
+        const filterControlProps: FilterControlsProps = {
             availablePenetrations: this.state.availablePenetrations,
-            compartmentSubsetOnly: this.state.compartmentSubsetOnly,
+            busy: this.state.busy,
             compartmentTree: this.props.compartmentTree,
             compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
@@ -697,7 +703,8 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
         }
 
-        const compartmentListProps: ICompartmentListProps = {
+        const compartmentListProps: CompartmentListProps = {
+            busy: this.state.busy,
             compartmentSubsetOnly: this.state.compartmentSubsetOnly,
             compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
@@ -705,9 +712,21 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
         }
 
+        const unitTableProps: UnitTableProps = {
+            availablePenetrations: this.state.availablePenetrations,
+            busy: this.state.busy,
+            onUnitExportRequest: this.handleUnitExportRequest.bind(this),
+        }
+
         const style = { padding: 30 };
         return (
             <div style={style}>
+                {/*<Modal open={this.state.busy}*/}
+                {/*       disableBackdropClick*/}
+                {/*       disableEscapeKeyDown>*/}
+                {/*    <LinearProgress value={this.state.progress}*/}
+                {/*                    variant={"determinate"} />*/}
+                {/*</Modal>*/}
                 <Grid container
                       spacing={2}>
                     <Grid item xs={12}>
@@ -715,8 +734,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                     </Grid>
                     <Grid item xs={3}>
                         {/* <UnitList {...unitListProps}/> */}
-                        <UnitTable availablePenetrations={this.state.availablePenetrations}
-                                   onUnitExportRequest={this.handleUnitExportRequest.bind(this)} />
+                        <UnitTable {...unitTableProps} />
                     </Grid>
                     <Grid item xs={6}>
                         <ViewerContainer {...viewerContainerProps} />

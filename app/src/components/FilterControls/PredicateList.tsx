@@ -18,28 +18,29 @@ import { Predicate, PropEqPredicate, StatPredicate, PredicateChain, ANDPredicate
 
 import { PredicateListNode } from './PredicateListNode';
 
-export interface IPredicateListProps {
-    availablePenetrations: PenetrationData[],
-    compartmentTree: CompartmentTree,
-    filterPredicate: Predicate,
-    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void,
+export interface PredicateListProps {
+    availablePenetrations: PenetrationData[];
+    busy: boolean;
+    compartmentTree: CompartmentTree;
+    filterPredicate: Predicate;
+    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void;
 }
 
-interface IPredicateListState {
-    buttonOpen: boolean,
-    currentCondition: string,
-    eValue: string,
-    lowerBound: number,
-    neValue: string,
-    selectedIndex: number,
-    ssValue: string,
-    upperBound: number,
+interface PredicateListState {
+    buttonOpen: boolean;
+    currentCondition: string;
+    eValue: string;
+    lowerBound: number;
+    neValue: string;
+    selectedIndex: number;
+    ssValue: string;
+    upperBound: number;
 }
 
-export class PredicateList extends React.Component<IPredicateListProps, IPredicateListState> {
+export class PredicateList extends React.Component<PredicateListProps, PredicateListState> {
     private propKeys: Map<string, keyof(PointModel)>;
 
-    constructor(props: IPredicateListProps) {
+    constructor(props: PredicateListProps) {
         super(props);
 
         this.state = {
@@ -66,9 +67,9 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
 
         let predicate: Predicate;
         if (isPropPredicate) {
-            if (this.state.ssValue !== '') {
-                let compartment = this.props.compartmentTree.getCompartmentNodeByName(this.state.ssValue);
-                predicate = new SubcompartmentPredicate(compartment);
+            if (this.state.ssValue !== "") {
+                const compartmentNode = this.props.compartmentTree.getCompartmentNodeByName(this.state.ssValue);
+                predicate = new SubcompartmentPredicate(compartmentNode);
             } else {
                 const propValue = this.state.neValue === '' ?
                 this.state.eValue :
@@ -97,7 +98,7 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
         );
     }
 
-    private handleDropdownSelectionChange(newValue: string) {
+    private handleDropdownSelectionChange(newValue: string): void {
         this.setState({ currentCondition: newValue }, () => {
             this.resetForm();
         });
@@ -128,7 +129,7 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
                     }
                 }
 
-                let alteredPredicate = deleteSubpredicate(subpredicates[idx] as PredicateChain, indexChain);
+                const alteredPredicate = deleteSubpredicate(subpredicates[idx] as PredicateChain, indexChain);
                 subpredicates = _.concat(
                     subpredicates.slice(0, idx),
                     subpredicates.slice(idx + 1)
@@ -141,7 +142,7 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
                 }
             };
 
-            let predicate = deleteSubpredicate(
+            const predicate = deleteSubpredicate(
                 this.props.filterPredicate as PredicateChain,
                 _.clone(indexChain)
             );
@@ -160,6 +161,7 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
         let entryFields = [
             <Grid item>
                 <Select autoWidth
+                        disabled={this.props.busy}
                         variant='outlined'
                         labelId='new-filter-form-select-label'
                         id='new-filter-form-select'
@@ -195,7 +197,7 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
                                placeholder='='
                                helperText={`Exact ${label}`}
                                value={this.state.eValue}
-                               disabled={this.state.neValue !== '' || this.state.ssValue !== ''}
+                               disabled={this.props.busy || this.state.neValue !== '' || this.state.ssValue !== ''}
                                onChange={(evt) => this.setState({ eValue: evt.target.value as string })} />
                 </Grid>,
                 <Grid item>
@@ -204,7 +206,7 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
                                placeholder='≠'
                                helperText={`Exact ${label}`}
                                value={this.state.neValue}
-                               disabled={this.state.eValue !== '' || this.state.ssValue !== ''}
+                               disabled={this.props.busy || this.state.eValue !== '' || this.state.ssValue !== ''}
                                onChange={(evt) => this.setState({ neValue: evt.target.value as string })} />
                 </Grid>
             ]);
@@ -217,7 +219,7 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
                                helperText='Lower bound'
                                type='number'
                                value={this.state.lowerBound}
-                               disabled={isPropPredicate}
+                               disabled={this.props.busy || isPropPredicate}
                                onChange={(evt) => this.setState({ lowerBound: Number.parseFloat(evt.target.value) })} />
                 </Grid>,
                 <Grid item>
@@ -227,13 +229,13 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
                                helperText='Upper bound'
                                type='number'
                                value={this.state.upperBound}
-                               disabled={isPropPredicate}
+                               disabled={this.props.busy || isPropPredicate}
                                onChange={(evt) => this.setState({ upperBound: Number.parseFloat(evt.target.value) })} />
                 </Grid>
             ]);
         }
 
-        if (this.state.currentCondition === 'compartment-name') {
+        if (this.state.currentCondition === "compartment-name") {
             entryFields.push(
                 <Grid item>
                     <TextField id='new-filter-form-ss-input'
@@ -241,13 +243,14 @@ export class PredicateList extends React.Component<IPredicateListProps, IPredica
                                placeholder='⊆'
                                helperText='Compartment is a child of'
                                value={this.state.ssValue}
-                               disabled={this.state.eValue !== '' || this.state.neValue !== ''}
+                               disabled={this.props.busy || this.state.eValue !== '' || this.state.neValue !== ''}
                                onChange={(evt) => this.setState({ ssValue: evt.target.value as string })} />
                 </Grid>
             );
         }
 
-        const buttonDisabled = (this.state.eValue === '' &&
+        const buttonDisabled = this.props.busy ||
+            (this.state.eValue === '' &&
             this.state.neValue === '' &&
             this.state.ssValue === '' &&
             (

@@ -8,6 +8,7 @@ import FormControl from "@material-ui/core/FormControl";
 
 
 export interface ColorMapperProps {
+    busy: boolean;
     selectedColorMapping: string;
     selectedTimeseries: string;
     timeseriesList: string[];
@@ -65,6 +66,7 @@ export function ColorMapper(props: ColorMapperProps) {
                         Color
                     </InputLabel>
                     <Select
+                        disabled={props.busy}
                         labelId={"aesthetic-mapper-color-select"}
                         id={"aesthetic-mapper-color"}
                         defaultValue={"nothing"}
@@ -80,7 +82,7 @@ export function ColorMapper(props: ColorMapperProps) {
                         Mapping
                     </InputLabel>
                     <Select
-                        disabled={props.selectedTimeseries === "nothing"}
+                        disabled={props.busy || props.selectedTimeseries === "nothing"}
                         labelId={"aesthetic-mapper-color-mapper-select"}
                         id={"aesthetic-mapper-color-mapper"}
                         defaultValue={"bwr"}

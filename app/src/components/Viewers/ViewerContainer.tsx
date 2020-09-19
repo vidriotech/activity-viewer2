@@ -51,6 +51,7 @@ import RadioGroup from "@material-ui/core/RadioGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import Radio from "@material-ui/core/Radio";
 import {Image} from "plotly.js";
+import Select from "@material-ui/core/Select";
 
 
 type ViewerType = "3D" | "slice" | "penetration";
@@ -58,6 +59,7 @@ type ViewerType = "3D" | "slice" | "penetration";
 export interface ViewerContainerProps {
     aesthetics: AestheticMapping[];
     availablePenetrations: PenetrationData[];
+    busy: boolean;
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
     settings: AVSettings;
@@ -168,7 +170,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    private downloadRecording() {
+    private downloadRecording(): void {
         const blob = new Blob(this.recordedBlobs, {
             type: "video/webm"
         });
@@ -388,8 +390,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             this.reinitViewer();
         } else if (prevState.imageType !== this.state.imageType) {
             (this.viewer as SliceViewer).imageType = this.state.imageType;
-        } else if (prevProps.aesthetics !== this.props.aesthetics || prevProps.availablePenetrations !== this.props.availablePenetrations) {
-            this.renderPenetrations();
         }
 
         if (prevProps.timeMin !== this.props.timeMin || prevProps.timeMax !== this.props.timeMax) {
@@ -399,10 +399,14 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         } else if (prevState.timeVal !== this.state.timeVal && this.viewer !== null) {
             this.viewer.timeVal = this.state.timeVal;
         }
+
+        this.renderCompartments();
+        this.renderPenetrations();
     }
 
     public render(): React.ReactNode {
         const playerSliderProps: PlayerSliderProps = {
+            busy: this.props.busy,
             frameRate: this.state.frameRate,
             isPlaying: this.state.isPlaying,
             isRecording: this.state.isRecording,
@@ -445,15 +449,22 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                             onChange={(evt) => {
                                 this.setState({imageType: evt.target.value as ImageType})
                             }}>
-                    <FormControlLabel value="annotation" control={<Radio />} label="A" />
-                    <FormControlLabel value="template" control={<Radio />} label="T" />
+                    <FormControlLabel value="annotation"
+                                      disabled={this.props.busy}
+                                      control={<Radio />}
+                                      label="A" />
+                    <FormControlLabel value="template"
+                                      disabled={this.props.busy}
+                                      control={<Radio />}
+                                      label="T" />
                 </RadioGroup>
             </FormControl>
         );
 
         const switchButton = (
             <div>
-                <Button color={"primary"}
+                <Button disabled={this.props.busy}
+                        color={"primary"}
                         variant={"contained"}
                         onClick={this.handleViewerChange.bind(this)}>
                     {buttonText}

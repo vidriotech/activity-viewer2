@@ -27,26 +27,27 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 export interface PlayerSliderProps {
-    frameRate: number,
-    isPlaying: boolean,
-    isRecording: boolean,
-    loopAnimation: 'once' | 'repeat',
-    timeMax: number,
-    timeMin: number,
-    timeStep: number,
-    timeVal: number,
-    onFrameRateUpdate(frameRate: number): void,
-    onLoopToggle(): void,
-    onPlayToggle(): void,
-    onRecordToggle(): void,
-    onSliderChange(event: any, timeVal: number): void,
-    onStopClick(): void,
+    busy: boolean;
+    frameRate: number;
+    isPlaying: boolean;
+    isRecording: boolean;
+    loopAnimation: 'once' | 'repeat';
+    timeMax: number;
+    timeMin: number;
+    timeStep: number;
+    timeVal: number;
+    onFrameRateUpdate(frameRate: number): void;
+    onLoopToggle(): void;
+    onPlayToggle(): void;
+    onRecordToggle(): void;
+    onSliderChange(event: any, timeVal: number): void;
+    onStopClick(): void;
 }
 
-export function PlayerSlider(props: PlayerSliderProps) {
+export function PlayerSlider(props: PlayerSliderProps): React.ReactElement {
     const classes = useStyles();
 
-    let marks = [{
+    const marks = [{
         label: '',
         value: props.timeMin
     }];
@@ -66,7 +67,7 @@ export function PlayerSlider(props: PlayerSliderProps) {
         }
     }
 
-    const disabled = marks.length === 1;
+    const disabled = props.busy || (marks.length === 1);
 
     const playPauseButton = (
         <IconButton size='small'

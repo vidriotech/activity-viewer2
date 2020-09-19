@@ -8,27 +8,32 @@ import List from '@material-ui/core/List';
 import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
+// eslint-disable-next-line import/no-unresolved
 import { AVConstants } from '../../constants';
+// eslint-disable-next-line import/no-unresolved
 import { AVSettings } from '../../models/apiModels';
+// eslint-disable-next-line import/no-unresolved
 import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
-import { CompartmentListNode, ICompartmentListNodeProps } from './CompartmentListNode';
+// eslint-disable-next-line import/no-unresolved
+import { CompartmentListNode, CompartmentListNodeProps } from './CompartmentListNode';
 
 
-export interface ICompartmentListProps {
-    compartmentSubsetOnly: boolean,
-    compartmentViewTree: CompartmentNodeView,
-    constants: AVConstants,
-    settings: AVSettings,
-    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void,
+export interface CompartmentListProps {
+    busy: boolean;
+    compartmentSubsetOnly: boolean;
+    compartmentViewTree: CompartmentNodeView;
+    constants: AVConstants;
+    settings: AVSettings;
+    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
 }
 
-interface ICompartmentListState {
-    filteredCompartments: CompartmentNodeView[],
+interface CompartmentListState {
+    filteredCompartments: CompartmentNodeView[];
 }
 
-export class CompartmentList extends React.Component<ICompartmentListProps, ICompartmentListState> {
-    constructor(props: ICompartmentListProps) {
+export class CompartmentList extends React.Component<CompartmentListProps, CompartmentListState> {
+    constructor(props: CompartmentListProps) {
         super(props);
 
         this.state = {
@@ -36,12 +41,12 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
         };
     }
 
-    private makeCompartmentIndex() {
+    private makeCompartmentIndex(): CompartmentNodeView[] {
         let queue = [this.props.compartmentViewTree];
-        let flattenedList = [];
+        const flattenedList = [];
 
         while (queue.length > 0) {
-            let node = queue.splice(0, 1)[0];
+            const node = queue.splice(0, 1)[0];
             queue = queue.concat(node.children);
 
             flattenedList.push(node);
@@ -50,11 +55,11 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
         return flattenedList;
     }
 
-    private toggleCompartmentVisible(compartmentNodeView: CompartmentNodeView) {
-        let structureIdPath = compartmentNodeView.structureIdPath;
+    private toggleCompartmentVisible(compartmentNodeView: CompartmentNodeView): void {
+        const structureIdPath = compartmentNodeView.structureIdPath;
         
         // first structure is always root
-        let root = _.cloneDeep(this.props.compartmentViewTree);
+        const root = _.cloneDeep(this.props.compartmentViewTree);
         let cur = root;
         structureIdPath.slice(1).forEach((id) => {
             for (let i = 0; i < cur.children.length; i++) {
@@ -69,10 +74,10 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
         this.props.onToggleCompartmentVisible(root);
     }
 
-    public componentDidUpdate(prevProps: Readonly<ICompartmentListProps>) {
+    public componentDidUpdate(prevProps: Readonly<CompartmentListProps>): void {
         if (prevProps.compartmentViewTree !== this.props.compartmentViewTree && this.state.filteredCompartments.length > 0) {
-            let filteredCompartmentNames = this.state.filteredCompartments.map((c) => c.name);
-            let filteredCompartments: CompartmentNodeView[] = [];
+            const filteredCompartmentNames = this.state.filteredCompartments.map((c) => c.name);
+            const filteredCompartments: CompartmentNodeView[] = [];
             let queue = [this.props.compartmentViewTree]
 
             let node;
@@ -93,7 +98,7 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
         }
     }
 
-    public render() {
+    public render(): React.ReactElement {
         const compartmentList = this.makeCompartmentIndex();
         const header = (
             <Typography variant='h5' gutterBottom>
@@ -105,7 +110,7 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
             <Autocomplete multiple
                           id='tags-outlined'
                           options={compartmentList}
-                          getOptionLabel={(option) => option.name}
+                          getOptionLabel={(option): string => option.name}
                           filterSelectedOptions
                           onChange={(_evt, newValue: CompartmentNodeView[] ) => this.setState({ filteredCompartments: newValue})}
                           renderInput={(params) => (
@@ -121,14 +126,16 @@ export class CompartmentList extends React.Component<ICompartmentListProps, ICom
         if (this.state.filteredCompartments.length > 0) {
             listChildren = (
                 this.state.filteredCompartments.map((nodeView) => (
-                    <CompartmentListNode compartmentNodeView={nodeView}
+                    <CompartmentListNode busy={this.props.busy}
+                                         compartmentNodeView={nodeView}
                                          showChildren={false}
                                          onToggleDescendantVisible={this.toggleCompartmentVisible.bind(this)} />
                     )
                 )
             );
         } else {
-            const rootNodeProps: ICompartmentListNodeProps = {
+            const rootNodeProps: CompartmentListNodeProps = {
+                busy: this.props.busy,
                 compartmentNodeView: this.props.compartmentViewTree,
                 showChildren: true,
                 onToggleDescendantVisible: this.props.onToggleCompartmentVisible,

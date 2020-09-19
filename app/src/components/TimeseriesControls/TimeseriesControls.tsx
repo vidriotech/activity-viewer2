@@ -8,6 +8,7 @@ import {ColorMapper, ColorMapperProps} from './ColorMapper';
 import { ScalarMapper, ScalarMapperProps } from './ScalarMapper';
 
 export interface TimeseriesControlsProps {
+    busy: boolean;
     opacityBounds: number[];
     radiusBounds: number[];
     selectedColor: string;
@@ -23,8 +24,9 @@ export interface TimeseriesControlsProps {
     onRadiusSliderChange(event: never, newData: number[], commit: boolean): void;
 }
 
-export function TimeseriesControls(props: TimeseriesControlsProps) {
+export function TimeseriesControls(props: TimeseriesControlsProps): React.ReactElement {
     const radiusMapperProps: ScalarMapperProps = {
+        busy: props.busy,
         mapperLabel: 'Radius',
         sliderMax: 500,
         sliderMin: 5,
@@ -37,6 +39,7 @@ export function TimeseriesControls(props: TimeseriesControlsProps) {
     }
 
     const opacityMapperProps: ScalarMapperProps = {
+        busy: props.busy,
         mapperLabel: 'Opacity',
         sliderMax: 1,
         sliderMin: 0.01,
@@ -49,6 +52,7 @@ export function TimeseriesControls(props: TimeseriesControlsProps) {
     }
 
     const colorMapperProps: ColorMapperProps = {
+        busy: props.busy,
         selectedColorMapping: props.selectedColorMapping,
         selectedTimeseries: props.selectedColor,
         timeseriesList: props.timeseriesList,

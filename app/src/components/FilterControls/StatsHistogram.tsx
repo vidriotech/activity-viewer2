@@ -18,7 +18,7 @@ import { AVConstants } from '../../constants';
 import { PenetrationData } from '../../models/apiModels';
 import { Predicate, StatPredicate } from '../../models/predicateModels';
 
-export interface IStatsHistogramProps {
+export interface StatsHistogramProps {
     availablePenetrations: PenetrationData[],
     constants: AVConstants
     data: number[],
@@ -35,10 +35,10 @@ interface IStatsHistogramState {
     logScale: boolean,
 }
 
-export class StatsHistogram extends React.Component<IStatsHistogramProps, IStatsHistogramState> {
+export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsHistogramState> {
     private histId = 'stats-histogram';
 
-    constructor(props: IStatsHistogramProps) {
+    constructor(props: StatsHistogramProps) {
         super(props);
 
         this.state = {
@@ -196,7 +196,7 @@ export class StatsHistogram extends React.Component<IStatsHistogramProps, IStats
         this.props.onFilterPredicateUpdate(predicate, this.props.statName);
     }
 
-    public componentDidUpdate(prevProps: Readonly<IStatsHistogramProps>) {
+    public componentDidUpdate(prevProps: Readonly<StatsHistogramProps>) {
         if (prevProps.statName !== this.props.statName) {
             this.setState({ histBounds: this.computeDomain()}, () => {
                 this.clearHistogram();

@@ -3,42 +3,50 @@ import * as _ from 'underscore';
 
 import Grid from '@material-ui/core/Grid';
 
+// eslint-disable-next-line import/no-unresolved
 import { CompartmentTree } from '../../compartmentTree';
+// eslint-disable-next-line import/no-unresolved
 import { AVConstants } from '../../constants';
 
+// eslint-disable-next-line import/no-unresolved
 import { PenetrationData, AVSettings } from '../../models/apiModels';
+// eslint-disable-next-line import/no-unresolved
 import { Predicate } from '../../models/predicateModels';
 
+// eslint-disable-next-line import/no-unresolved
 import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
-import { PredicateList, IPredicateListProps } from './PredicateList';
-import { StatsHistogram, IStatsHistogramProps } from './StatsHistogram';
+// eslint-disable-next-line import/no-unresolved
+import { PredicateList, PredicateListProps } from './PredicateList';
+// eslint-disable-next-line import/no-unresolved
+import { StatsHistogram, StatsHistogramProps } from './StatsHistogram';
 
 
-export interface IFilterControlsProps {
-    availablePenetrations: PenetrationData[],
-    compartmentSubsetOnly: boolean,
-    compartmentTree: CompartmentTree,
-    compartmentViewTree: CompartmentNodeView,
-    constants: AVConstants,
-    statsData: number[],
-    filterPredicate: Predicate,
-    selectedStat: string,
-    settings: AVSettings,
-    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void,
-    onStatSelectionChange(event: any): void,
-    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void,
+export interface FilterControlsProps {
+    availablePenetrations: PenetrationData[];
+    busy: boolean;
+    compartmentTree: CompartmentTree;
+    compartmentViewTree: CompartmentNodeView;
+    constants: AVConstants;
+    statsData: number[];
+    filterPredicate: Predicate;
+    selectedStat: string;
+    settings: AVSettings;
+    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void;
+    onStatSelectionChange(event: any): void;
+    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
 }
 
-export function FilterControls(props: IFilterControlsProps) {
-    const predicateListProps: IPredicateListProps = {
+export function FilterControls(props: FilterControlsProps) {
+    const predicateListProps: PredicateListProps = {
         availablePenetrations: props.availablePenetrations,
+        busy: props.busy,
         compartmentTree: props.compartmentTree,
         filterPredicate: props.filterPredicate,
         onFilterPredicateUpdate: props.onFilterPredicateUpdate,
     };
 
-    const histogramProps: IStatsHistogramProps = {
+    const histogramProps: StatsHistogramProps = {
         availablePenetrations: props.availablePenetrations,
         constants: props.constants,
         data: props.statsData,

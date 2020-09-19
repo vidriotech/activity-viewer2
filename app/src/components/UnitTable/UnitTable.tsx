@@ -9,6 +9,7 @@ import TableCell from '@material-ui/core/TableCell';
 
 import SaveIcon from '@material-ui/icons/Save';
 
+// eslint-disable-next-line import/no-unresolved
 import { PenetrationData } from '../../models/apiModels';
 
 declare module '@material-ui/core/styles/withStyles' {
@@ -166,8 +167,9 @@ interface UnitData {
 }
 
 export interface UnitTableProps {
-    availablePenetrations: PenetrationData[],
-    onUnitExportRequest(): void,
+    availablePenetrations: PenetrationData[];
+    busy: boolean;
+    onUnitExportRequest(): void;
 }
 
 export function UnitTable(props: UnitTableProps) {
@@ -192,9 +194,9 @@ export function UnitTable(props: UnitTableProps) {
     return (
         <Container style={{ height: 500, width: '100%' }}>
             <div>
-                <IconButtton disabled={props.availablePenetrations.length === 0}
+                <IconButtton disabled={props.busy || props.availablePenetrations.length === 0}
                              onClick={props.onUnitExportRequest} >
-                    <SaveIcon></SaveIcon>
+                    <SaveIcon />
                 </IconButtton>
 
             </div>

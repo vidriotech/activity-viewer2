@@ -11,6 +11,7 @@ import Typography from "@material-ui/core/Typography";
 
 
 export interface ScalarMapperProps {
+    busy: boolean;
     mapperLabel: string;
     sliderMax: number;
     sliderMin: number;
@@ -25,7 +26,7 @@ export interface ScalarMapperProps {
     onSliderChange(event: any, newData: number[], commit: boolean): void;
 }
 
-export function ScalarMapper(props: ScalarMapperProps) {
+export function ScalarMapper(props: ScalarMapperProps): React.ReactElement {
     const menuItems = [
         <MenuItem key={"nothing"}
                   value={"nothing"}>
@@ -59,6 +60,7 @@ export function ScalarMapper(props: ScalarMapperProps) {
                         {props.mapperLabel}
                     </InputLabel>
                     <Select
+                        disabled={props.busy}
                         labelId={`aesthetic-mapper-${props.mapperLabel}-select`}
                         id={`aesthetic-mapper-${props.mapperLabel}`}
                         defaultValue="nothing"
@@ -82,7 +84,7 @@ export function ScalarMapper(props: ScalarMapperProps) {
                         value={props.sliderVal}
                         onChange={(evt, newData) => props.onSliderChange(evt, newData as number[], false)}
                         onChangeCommitted={(evt, newData) => props.onSliderChange(evt, newData as number[], true)}
-                        disabled={props.selectedTimeseries === "nothing"} />
+                        disabled={props.busy || props.selectedTimeseries === "nothing"} />
             </Grid>
         </Grid>
     );
