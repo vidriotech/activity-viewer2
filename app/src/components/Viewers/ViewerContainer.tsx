@@ -396,7 +396,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             this.setState({ timeVal: this.props.timeMin }, () => {
                 this.viewer.setTime(this.props.timeMin, this.props.timeMax, this.props.timeStep, this.state.timeVal);
             });
-        } else if (prevState.timeVal !== this.state.timeVal) {
+        } else if (prevState.timeVal !== this.state.timeVal && this.viewer !== null) {
             this.viewer.timeVal = this.state.timeVal;
         }
     }

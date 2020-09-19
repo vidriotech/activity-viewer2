@@ -188,7 +188,7 @@ class Serializable:
                 val_list.append(cls._dictify_member(v))
 
             val = val_list  # don't convert back to tuple or set
-        elif not isinstance(val, (int, float, dict)):
+        elif val is not None and not isinstance(val, (int, float, dict)):
             val = str(val)
 
         return val

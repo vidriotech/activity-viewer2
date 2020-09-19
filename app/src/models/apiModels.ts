@@ -116,6 +116,6 @@ export interface SliceData {
  * Endpoint: /unit-stats/<stat_id>
  * Allows to query all penetrations for a given unit statistic id.
  */
-export interface UnitStatesListResponse {
+export interface UnitStatsListResponse {
     unitStats: UnitStatsValuesResponse[];
 }

@@ -4,13 +4,15 @@ import {
     ExportingUnit,
     SettingsRequest,
     SliceType,
-    SliceData,
+    SliceData, PenetrationResponse,
 // eslint-disable-next-line import/no-unresolved
 } from "./models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./models/colorMap";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesEntries, TimeseriesSummary} from "./models/timeseries";
+// eslint-disable-next-line import/no-unresolved
+import {AestheticMapping, AestheticParams} from "./models/aestheticMapping";
 
 
 export class APIClient {
@@ -18,6 +20,15 @@ export class APIClient {
 
     constructor(endpoint: string) {
         this.endpoint = endpoint;
+    }
+
+    async fetchAestheticMapping(penetrationId: string, params: AestheticParams): Promise<AxiosResponse<AestheticMapping>> {
+        return axios({
+            method: "POST",
+            url: `${this.endpoint}/aesthetics/${penetrationId}`,
+            data: params,
+            timeout: 5000,
+        });
     }
 
     async fetchColorMapping(mapping: string): Promise<AxiosResponse<ColorLUT>> {
@@ -41,7 +52,7 @@ export class APIClient {
         });
     }
 
-    async fetchPenetrations() {
+    async fetchPenetrations(): Promise<AxiosResponse<PenetrationResponse>> {
         return await axios.get(`${this.endpoint}/penetrations`);
     }
 

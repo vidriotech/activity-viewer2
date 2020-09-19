@@ -1,6 +1,5 @@
 import React from 'react';
-import * as _ from 'underscore';
-import {AxiosResponse} from "axios";
+import * as _ from "lodash";
 
 import Grid from '@material-ui/core/Grid';
 
@@ -15,7 +14,7 @@ import {
     AVSettings,
     PenetrationData,
     PenetrationResponse,
-    UnitStatesListResponse,
+    UnitStatsListResponse,
 // eslint-disable-next-line import/no-unresolved
 } from '../models/apiModels';
 // eslint-disable-next-line import/no-unresolved
@@ -26,7 +25,7 @@ import { PointModel } from '../models/pointModel';
 import { Predicate } from '../models/predicateModels';
 
 // eslint-disable-next-line import/no-unresolved
-import { AestheticMapping } from '../models/aestheticMapping';
+import {AestheticMapping, AestheticParams} from '../models/aestheticMapping';
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentNodeView } from '../viewmodels/compartmentViewModel';
 
@@ -40,8 +39,11 @@ import { TimeseriesControls, TimeseriesControlsProps } from './TimeseriesControl
 import { ViewerContainer, ViewerContainerProps } from './Viewers/ViewerContainer';
 // eslint-disable-next-line import/no-unresolved
 import { UnitTable, UnitTableProps } from './UnitTable/UnitTable';
+// eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "../models/colorMap";
-import {TimeseriesEntries} from "../models/timeseries";
+// eslint-disable-next-line import/no-unresolved
+import {TimeseriesEntries, TimeseriesSummary} from "../models/timeseries";
+import {AxiosResponse} from "axios";
 
 
 interface TimeseriesData {
@@ -62,8 +64,9 @@ export interface MainViewProps {
 }
 
 interface MainViewState {
-    aesthetics: AestheticMapping[];
+    aestheticMappings: AestheticMapping[];
     availablePenetrations: PenetrationData[];
+    busy: boolean;
     colorLUT: ColorLUT;
     compartmentSubsetOnly: boolean;
     compartmentViewTree: CompartmentNodeView;
@@ -71,8 +74,9 @@ interface MainViewState {
     frameRate: number;
     isPlaying: boolean;
     loopAnimation: 'once' | 'repeat';
-    opacityBounds: number[];
-    radiusBounds: number[];
+    colorBounds: [number, number];
+    opacityBounds: [number, number];
+    radiusBounds: [number, number];
     selectedColor: string;
     selectedOpacity: string;
     selectedRadius: string;
@@ -82,10 +86,14 @@ interface MainViewState {
     timeStep: number;
 }
 
+type AesKey = "selectedColor" | "selectedOpacity" | "selectedRadius";
+
 export class MainView extends React.Component<MainViewProps, MainViewState> {
     private apiClient: APIClient;
     private statsData: Map<string, UnitStatsData[]>;
     private timeseriesData: Map<string, TimeseriesData[]>;
+    private timeseriesEntries: Map<string, TimeseriesEntries>;
+    private timeseriesSummaries: Map<string, TimeseriesSummary>;
 
     constructor(props: MainViewProps) {
         super(props);
@@ -94,20 +102,22 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         compartmentViewTree.isVisible = true;
  
         this.state = {
-            aesthetics: [],
+            aestheticMappings: [],
             availablePenetrations: [],
+            busy: false,
             colorLUT: this.props.constants.defaultColorLUT,
             compartmentViewTree: compartmentViewTree,
             filterPredicate: null,
             frameRate: 30,
             isPlaying: false,
             loopAnimation: 'once',
+            colorBounds: [0, 255],
             opacityBounds: [0.01, 1],
             radiusBounds: [5, 500],
-            selectedColor: 'nothing',
-            selectedOpacity: 'nothing',
-            selectedRadius: 'nothing',
-            selectedStat: 'nothing',
+            selectedColor: "nothing",
+            selectedOpacity: "nothing",
+            selectedRadius: "nothing",
+            selectedStat: "nothing",
             compartmentSubsetOnly: true,
             timeMin: 0,
             timeMax: 0,
@@ -117,41 +127,81 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
         this.statsData = new Map<string, UnitStatsData[]>();
         this.timeseriesData = new Map<string, TimeseriesData[]>();
+        this.timeseriesEntries = new Map<string, TimeseriesEntries>();
+        this.timeseriesSummaries = new Map<string, TimeseriesSummary>();
     }
 
-    private fetchAndUpdateTimeseries(value: string) {
-        if (value !== 'nothing' && !this.timeseriesData.has(value)) {
-            this.apiClient.fetchTimeseriesById(value)
-                .then((res) => res.data)
-                .then((responseData: TimeseriesEntries) => {
-                    const seriesData: TimeseriesData[] = [];
+    private fetchAndUpdateAesthetics(
+        aesthetic: "color" | "opacity" | "radius",
+        timeseriesId: string,
+        aestheticMappings: AestheticMapping[]
+    ): void {
+        const idx = aestheticMappings.length;
 
-                    responseData.timeseries.forEach((entry) => {
-                        if (entry.stride === 0) {
-                            return;
-                        }
+        if (idx === this.state.availablePenetrations.length) {
+            this.setState({aestheticMappings: aestheticMappings, busy: false});
+            return;
+        }
 
-                        seriesData.push({
-                            penetrationId: entry.penetrationId,
-                            times: entry.times,
-                            values: entry.values,
-                        });
-                    });
+        const penetrationData = this.state.availablePenetrations[idx];
+        const penetrationId = penetrationData.penetrationId;
 
-                    this.timeseriesData.set(value, seriesData);
-                    this.updateAesthetics();
-                })
-                .catch((err: Error) => console.error(err));
+        const mapping: AestheticMapping = idx < this.state.aestheticMappings.length ?
+            this.state.aestheticMappings[idx] :
+            {
+                penetrationId,
+                color: null,
+                opacity: null,
+                radius: null,
+                visibility: penetrationData.ids.map(() => 1),
+            };
+
+        const params: AestheticParams = {};
+
+        if (timeseriesId === "nothing") {
+            mapping[aesthetic] = null;
+
+            aestheticMappings.push(mapping);
+            this.fetchAndUpdateAesthetics(aesthetic, timeseriesId, aestheticMappings);
         } else {
-            this.updateAesthetics();
+            const bounds = this.state[`${aesthetic}Bounds` as keyof(MainViewState)] as [number, number];
+            if (aesthetic === "color") {
+                params.color = {
+                    timeseriesId,
+                    mapping: this.state.colorLUT.name,
+                    bounds: bounds,
+                };
+            } else {
+                params[aesthetic] = {
+                    timeseriesId,
+                    bounds
+                };
+            }
+
+            this.apiClient.fetchAestheticMapping(penetrationId, params)
+                .then((res) => res.data)
+                .then((newMapping) => {
+                    console.log(newMapping);
+
+                    if (aesthetic === "color" && newMapping.color.colorLUT === null) {
+                        newMapping.color.colorLUT = this.props.constants.defaultColorLUT;
+                    }
+
+                    // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                    // @ts-ignore
+                    mapping[aesthetic] = newMapping[aesthetic];
+
+                    aestheticMappings.push(mapping);
+                    this.fetchAndUpdateAesthetics(aesthetic, timeseriesId, aestheticMappings);
+                });
         }
     }
 
-    private fetchAndUpdateUnitStats(value: string) {
+    private fetchAndUpdateUnitStats(value: string): void {
         if (value !== 'nothing' && !this.statsData.has(value)) {
             this.apiClient.fetchUnitStatsById(value)
                 .then((res: any) => res.data)
-                .then((responseData: UnitStatesListResponse) => {
+                .then((responseData: UnitStatsListResponse) => {
                     const statsData: UnitStatsData[] = [];
 
                     responseData.unitStats.forEach((data) => {
@@ -171,40 +221,89 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     }
     
     private handleAestheticSelectionChange(
-        aesthetic: "selectedColor" | "selectedOpacity" | "selectedRadius",
-        value: string
+        aesthetic: "color" | "opacity" | "radius",
+        timeseriesId: string
     ): void {
-
         const newState = {
             selectedColor: this.state.selectedColor,
             selectedOpacity: this.state.selectedOpacity,
             selectedRadius: this.state.selectedRadius,
         };
-        
-        newState[aesthetic] = value;
-        const pairs = _.pairs(newState);
-        pairs.forEach((pair) => {
+
+        const aesKey = `selected${_.startCase(aesthetic)}` as AesKey;
+        newState[aesKey] = timeseriesId;
+
+        _.toPairs(newState).forEach((pair) => {
             const [pairKey, pairVal] = pair;
-            if (pairKey !== aesthetic && pairVal === value) {
-                newState[pairKey] = "nothing";
+            if (pairKey !== aesKey && pairVal === timeseriesId) {
+                newState[pairKey as AesKey] = "nothing";
             }
         });
 
-        this.setState(newState, () => this.fetchAndUpdateTimeseries(value));
+        if (timeseriesId !== "nothing" && !this.timeseriesSummaries.has(timeseriesId)) {
+            this.apiClient.fetchTimeseriesSummary(timeseriesId)
+                .then((res) => res.data)
+                .then((summary) => {
+                    this.timeseriesSummaries.set(timeseriesId, summary);
+                    const timeMin = Math.min(summary.minTime, this.state.timeMin);
+                    const timeMax = Math.max(summary.maxTime, this.state.timeMax);
+                    const timeStep = Math.min(summary.minStep, this.state.timeStep);
+
+                    this.setState(_.extend(
+                        newState,
+                        {busy: true, timeMin, timeMax, timeStep}
+                    ), () => {
+                        this.fetchAndUpdateAesthetics(aesthetic, timeseriesId, []);
+                    });
+                })
+                .catch((err) => console.error(err));
+        } else if (timeseriesId !== "nothing") {
+            this.setState(_.extend(
+                newState,
+                {busy: true}
+            ), () => {
+                this.fetchAndUpdateAesthetics(aesthetic, timeseriesId, []);
+            });
+        }
+    }
+    
+    private handleAestheticSliderChange(
+        aesthetic: "color" | "opacity" | "radius",
+        newBounds: [number, number],
+        commit: boolean
+    ): void {
+        const newState = {
+            busy: commit ? true : this.state.busy,
+            colorBounds: aesthetic === "color" ? newBounds : this.state.colorBounds,
+            opacityBounds: aesthetic === "opacity" ? newBounds : this.state.opacityBounds,
+            radiusBounds: aesthetic === "radius" ? newBounds : this.state.radiusBounds,
+        };
+
+        const aesKey = `selected${_.startCase(aesthetic)}` as AesKey;
+
+        this.setState(newState, () => {
+            if (commit) {
+                this.fetchAndUpdateAesthetics(
+                    aesthetic,
+                    this.state[aesKey],
+                    []
+                );
+            }
+        });
     }
 
     private handleColorSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void {
-        this.handleAestheticSelectionChange("selectedColor", event.target.value as string);
+        this.handleAestheticSelectionChange("color", event.target.value as string);
     }
 
     private handleFilterPredicateUpdate(predicate: Predicate, newStat = "nothing"): void {
         if (newStat !== 'nothing' && !this.statsData.has(newStat)) {
             this.apiClient.fetchUnitStatsById(newStat)
-                .then((res: any) => res.data)
-                .then((responseData: UnitStatesListResponse) => {
+                .then((res: AxiosResponse<UnitStatsListResponse>) => res.data)
+                .then((data) => {
                     const statsData: UnitStatsData[] = [];
 
-                    responseData.unitStats.forEach((data) => {
+                    data.unitStats.forEach((data) => {
                         statsData.push({
                             penetrationId: data.penetrationId,
                             values: data.data
@@ -238,28 +337,20 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         }
     }
 
-    private handleOpacitySelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>) {
-        this.handleAestheticSelectionChange("selectedOpacity", event.target.value as string);
+    private handleOpacitySelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void {
+        this.handleAestheticSelectionChange("opacity", event.target.value as string);
     }
 
-    private handleOpacitySliderChange(event: any, newValue: number[], commit: boolean) {
-        this.setState({ opacityBounds: newValue }, () => {
-            if (commit) {
-                this.updateAesthetics();
-            }
-        });
+    private handleOpacitySliderChange(event: any, newBounds: [number, number], commit: boolean): void {
+        this.handleAestheticSliderChange("opacity", newBounds, commit);
     }
 
     private handleRadiusSelectionChange(event: React.ChangeEvent<{name?: string; value: any}>): void {
-        this.handleAestheticSelectionChange("selectedRadius", event.target.value as string);
+        this.handleAestheticSelectionChange("radius", event.target.value as string);
     }
 
-    private handleRadiusSliderChange(event: any, newValue: number[], commit: boolean) {
-        this.setState({ radiusBounds: newValue }, () => {
-            if (commit) {
-                this.updateAesthetics();
-            }
-        });
+    private handleRadiusSliderChange(event: any, newBounds: [number, number], commit: boolean): void {
+        this.handleAestheticSliderChange("radius", newBounds, commit);
     }
 
     private handleStatSelectionChange(event: React.ChangeEvent<{
@@ -420,12 +511,12 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             aesthetics.push(aesthetic);
         });
 
-        this.setState({ aesthetics, timeMax, timeMin });
+        this.setState({ aestheticMappings: aesthetics, timeMax, timeMin });
     }
 
     public updateColorMap(): void {
         const aesthetics: AestheticMapping[] = [];
-        this.state.aesthetics.forEach((aesthetic) => {
+        this.state.aestheticMappings.forEach((aesthetic) => {
             aesthetics.push({
                 penetrationId: aesthetic.penetrationId,
                 opacity: aesthetic.opacity,
@@ -440,13 +531,14 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             })
         });
 
-        this.setState({ aesthetics });
+        this.setState({ aestheticMappings: aesthetics });
     }
 
-    private updateFilter(predicate: Predicate) {
+    private updateFilter(predicate: Predicate): void {
         const availablePenetrations: PenetrationData[] = [];
+        const aestheticMappings: AestheticMapping[] = [];
 
-        this.state.availablePenetrations.forEach((penetrationData) => {
+        this.state.availablePenetrations.forEach((penetrationData, idx) => {
             const penetrationId = penetrationData.penetrationId;
 
             let visible: boolean[];
@@ -484,29 +576,53 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 visible = predicate.eval(pointModels);
             }
 
-            availablePenetrations.push(_.extend(
-                _.pick(
-                    penetrationData,
-                    _.without(_.keys(penetrationData), 'visible')
-                ),
-                { 'visible': visible }
-            ));
+            const newPenetrationData = _.cloneDeep(penetrationData);
+            newPenetrationData.visible = visible;
+            availablePenetrations.push(newPenetrationData);
+
+            const mapping: AestheticMapping = idx < this.state.aestheticMappings.length ?
+                this.state.aestheticMappings[idx] :
+                {
+                    penetrationId,
+                    color: null,
+                    opacity: null,
+                    radius: null,
+                    visibility: []
+                };
+
+            mapping.visibility = visible.map(x => Number(x));
+            aestheticMappings.push(mapping);
         });
 
-        this.setState({ availablePenetrations, filterPredicate: predicate }, () => {
-            this.updateAesthetics();
+        this.setState({
+            aestheticMappings: aestheticMappings,
+            availablePenetrations,
+            filterPredicate: predicate
         });
     }
 
     public componentDidMount(): void {
         this.apiClient.fetchPenetrations()
-            .then((res: any) => res.data)
-            .then((data: PenetrationResponse) => {
-                this.setState({
-                    availablePenetrations: data.penetrations.map((penetration) => (
-                        _.extend(penetration, { 'visible': penetration.ids.map(_x => true)})
-                    ))
+            .then((res) => res.data)
+            .then((data) => {
+                const availablePenetrations: PenetrationData[] = new Array(data.penetrations.length);
+                const aestheticMappings: AestheticMapping[] = new Array(data.penetrations.length);
+
+                data.penetrations.forEach((penetrationData, idx) => {
+                    availablePenetrations[idx] = _.extend(
+                        penetrationData,
+                        {"visible": penetrationData.ids.map(() => true)}
+                    );
+                    aestheticMappings[idx] = {
+                        penetrationId: penetrationData.penetrationId,
+                        color: null,
+                        opacity: null,
+                        radius: null,
+                        visibility: penetrationData.ids.map(() => 1)
+                    };
                 });
+
+                this.setState({availablePenetrations, aestheticMappings});
             })
             .catch((err: Error) => {
                 console.error(err);
@@ -514,9 +630,9 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             });
     }
 
-    public render() {
+    public render(): React.ReactNode {
         const viewerContainerProps: ViewerContainerProps = {
-            aesthetics: this.state.aesthetics,
+            aesthetics: this.state.aestheticMappings,
             availablePenetrations: this.state.availablePenetrations,
             constants: this.props.constants,
             settings: this.props.settings,
@@ -534,10 +650,10 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             selectedColorMapping: this.state.colorLUT.name,
             selectedOpacity: this.state.selectedOpacity,
             selectedRadius: this.state.selectedRadius,
-            timeseriesList: _.uniq(
+            timeseriesList: _.sortedUniq(
                 _.flatten(this.state.availablePenetrations.map(
                     pen => pen.timeseries
-                )).sort(), true
+                )).sort()
             ),
             onColorSelectionChange: this.handleColorSelectionChange.bind(this),
             onMapperSelectionChange: this.handleMapperSelectionChange.bind(this),

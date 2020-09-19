@@ -8,7 +8,7 @@ import FormControl from "@material-ui/core/FormControl";
 
 
 export interface ColorMapperProps {
-    selectedColorMapping: string,
+    selectedColorMapping: string;
     selectedTimeseries: string;
     timeseriesList: string[];
     onSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
