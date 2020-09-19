@@ -85,15 +85,17 @@ def get_mesh(structure_id: int):
 
 
 @app.route("/penetrations", methods=["GET", "POST", "PUT", "DELETE"])
-def get_all_penetrations():
+def get_penetrations():
+    data = None
+
     if request.method != "GET" and hasattr(request, "data"):
         try:
             data = json.loads(request.data)
         except json.JSONDecodeError as e:
-            print(e)
-            data = None
-    else:
-        data = None
+            app.logger.error(e)
+
+    page = request.args.get("page", default=1, type=int)
+    limit = request.args.get("limit", default=10, type=int)
 
     if request.method == "POST":  # reset all penetrations
         if data is not None and "data_paths" in data:
@@ -106,7 +108,24 @@ def get_all_penetrations():
         if data is not None and "penetrations" in data:
             state.rm_penetrations(data["penetrations"])        
 
-    return {"penetrations": [get_penetration_vitals(pen) for pen in state.penetrations]}
+    n_pens = len(state.penetrations)
+    response = {
+        "penetrations": [],
+        "info": {
+            "totalCount": n_pens
+        },
+        "link": None
+    }
+
+    start = (page - 1) * limit
+    stop = page * limit
+    if start < n_pens:
+        response["penetrations"] = [get_penetration_vitals(pen) for pen in state.penetrations[start:stop]]
+
+    if stop < n_pens - 1:
+        response["link"] = f"/penetrations?page={page + 1}&limit={limit}"
+
+    return response
 
 
 @app.route("/penetrations/<penetration_id>")

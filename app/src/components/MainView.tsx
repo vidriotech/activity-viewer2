@@ -197,6 +197,47 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         }
     }
 
+    private fetchAndUpdatePenetrations(page: number) {
+        this.apiClient.fetchPenetrations(10, page)
+            .then((res) => res.data)
+            .then((data) => {
+                const availablePenetrations = this.state.availablePenetrations.slice();
+                const newPenetrations: PenetrationData[] = new Array(data.penetrations.length);
+
+                const aestheticMappings = this.state.aestheticMappings.slice();
+                const newMappings: AestheticMapping[] = new Array(data.penetrations.length);
+
+                data.penetrations.forEach((penetrationData, idx) => {
+                    newPenetrations[idx] = _.extend(
+                        penetrationData,
+                        {"visible": penetrationData.ids.map(() => true)}
+                    );
+
+                    newMappings[idx] = {
+                        penetrationId: penetrationData.penetrationId,
+                        color: null,
+                        opacity: null,
+                        radius: null,
+                        visibility: penetrationData.ids.map(() => 1)
+                    };
+                });
+
+                this.setState({
+                    availablePenetrations: _.concat(availablePenetrations, newPenetrations),
+                    aestheticMappings: _.concat(aestheticMappings, newMappings),
+                    busy: !!(data.link)
+                }, () => {
+                    if (data.link) {
+                        this.fetchAndUpdatePenetrations(page + 1);
+                    }
+                });
+            })
+            .catch((err: Error) => {
+                console.error(err);
+                window.alert(err.message);
+            });
+    }
+
     private fetchAndUpdateUnitStats(value: string): void {
         if (value !== 'nothing' && !this.statsData.has(value)) {
             this.apiClient.fetchUnitStatsById(value)
@@ -602,32 +643,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     }
 
     public componentDidMount(): void {
-        this.apiClient.fetchPenetrations()
-            .then((res) => res.data)
-            .then((data) => {
-                const availablePenetrations: PenetrationData[] = new Array(data.penetrations.length);
-                const aestheticMappings: AestheticMapping[] = new Array(data.penetrations.length);
-
-                data.penetrations.forEach((penetrationData, idx) => {
-                    availablePenetrations[idx] = _.extend(
-                        penetrationData,
-                        {"visible": penetrationData.ids.map(() => true)}
-                    );
-                    aestheticMappings[idx] = {
-                        penetrationId: penetrationData.penetrationId,
-                        color: null,
-                        opacity: null,
-                        radius: null,
-                        visibility: penetrationData.ids.map(() => 1)
-                    };
-                });
-
-                this.setState({availablePenetrations, aestheticMappings});
-            })
-            .catch((err: Error) => {
-                console.error(err);
-                window.alert(err.message);
-            });
+        this.fetchAndUpdatePenetrations(1);
     }
 
     public render(): React.ReactNode {

@@ -35,6 +35,10 @@ export interface PenetrationRequest {
 
 export interface PenetrationResponse {
     penetrations: PenetrationData[];
+    info: {
+        totalCount: number;
+    };
+    link?: string;
 }
 
 /*

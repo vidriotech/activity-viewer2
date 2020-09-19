@@ -4,7 +4,7 @@ import {
     ExportingUnit,
     SettingsRequest,
     SliceType,
-    SliceData, PenetrationResponse,
+    SliceData, PenetrationResponse, PenetrationData,
 // eslint-disable-next-line import/no-unresolved
 } from "./models/apiModels";
 // eslint-disable-next-line import/no-unresolved
@@ -52,11 +52,11 @@ export class APIClient {
         });
     }
 
-    async fetchPenetrations(): Promise<AxiosResponse<PenetrationResponse>> {
-        return await axios.get(`${this.endpoint}/penetrations`);
+    async fetchPenetrations(limit: number, page: number): Promise<AxiosResponse<PenetrationResponse>> {
+        return await axios.get(`${this.endpoint}/penetrations?page=${page}&limit=${limit}`);
     }
 
-    async fetchPenetrationVitals(penetrationId: string) {
+    async fetchPenetrationVitals(penetrationId: string): Promise<AxiosResponse<PenetrationData>> {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
     }
 
@@ -86,20 +86,6 @@ export class APIClient {
 
     async fetchUnitStatsById(statId: string) {
         return await axios.get(`${this.endpoint}/unit-stats/${statId}`);
-    }
-
-    async setPenetrations(dataPaths: string[]) {
-        const penReqData: PenetrationRequest = {
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            data_paths: dataPaths,
-        };
-
-        return axios({
-            "method": "post",
-            "url": `${this.endpoint}/penetrations`,
-            "data": penReqData,
-            "timeout": 15000
-        });
     }
 
     async setSettings(settingsPath: string) {
