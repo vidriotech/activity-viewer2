@@ -23,10 +23,26 @@ def hello():
     return "Hello, world!"
 
 
+@app.route("/aesthetics", methods=["POST"])
+def get_aesthetic_mappings():
+    if request.method == "POST" and hasattr(request, "data"):
+        data = json.loads(request.data)
+        penetration_ids = data["penetrationIds"]
+        params = data["params"]
+
+        mappings = []
+        for penetration_id in penetration_ids:
+            mappings.append(state.make_aesthetic_mapping(penetration_id, params).to_dict())
+
+        return {"mappings": mappings}
+
+
 @app.route("/aesthetics/<penetration_id>", methods=["POST"])
 def get_aesthetic_mapping(penetration_id: str):
     if request.method == "POST" and hasattr(request, "data"):
         params = json.loads(request.data)
+        penetrations = state.penetrations
+
         mapping = state.make_aesthetic_mapping(penetration_id, params)
 
         return mapping.to_dict()
@@ -166,17 +182,6 @@ def get_timeseries_list(penetration_id: str):
     }
 
 
-@app.route("/penetrations/<penetration_id>/unit-stats")
-def get_unit_stats_list(penetration_id: str):
-    if not state.has_penetration(penetration_id):
-        return make_response(f"Penetration '{penetration_id}' not found.", 404)
-
-    return {
-        "penetration": penetration_id,
-        "unitStats": [],
-    }
-
-
 @app.route("/penetrations/<penetration_id>/timeseries/<timeseries_id>")
 def get_timeseries(penetration_id: str, timeseries_id: str):
     if not state.has_penetration(penetration_id):
@@ -190,6 +195,17 @@ def get_timeseries(penetration_id: str, timeseries_id: str):
         "penetration": penetration_id,
         "data": timeseries.ravel().tolist(),
         "stride": timeseries.shape[1],
+    }
+
+
+@app.route("/penetrations/<penetration_id>/unit-stats")
+def get_unit_stats_list(penetration_id: str):
+    if not state.has_penetration(penetration_id):
+        return make_response(f"Penetration '{penetration_id}' not found.", 404)
+
+    return {
+        "penetration": penetration_id,
+        "unitStats": [],
     }
 
 

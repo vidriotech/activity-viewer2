@@ -1,19 +1,16 @@
 import React from "react";
 import * as _ from "underscore";
 
-import AppBar from "@material-ui/core/AppBar";
 import Button from '@material-ui/core/Button';
 import Dialog from "@material-ui/core/Dialog";
-import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
-import DialogContentText from "@material-ui/core/DialogContentText";
-import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogTitle from "@material-ui/core/DialogTitle"
+import FormControl from "@material-ui/core/FormControl";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormLabel from "@material-ui/core/FormLabel";;
 import Grid from "@material-ui/core/Grid";
-import Tab from "@material-ui/core/Tab";
-import Tabs from "@material-ui/core/Tabs";
-import TabContext from "@material-ui/lab/TabContext";
-import TabList from "@material-ui/lab/TabList";
-
+import RadioGroup from "@material-ui/core/RadioGroup";
+import Radio from "@material-ui/core/Radio";
 
 // eslint-disable-next-line import/no-unresolved
 import { AVConstants } from "../../constants";
@@ -44,14 +41,6 @@ import {Predicate, PropEqPredicate, PropIneqPredicate} from "../../models/predic
 import {SliceType} from "../../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ImageType, SliceViewer} from "../../viewers/sliceViewer";
-import {AxiosResponse} from "axios";
-import FormControl from "@material-ui/core/FormControl";
-import FormLabel from "@material-ui/core/FormLabel";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import Radio from "@material-ui/core/Radio";
-import {Image} from "plotly.js";
-import Select from "@material-ui/core/Select";
 
 
 type ViewerType = "3D" | "slice" | "penetration";

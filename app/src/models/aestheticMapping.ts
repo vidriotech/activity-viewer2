@@ -1,6 +1,8 @@
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./colorMap";
 
+export type AestheticType = "color" | "opacity" | "radius";
+
 export interface ScalarParams {
     timeseriesId: string;
     bounds: [number, number];

@@ -21,7 +21,7 @@ export interface ScalarMapperProps {
     timeseriesList: string[];
     onSelectionChange(event: React.ChangeEvent<{
         name?: string;
-        value: any;
+        value: string;
     }>): void;
     onSliderChange(event: any, newData: number[], commit: boolean): void;
 }

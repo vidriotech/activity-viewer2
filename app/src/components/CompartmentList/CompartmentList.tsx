@@ -106,8 +106,9 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
             </Typography>
         );
 
-        const ac = (
+        const autocomplete = (
             <Autocomplete multiple
+                          disabled={this.props.busy}
                           id='tags-outlined'
                           options={compartmentList}
                           getOptionLabel={(option): string => option.name}
@@ -147,7 +148,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
         return (
             <Container>
                 {header}
-                {ac}
+                {autocomplete}
                 <List dense
                       style={{ width: '100%', maxHeight: 500, overflow: 'auto', position: 'relative' }} >
                     {listChildren}

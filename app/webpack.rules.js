@@ -24,4 +24,10 @@ module.exports = [
       }
     }
   },
+  {
+    test: /\.worker\.[jt]s$/,
+    use: {
+      loader: "worker-loader",
+    },
+  },
 ];

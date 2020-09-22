@@ -12,8 +12,8 @@ export interface ColorMapperProps {
     selectedColorMapping: string;
     selectedTimeseries: string;
     timeseriesList: string[];
-    onSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
-    onMappingChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
+    onSelectionChange(event: React.ChangeEvent<{ name?: string; value: string }>): void;
+    onMappingChange(event: React.ChangeEvent<{ name?: string; value: string }>): void;
 }
 
 export function ColorMapper(props: ColorMapperProps) {

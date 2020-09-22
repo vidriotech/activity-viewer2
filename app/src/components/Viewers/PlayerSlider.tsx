@@ -109,7 +109,7 @@ export function PlayerSlider(props: PlayerSliderProps): React.ReactElement {
                         step={props.timeStep}
                         marks={marks}
                         value={props.timeVal}
-                        disabled={marks.length===1}
+                        disabled={props.busy || marks.length===1}
                         onChange={props.onSliderChange}
                 />
             </Grid>

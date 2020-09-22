@@ -3,6 +3,8 @@ import React from 'react';
 import Grid from '@material-ui/core/Grid';
 
 // eslint-disable-next-line import/no-unresolved
+import {AestheticType} from "../../models/aestheticMapping";
+// eslint-disable-next-line import/no-unresolved
 import {ColorMapper, ColorMapperProps} from './ColorMapper';
 // eslint-disable-next-line import/no-unresolved
 import { ScalarMapper, ScalarMapperProps } from './ScalarMapper';
@@ -16,11 +18,9 @@ export interface TimeseriesControlsProps {
     selectedOpacity: string;
     selectedRadius: string;
     timeseriesList: string[];
-    onColorSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
-    onMapperSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
-    onOpacitySelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
+    onAestheticSelectionChange(aesthetic: AestheticType, value: string): void;
+    onMapperSelectionChange(event: React.ChangeEvent<{ name?: string; value: string }>): void;
     onOpacitySliderChange(event: never, newData: number[], commit: boolean): void;
-    onRadiusSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void;
     onRadiusSliderChange(event: never, newData: number[], commit: boolean): void;
 }
 
@@ -34,7 +34,9 @@ export function TimeseriesControls(props: TimeseriesControlsProps): React.ReactE
         sliderVal: props.radiusBounds,
         selectedTimeseries: props.selectedRadius,
         timeseriesList: props.timeseriesList,
-        onSelectionChange: props.onRadiusSelectionChange,
+        onSelectionChange: (event) => {
+            props.onAestheticSelectionChange("radius", event.target.value);
+        },
         onSliderChange: props.onRadiusSliderChange,
     }
 
@@ -47,7 +49,9 @@ export function TimeseriesControls(props: TimeseriesControlsProps): React.ReactE
         sliderVal: props.opacityBounds,
         selectedTimeseries: props.selectedOpacity,
         timeseriesList: props.timeseriesList,
-        onSelectionChange: props.onOpacitySelectionChange,
+        onSelectionChange: (event) => {
+            props.onAestheticSelectionChange("opacity", event.target.value);
+        },
         onSliderChange: props.onOpacitySliderChange,
     }
 
@@ -56,7 +60,9 @@ export function TimeseriesControls(props: TimeseriesControlsProps): React.ReactE
         selectedColorMapping: props.selectedColorMapping,
         selectedTimeseries: props.selectedColor,
         timeseriesList: props.timeseriesList,
-        onSelectionChange: props.onColorSelectionChange,
+        onSelectionChange: (event) => {
+            props.onAestheticSelectionChange("color", event.target.value);
+        },
         onMappingChange: props.onMapperSelectionChange,
     }
 

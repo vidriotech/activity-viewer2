@@ -10,9 +10,15 @@ import {
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./models/colorMap";
 // eslint-disable-next-line import/no-unresolved
-import {TimeseriesEntries, TimeseriesSummary} from "./models/timeseries";
+import {TimeseriesEntries, TimeseriesEntry, TimeseriesSummary} from "./models/timeseries";
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping, AestheticParams} from "./models/aestheticMapping";
+
+
+export interface AestheticRequest {
+    penetrationIds: string[];
+    params: AestheticParams;
+}
 
 
 export class APIClient {
@@ -22,12 +28,11 @@ export class APIClient {
         this.endpoint = endpoint;
     }
 
-    async fetchAestheticMapping(penetrationId: string, params: AestheticParams): Promise<AxiosResponse<AestheticMapping>> {
+    async fetchAestheticMappings(params: AestheticRequest): Promise<AxiosResponse<{mappings: AestheticMapping[]}>> {
         return axios({
             method: "POST",
-            url: `${this.endpoint}/aesthetics/${penetrationId}`,
+            url: `${this.endpoint}/aesthetics`,
             data: params,
-            timeout: 5000,
         });
     }
 
@@ -68,7 +73,7 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/slices/${sliceType}/${coordinate}`);
     }
 
-    async fetchTimeseries(penetrationId: string, timeseriesId: string) {
+    async fetchTimeseries(penetrationId: string, timeseriesId: string): Promise<AxiosResponse<TimeseriesEntry>> {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries/${timeseriesId}`);
     }
 
