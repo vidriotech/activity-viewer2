@@ -191,10 +191,20 @@ def get_timeseries(penetration_id: str, timeseries_id: str):
     if timeseries is None:
         return make_response(f"Timeseries '{timeseries_id}' not found.", 404)
 
+    times = timeseries[0, :].ravel()
+    values = timeseries[1:, :].ravel()
+
     return {
-        "penetration": penetration_id,
-        "data": timeseries.ravel().tolist(),
+        "penetrationId": penetration_id,
+        "timeseriesId": timeseries_id,
+        "times": times.tolist(),
+        "values": values.tolist(),
         "stride": timeseries.shape[1],
+        "minTime": times.min(),
+        "maxTime": times.max(),
+        "minStep": np.diff(times).min(),
+        "minVal": values.min(),
+        "maxVal": values.max(),
     }
 
 

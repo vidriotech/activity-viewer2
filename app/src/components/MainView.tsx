@@ -154,12 +154,29 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 ).indexOf(penetrationId);
 
                 const aestheticMapping = aestheticMappings[idx];
-                aestheticMapping[aesthetic].times = entry.times;
-                aestheticMapping[aesthetic].values = entry.values;
+                if (aestheticMapping[aesthetic] === null) {
+                    if (aesthetic === "color") {
+                        aestheticMapping[aesthetic] = {
+                            colorLUT: this.props.constants.defaultColorLUT,
+                            timeseriesId: entry.timeseriesId,
+                            times: entry.times,
+                            values: entry.values,
+                        };
+                    } else {
+                        aestheticMapping[aesthetic] = {
+                            timeseriesId: entry.timeseriesId,
+                            times: entry.times,
+                            values: entry.values,
+                        };
+                    }
+                } else {
+                    aestheticMapping[aesthetic].times = entry.times;
+                    aestheticMapping[aesthetic].values = entry.values;
+                }
 
                 let progress = this.state.progress + 100/this.state.aestheticMappings.length;
                 let busy = this.state.busy;
-                if ((Math.abs(progress - 100)) < 1e-9) {
+                if ((progress > 100 || Math.abs(progress - 100)) < 1e-9) {
                     progress = 100;
                     busy = false;
                 }
@@ -192,7 +209,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                     timeMax: isNaN(this.state.timeMax) ? summary.maxTime : Math.max(summary.maxTime, this.state.timeMax),
                     timeStep: isNaN(this.state.timeStep) ? summary.minStep : Math.min(summary.minStep, this.state.timeStep),
                     progress: 0,
-                    busy: true,
+                    // busy: true,
                 }, () => {
                     const bounds = [summary.minVal, summary.maxVal];
 
@@ -208,7 +225,13 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                                     bounds
                                 });
                             })
-                            .catch((err) => console.error(err));
+                            .catch((err) => {
+                                console.error(err);
+                                // 404: update progress
+                                this.setState({
+                                    progress: this.state.progress + 100/this.state.aestheticMappings.length
+                                });
+                            });
                     });
                 });
             })
@@ -229,7 +252,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
         const penetrationIds = this.state.availablePenetrations.map(
             (data) => data.penetrationId
-        ).slice(idx, stride);
+        ).slice(idx, idx + stride);
 
         const aestheticMappings = this.state.aestheticMappings.slice();
 
@@ -316,7 +339,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                     availablePenetrations: _.concat(availablePenetrations, newPenetrations),
                     aestheticMappings: _.concat(aestheticMappings, newMappings),
                     busy: !!(data.link),
-                    progress: 100 * availablePenetrations.length / data.info.totalCount,
+                    progress: 100 * (availablePenetrations.length + newPenetrations.length) / data.info.totalCount,
                 }, () => {
                     if (data.link) {
                         this.fetchAndUpdatePenetrations(page + 1);
@@ -380,18 +403,20 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
                     this.setState(_.extend(
                         newState,
-                        {busy: true, timeMin, timeMax, timeStep}
+                        // {busy: true, timeMin, timeMax, timeStep}
+                        {timeMin, timeMax, timeStep}
                     ), () => {
-                        this.fetchAndUpdateAesthetics(aesthetic, timeseriesId);
+                        this.fetchAndUpdateAesthetics2(aesthetic, timeseriesId);
                     });
                 })
                 .catch((err) => console.error(err));
-        } else if (timeseriesId !== "nothing") {
+        } else {
             this.setState(_.extend(
                 newState,
-                {busy: true}
+                // {busy: true}
+                {}
             ), () => {
-                this.fetchAndUpdateAesthetics(aesthetic, timeseriesId);
+                this.fetchAndUpdateAesthetics2(aesthetic, timeseriesId);
             });
         }
     }
@@ -402,7 +427,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         commit: boolean
     ): void {
         const newState = {
-            busy: commit ? true : this.state.busy,
+            // busy: commit ? true : this.state.busy,
             colorBounds: aesthetic === "color" ? newBounds : this.state.colorBounds,
             opacityBounds: aesthetic === "opacity" ? newBounds : this.state.opacityBounds,
             radiusBounds: aesthetic === "radius" ? newBounds : this.state.radiusBounds,
@@ -412,7 +437,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
         this.setState(newState, () => {
             if (commit) {
-                this.fetchAndUpdateAesthetics(
+                this.fetchAndUpdateAesthetics2(
                     aesthetic,
                     this.state[aesKey]
                 );
@@ -443,9 +468,8 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         }
     }
 
-    private handleMapperSelectionChange(event: React.ChangeEvent<{ name?: string; value: any }>): void {
-        const value = event.target.value as string;
-        console.log(value);
+    private handleMapperSelectionChange(event: React.ChangeEvent<{ name?: string; value: string }>): void {
+        const value = event.target.value;
         if (value !== "default") {
             this.apiClient.fetchColorMapping(value)
                 .then((res) => res.data)
@@ -789,6 +813,12 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                         <UnitTable {...unitTableProps} />
                     </Grid>
                     <Grid item xs={6}>
+                        {this.state.progress < 100 ?
+                            <LinearProgress variant="determinate"
+                                            value={this.state.progress} /> :
+                            null
+                        }
+
                         <ViewerContainer {...viewerContainerProps} />
                     </Grid>
                     <Grid item xs={3}>

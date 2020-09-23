@@ -34,10 +34,12 @@ const transformValues = function(data: number[], transformBounds: [number, numbe
 
 ctx.addEventListener("message", (event: MessageEvent) => {
     const data: {entry: TimeseriesEntry; aesthetic: AestheticType; bounds: [number, number]} = event.data;
-    const aesthetic = data.aesthetic;
-    const entry = data.entry;
+    if (data !== undefined) {
+        const aesthetic = data.aesthetic;
+        const entry = data.entry;
 
-    entry.values = transformValues(entry.values, data.bounds);
+        entry.values = transformValues(entry.values, data.bounds);
 
-    ctx.postMessage({entry, aesthetic});
+        ctx.postMessage({entry, aesthetic});
+    }
 });

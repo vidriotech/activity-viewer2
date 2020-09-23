@@ -16,7 +16,7 @@ export interface ColorMapperProps {
     onMappingChange(event: React.ChangeEvent<{ name?: string; value: string }>): void;
 }
 
-export function ColorMapper(props: ColorMapperProps) {
+export function ColorMapper(props: ColorMapperProps): React.ReactElement {
     const colorMapOptions = [
         "bwr",
         "PiYG",

@@ -9,6 +9,7 @@
  */
 export interface TimeseriesEntry {
     penetrationId: string;
+    timeseriesId: string;
     times: number[];
     values: number[];
     stride: number;
