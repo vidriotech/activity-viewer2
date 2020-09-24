@@ -1,19 +1,15 @@
 import * as _ from "lodash";
 
 // eslint-disable-next-line import/no-unresolved
-import {AestheticType} from "./models/aestheticMapping";
+import {AestheticType, TransformParams} from "./models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesEntry} from "./models/timeseries";
 
 const ctx: Worker = self as any;
 
-const transformValues = function(data: number[], transformBounds: [number, number]): number[] {
-    let dataMin = data[0];
-    let dataMax = data[0];
-    data.forEach(x => {
-        dataMin = Math.min(x, dataMin);
-        dataMax = Math.max(x, dataMax);
-    });
+const transformValues = function(data: number[], transformBounds: [number, number], dataBounds: [number, number]): number[] {
+    const dataMin = dataBounds[0];
+    const dataMax = dataBounds[1];
     const dataRange = dataMax - dataMin;
 
     const transformMin = transformBounds[0];
@@ -21,7 +17,7 @@ const transformValues = function(data: number[], transformBounds: [number, numbe
     const transformRange = transformMax - transformMin;
 
     let xValues;
-    if (dataMin === dataMax) {
+    if (dataRange === 0) {
         xValues = data.map(() => (transformMax - transformMin) / 2);
     } else {
         xValues = data.map((x) =>
@@ -33,12 +29,12 @@ const transformValues = function(data: number[], transformBounds: [number, numbe
 }
 
 ctx.addEventListener("message", (event: MessageEvent) => {
-    const data: {entry: TimeseriesEntry; aesthetic: AestheticType; bounds: [number, number]} = event.data;
+    const data: TransformParams = event.data;
     if (data !== undefined) {
         const aesthetic = data.aesthetic;
         const entry = data.entry;
 
-        entry.values = transformValues(entry.values, data.bounds);
+        entry.values = transformValues(entry.values, data.transformBounds, data.dataBounds);
 
         ctx.postMessage({entry, aesthetic});
     }

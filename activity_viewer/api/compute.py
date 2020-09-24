@@ -63,9 +63,9 @@ def summarize_timeseries(data: np.ndarray) -> dict:
         Contains the following entries:
             - data: the data itself, as a list
             - stride: the stride of the data
-            - minTime: the minimum time value (time is assumed sorted)
-            - maxTime: the maximum time value
-            - minStep: the minimum difference between adjacent time steps
+            - timeMin: the minimum time value (time is assumed sorted)
+            - timeMax: the maximum time value
+            - timeStep: the minimum difference between adjacent time steps
             - minVal: the minimum timeseries value over all points
             - maxVal: the maximum timeseries value over all points
     """
@@ -76,9 +76,9 @@ def summarize_timeseries(data: np.ndarray) -> dict:
         "times": times.ravel().tolist(),
         "values": values.ravel().tolist(),
         "stride": times.size,
-        "minTime": times[0],
-        "maxTime": times[-1],
-        "minStep": np.min(np.diff(times)),
+        "timeMin": times[0],
+        "timeMax": times[-1],
+        "timeStep": np.min(np.diff(times)),
         "minVal": np.min(values),
         "maxVal": np.max(values),
     }

@@ -12,22 +12,19 @@ export interface TimeseriesEntry {
     timeseriesId: string;
     times: number[];
     values: number[];
-    stride: number;
-    minTime: number;
-    maxTime: number;
-    minStep: number;
+    timeMin: number;
+    timeMax: number;
+    timeStep: number;
     minVal: number;
     maxVal: number;
 }
 
 export interface TimeseriesSummary {
-    minTime: number;
-    maxTime: number;
-    minStep: number;
+    timeseriesId: string;
+    timeMin: number;
+    timeMax: number;
+    timeStep: number;
     minVal: number;
     maxVal: number;
 }
 
-export interface TimeseriesEntries extends TimeseriesSummary {
-    timeseries: TimeseriesEntry[];
-}

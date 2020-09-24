@@ -169,3 +169,5 @@ def visualize(ctx: click.core.Context, filenames: Tuple[str]):
     subprocess.run(shlex.split(f"'{npm}' start"), env=env)
 
     api_proc.kill()
+
+

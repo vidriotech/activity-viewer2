@@ -200,9 +200,9 @@ def get_timeseries(penetration_id: str, timeseries_id: str):
         "times": times.tolist(),
         "values": values.tolist(),
         "stride": timeseries.shape[1],
-        "minTime": times.min(),
-        "maxTime": times.max(),
-        "minStep": np.diff(times).min(),
+        "timeMin": times.min(),
+        "timeMax": times.max(),
+        "timeStep": np.diff(times).min(),
         "minVal": values.min(),
         "maxVal": values.max(),
     }
@@ -300,52 +300,76 @@ def get_slices(slice_type: str, coordinate: float):
     }
 
 
-@app.route("/timeseries/<timeseries_id>")
-def get_timeseries_by_id(timeseries_id: str):
+@app.route("/timeseries")
+def get_timeseries_by_id():
+    page = request.args.get("page", type=int, default=1)
+    limit = request.args.get("limit", type=int, default=10)
+    timeseries_ids = request.args.get("timeseriesIds", type=str, default="").split(",")
+
+    n_pens = len(state.penetrations)
+
     response = {
         "timeseries": [],
-        "minTime": None,
-        "maxTime": None,
-        "minStep": None,
-        "minVal": None,
-        "maxVal": None,
+        "info": {
+            "totalCount": n_pens
+        },
+        "link": None
     }
 
-    for penetration_id in state.penetrations:
-        entry = {
-            "penetrationId": penetration_id,
-            "times": [],
-            "values": [],
-            "stride": 0,
-            "minTime": nan,
-            "maxTime": nan,
-            "minStep": nan,
-            "minVal": nan,
-            "maxVal": nan,
-        }
+    start = (page - 1) * limit
+    stop = page * limit
+    if start < n_pens:
+        for timeseries_id in timeseries_ids:
+            summary = state.make_timeseries_summary(timeseries_id)
 
-        data = state.get_timeseries(penetration_id, timeseries_id)
-        if data is not None:
-            entry.update(summarize_timeseries(data))
+            subresponse = {
+                "summary": summary.to_dict(),
+                "penetrations": []
+            }
 
-            if response["minTime"] is None or entry["minTime"] < response["minTime"]:
-                response["minTime"] = entry["minTime"]
+            for penetration_id in state.penetrations[start:stop]:
+                entry = {
+                    "penetrationId": penetration_id,
+                    "timeseriesId": timeseries_id,
+                    "times": [],
+                    "values": [],
+                    "timeMin": nan,
+                    "timeMax": nan,
+                    "timeStep": nan,
+                    "minVal": nan,
+                    "maxVal": nan,
+                }
 
-            if response["maxTime"] is None or entry["maxTime"] > response["maxTime"]:
-                response["maxTime"] = entry["maxTime"]
+                data = state.get_timeseries(penetration_id, timeseries_id)
+                if data is not None:
+                    entry.update(summarize_timeseries(data))
 
-            if response["minStep"] is None or entry["minStep"] < response["minStep"]:
-                response["minStep"] = entry["minStep"]
+                subresponse["penetrations"].append(entry)
 
-            if response["minVal"] is None or entry["minVal"] < response["minVal"]:
-                response["minVal"] = entry["minVal"]
+            response["timeseries"].append(subresponse)
 
-            if response["maxVal"] is None or entry["maxVal"] > response["maxVal"]:
-                response["maxVal"] = entry["maxVal"]
-        
-        response["timeseries"].append(entry)
+    if stop < n_pens - 1:
+        response["link"] = f"/timeseries?timeseriesIds={','.join(timeseries_ids)}&page={page + 1}&limit={limit}"
 
     return response
+
+# @app.route("/timeseries/<timeseries_id>")
+# def get_timeseries_by_id(timeseries_id: str):
+#     response = {
+#         "timeseries": [],
+#         "timeMin": None,
+#         "timeMax": None,
+#         "timeStep": None,
+#         "minVal": None,
+#         "maxVal": None,
+#     }
+#
+#     for penetration_id in state.penetrations:
+
+#
+#         response["timeseries"].append(entry)
+#
+#     return response
 
 
 @app.route("/timeseries/<timeseries_id>/summary")

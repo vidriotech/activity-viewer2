@@ -1,16 +1,18 @@
 import axios, {AxiosResponse} from "axios";
+
 import {
-    PenetrationRequest,
     ExportingUnit,
+    PenetrationData,
+    PenetrationResponse,
     SettingsRequest,
+    SliceData,
     SliceType,
-    SliceData, PenetrationResponse, PenetrationData,
 // eslint-disable-next-line import/no-unresolved
 } from "./models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./models/colorMap";
 // eslint-disable-next-line import/no-unresolved
-import {TimeseriesEntries, TimeseriesEntry, TimeseriesSummary} from "./models/timeseries";
+import {TimeseriesEntry, TimeseriesSummary} from "./models/timeseries";
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping, AestheticParams} from "./models/aestheticMapping";
 
@@ -20,6 +22,20 @@ export interface AestheticRequest {
     params: AestheticParams;
 }
 
+export interface PenetrationTimeseriesResponse {
+    timeseries: {
+        summary: TimeseriesSummary;
+        penetrations: TimeseriesEntry[];
+    }[];
+    info: {
+        totalCount: number;
+    };
+    link: string;
+}
+
+export interface TimeseriesResponse extends TimeseriesSummary {
+    timeseries: TimeseriesEntry[];
+}
 
 export class APIClient {
     private readonly endpoint: string;
@@ -77,11 +93,17 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries/${timeseriesId}`);
     }
 
+    async fetchPenetationTimeseries(timeseriesIds: string[], page = 1, limit = 5): Promise<AxiosResponse<PenetrationTimeseriesResponse>> {
+        const tids = timeseriesIds.join(",");
+
+        return await axios.get(`${this.endpoint}/timeseries?timeseriesIds=${tids}&page=${page}&limit=${limit}`);
+    }
+
     async fetchTimeseriesList(penetrationId: string) {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries`);
     }
 
-    async fetchTimeseriesById(timeseriesId: string): Promise<AxiosResponse<TimeseriesEntries>> {
+    async fetchTimeseriesById(timeseriesId: string): Promise<AxiosResponse<TimeseriesResponse>> {
         return await axios.get(`${this.endpoint}/timeseries/${timeseriesId}`);
     }
 

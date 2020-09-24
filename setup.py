@@ -1,5 +1,4 @@
 import os.path as op
-
 import setuptools
 
 readme = op.join(op.abspath(op.dirname(__file__)), "README.rst")
@@ -24,8 +23,7 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "viewer=activity_viewer.cli:cli",
-            "viewerd=activity_viewer.__main__:run_app"
+            "viewer=activity_viewer.__main__:main",
         ]
     },
 )

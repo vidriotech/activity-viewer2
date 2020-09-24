@@ -108,7 +108,7 @@ export abstract class BaseViewer {
     }
 
     protected initEpochSlider(): void {
-        if (this.timeMax === this.timeMin) {
+        if (this.timeMax === this.timeMin || this.epochLabels === null) {
             return;
         }
 

@@ -253,7 +253,7 @@ class APIState:
 
         return ref_slice
 
-    def get_timeseries(self, penetration_id: str, timeseries_id: str) -> np.ndarray:
+    def get_timeseries(self, penetration_id: str, timeseries_id: str) -> Optional[np.ndarray]:
         """Get a specific timeseries' values for a specific penetration."""
         if not self.has_penetration(penetration_id):
             return
@@ -329,6 +329,9 @@ class APIState:
         return AestheticMapping(penetration_id, color_mapping, opacity_mapping, radius_mapping, visibility)
 
     def make_timeseries_summary(self, timeseries_id: str) -> TimeseriesSummary:
+        if timeseries_id in self._timeseries_summaries:
+            return self._timeseries_summaries[timeseries_id]
+
         summary = TimeseriesSummary(timeseries_id)
 
         for penetration_id in self.penetrations:

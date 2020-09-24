@@ -117,7 +117,7 @@ export class AVConstants {
         }
 
         return {
-            name: "default",
+            name: "nothing",
             mapping
         };
     }

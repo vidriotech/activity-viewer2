@@ -1,6 +1,8 @@
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./colorMap";
+import {TimeseriesEntry} from "./timeseries";
 
+export type AestheticSelection = "selectedColor" | "selectedOpacity" | "selectedRadius";
 export type AestheticType = "color" | "opacity" | "radius";
 
 export interface ScalarParams {
@@ -34,4 +36,21 @@ export interface AestheticMapping {
     opacity: ScalarMapping;
     radius: ScalarMapping;
     visibility: number[];
+}
+
+export interface AestheticProps {
+    colorBounds: [number, number];
+    opacityBounds: [number, number];
+    radiusBounds: [number, number];
+    selectedColor: string;
+    selectedColorMapping: string;
+    selectedOpacity: string;
+    selectedRadius: string;
+}
+
+export interface TransformParams {
+    entry: TimeseriesEntry;
+    aesthetic: AestheticType;
+    dataBounds: [number, number];
+    transformBounds: [number, number];
 }
