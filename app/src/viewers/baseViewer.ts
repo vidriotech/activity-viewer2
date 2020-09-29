@@ -300,8 +300,8 @@ export abstract class BaseViewer {
                     const t0 = times[timeIdx - 1];
                     const t1 = times[timeIdx];
 
-                    const x0 = i > 0 ? values[i - 1] : values[i];
-                    const x1 = values[i];
+                    const x0 = i > 0 ? values[valIdx - 1] : values[valIdx];
+                    const x1 = values[valIdx];
 
                     val = interp(x0, x1, t0, t1, t);
                 }
@@ -322,6 +322,7 @@ export abstract class BaseViewer {
             colorLUT = aestheticMapping.color.colorLUT;
         }
 
+        // populate lookup table
         for (let i = 0; i < colorLUT.mapping.length; i += 3) {
             const [r, g, b] = colorLUT.mapping.slice(i, i + 3);
             colors.push(new Color(r, g, b));
@@ -370,6 +371,7 @@ export abstract class BaseViewer {
             uniforms: {
                 pointTexture: { value: new THREE.TextureLoader().load(this.constants.ballTexture) },
                 colorLUT: { value: colors },
+                colorData: { value: [] },
                 colorDomain: { value: colorDomain },
                 colorTarget: { value: colorTarget },
                 colorGamma: { value: colorGamma },

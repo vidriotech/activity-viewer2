@@ -179,15 +179,15 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         return { width, height };
     }
 
-    private createAndRender(): void {
-        this.createViewer()
+    private async createAndRender(): Promise<void> {
+        return this.createViewer()
             .then(() => {
                 this.renderCompartments();
                 this.renderPenetrations();
             });
     }
 
-    private async createViewer(): Promise<any> {
+    private async createViewer(): Promise<void> {
         let v: BaseViewer;
 
         if (this.state.viewerType === "3D") {
@@ -351,7 +351,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     private handleSliderChange(_event: any, timeVal: number): void {
-        this.setState({ timeVal });
+        this.setState({ timeVal }, () => {
+            this.viewer.timeVal = this.state.timeVal;
+        });
     }
 
     private handleStopClick(): void {
@@ -418,7 +420,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     private reinitViewer(): void {
         this.viewer.destroy();
         this.viewer = null;
-        this.createAndRender();
+        this.createAndRender()
+            .then(() => this.setAestheticAssignments());
     }
 
     private renderCompartments(): void {
@@ -630,7 +633,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 this.setState({
                     timeMin,
                     timeMax,
-                    timeStep,
+                    timeStep: timeStep / 2,
                     timeVal: timeMin
                 }, () => {
                     this.viewer.setTime(this.state.timeMin, this.state.timeMax, this.state.timeStep, this.state.timeVal);
@@ -653,6 +656,13 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         prevProps: Readonly<ViewerContainerProps>,
         prevState: Readonly<ViewerContainerState>
     ): void {
+        // viewer type changes
+        // image type changes
+        // any aesthetics changed:
+            // times need updating
+            // timeseries needs fetching
+            // color map needs fetching
+
         if (prevState.viewerType !== this.state.viewerType) {
             this.reinitViewer();
         } else if (prevState.imageType !== this.state.imageType) {
@@ -672,17 +682,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             prevProps.colorGamma !== this.props.colorGamma ||
             prevProps.colorMapping !== this.props.colorMapping
         ) {
-            if (!this.tsSummaries.has(this.props.colorTimeseries)) {
-                this.fetchTimeseriesSummary(this.props.colorTimeseries)
-                    .then(() => {
-                        this.fetchAndUpdateTimeseriesData(this.props.colorTimeseries);
-                    })
-                    .catch((err) => console.error(err));
-            }
-
-            this.updateColorMappings();
             aestheticsDidUpdate = true;
-            // color LUT is updated before render
+            this.fetchAndUpdateTimeseriesData(this.props.colorTimeseries);
+            this.updateColorMappings();
         }
 
         if (prevProps.opacityTimeseries !== this.props.opacityTimeseries ||
@@ -724,7 +726,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             timeMin: this.state.timeMin,
             timeStep: this.state.timeStep,
             timeVal: this.state.timeVal,
-            onFrameRateUpdate: (frameRate: number): void => this.setState({frameRate}),
+            onFrameRateUpdate: (frameRate: number): void => {
+                this.setState({frameRate});
+            },
             onLoopToggle: this.handleLoopToggle.bind(this),
             onPlayToggle: this.handlePlayToggle.bind(this),
             onRecordToggle: this.handleRecordToggle.bind(this),
@@ -790,9 +794,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         return (
             <Grid container>
                 <Grid item xs={12}>
+                    <div>{progressBar}</div>
                     <div style={{ padding: 40 }}
                          id={this.canvasContainerId}>
-                        {progressBar}
                     </div>
                 </Grid>
                 <Grid item xs={4}>
