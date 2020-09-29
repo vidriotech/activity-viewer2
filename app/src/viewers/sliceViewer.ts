@@ -22,19 +22,7 @@ export class SliceViewer extends BaseViewer {
     constructor(constants: AVConstants, epochs: Epoch[], sliceData: SliceData) {
         super(constants, epochs);
 
-        this.pointsMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                pointTexture: { value: new THREE.TextureLoader().load(this.constants.discTexture) }
-            },
-            vertexShader: this.constants.pointVertexShader,
-            fragmentShader: this.constants.pointFragmentShader,
-            depthTest: false,
-            transparent: true,
-            vertexColors: true
-        });
-
         this.cameraPosition = [0, 0, -15000];
-
         this.sliceData = sliceData;
     }
 

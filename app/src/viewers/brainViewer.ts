@@ -24,17 +24,6 @@ export class BrainViewer extends BaseViewer {
     constructor(constants: AVConstants, epochs: Epoch[]) {
         super(constants, epochs);
 
-        this.pointsMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                pointTexture: { value: new THREE.TextureLoader().load(this.constants.ballTexture) }
-            },
-            vertexShader: this.constants.pointVertexShader,
-            fragmentShader: this.constants.pointFragmentShader,
-            depthTest: false,
-            transparent: true,
-            vertexColors: true
-        });
-
         this.cameraPosition = [0, 0, -20000];
     }
 

@@ -1,5 +1,4 @@
 import React from "react";
-import * as _ from "underscore";
 
 import FormControl from "@material-ui/core/FormControl";
 import Grid from "@material-ui/core/Grid";
@@ -8,9 +7,13 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Select from "@material-ui/core/Select";
 import Slider from "@material-ui/core/Slider";
 import Typography from "@material-ui/core/Typography";
+import Input from "@material-ui/core/Input";
 
 
 export interface ScalarMapperProps {
+    busy: boolean;
+    coef: number;
+    gamma: number;
     mapperLabel: string;
     sliderMax: number;
     sliderMin: number;
@@ -23,6 +26,7 @@ export interface ScalarMapperProps {
         value: string;
     }>): void;
     onSliderChange(event: any, newData: number[], commit: boolean): void;
+    onGammaChange(event: React.ChangeEvent<HTMLInputElement>): void;
 }
 
 export function ScalarMapper(props: ScalarMapperProps): React.ReactElement {
@@ -42,13 +46,15 @@ export function ScalarMapper(props: ScalarMapperProps): React.ReactElement {
     );
 
     const sliderMarks = [
-        props.sliderMin,
-        props.sliderMax,
-        props.sliderMax / 2
+        props.sliderMin * props.coef,
+        props.sliderMax * props.coef,
+        props.sliderMax  * props.coef / 2
     ].map((x) => ({
         label: x === Math.floor(x) ? x.toString() : x.toFixed(2),
-        value: x
+        value: x / props.coef
     }));
+
+    const disabled = props.busy || props.selectedTimeseries === "nothing";
 
     return (
         <Grid container
@@ -69,7 +75,7 @@ export function ScalarMapper(props: ScalarMapperProps): React.ReactElement {
                 </FormControl>
             </Grid>
             <Grid item
-                  xs={9} >
+                  xs={6} >
                 <Typography variant="caption"
                             display="block"
                             gutterBottom>
@@ -82,7 +88,14 @@ export function ScalarMapper(props: ScalarMapperProps): React.ReactElement {
                         value={props.sliderVal}
                         onChange={(evt, newData) => props.onSliderChange(evt, newData as number[], false)}
                         onChangeCommitted={(evt, newData) => props.onSliderChange(evt, newData as number[], true)}
-                        disabled={props.selectedTimeseries === "nothing"} />
+                        disabled={disabled} />
+            </Grid>
+            <Grid item xs={3}>
+                <Input type="number"
+                       inputProps={{ min: 0, max: 10, step: 0.1, name: "Gamma" }}
+                       value={props.gamma}
+                       disabled={disabled}
+                       onChange={props.onGammaChange} />
             </Grid>
         </Grid>
     );

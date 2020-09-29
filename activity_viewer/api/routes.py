@@ -9,7 +9,7 @@ from flask_cors import CORS
 import numpy as np
 
 from activity_viewer.api.state import APIState
-from activity_viewer.api.compute import slice_to_data_uri, summarize_timeseries
+from activity_viewer.api.compute import slice_to_data_uri
 from activity_viewer.compute.mappings import color_map
 from activity_viewer.settings import AVSettings, make_default_settings
 
@@ -182,32 +182,6 @@ def get_timeseries_list(penetration_id: str):
     }
 
 
-@app.route("/penetrations/<penetration_id>/timeseries/<timeseries_id>")
-def get_timeseries(penetration_id: str, timeseries_id: str):
-    if not state.has_penetration(penetration_id):
-        return make_response(f"Penetration not found.", 404)
-
-    timeseries = state.get_timeseries(penetration_id, timeseries_id)
-    if timeseries is None:
-        return make_response(f"Timeseries '{timeseries_id}' not found.", 404)
-
-    times = timeseries[0, :].ravel()
-    values = timeseries[1:, :].ravel()
-
-    return {
-        "penetrationId": penetration_id,
-        "timeseriesId": timeseries_id,
-        "times": times.tolist(),
-        "values": values.tolist(),
-        "stride": timeseries.shape[1],
-        "timeMin": times.min(),
-        "timeMax": times.max(),
-        "timeStep": np.diff(times).min(),
-        "minVal": values.min(),
-        "maxVal": values.max(),
-    }
-
-
 @app.route("/penetrations/<penetration_id>/unit-stats")
 def get_unit_stats_list(penetration_id: str):
     if not state.has_penetration(penetration_id):
@@ -302,74 +276,67 @@ def get_slices(slice_type: str, coordinate: float):
 
 @app.route("/timeseries")
 def get_timeseries_by_id():
+    """
+
+    Returns
+    -------
+
+    """
     page = request.args.get("page", type=int, default=1)
     limit = request.args.get("limit", type=int, default=10)
     timeseries_ids = request.args.get("timeseriesIds", type=str, default="").split(",")
+    penetration_ids = request.args.get("penetrationIds", type=str, default="").split(",")
+    link = None
 
     n_pens = len(state.penetrations)
+
+    if len(penetration_ids) == 0:
+        start = (page - 1) * limit
+        stop = page * limit
+        penetration_ids = state.penetrations[start:stop]
+
+        if stop < n_pens - 1:
+            link = f"/timeseries?timeseriesIds={','.join(timeseries_ids)}&page={page + 1}&limit={limit}"
 
     response = {
         "timeseries": [],
         "info": {
             "totalCount": n_pens
         },
-        "link": None
+        "link": link
     }
 
-    start = (page - 1) * limit
-    stop = page * limit
-    if start < n_pens:
-        for timeseries_id in timeseries_ids:
-            summary = state.make_timeseries_summary(timeseries_id)
+    for timeseries_id in timeseries_ids:
+        if timeseries_id == "nothing":
+            continue
 
-            subresponse = {
-                "summary": summary.to_dict(),
-                "penetrations": []
+        summary = state.make_timeseries_summary(timeseries_id)
+
+        subresponse = {
+            "summary": summary.to_dict(),
+            "penetrations": []
+        }
+
+        for penetration_id in penetration_ids:
+            entry = {
+                "penetrationId": penetration_id,
+                "timeseriesId": timeseries_id,
+                "times": None,
+                "values": None
             }
 
-            for penetration_id in state.penetrations[start:stop]:
-                entry = {
-                    "penetrationId": penetration_id,
-                    "timeseriesId": timeseries_id,
-                    "times": [],
-                    "values": [],
-                    "timeMin": nan,
-                    "timeMax": nan,
-                    "timeStep": nan,
-                    "minVal": nan,
-                    "maxVal": nan,
-                }
+            data = state.get_timeseries(penetration_id, timeseries_id)
+            if data is not None:
+                times = data[0, :]
+                values = data[1:, :]
+                entry["times"] = times.ravel().tolist()
+                entry["values"] = values.ravel().tolist()
 
-                data = state.get_timeseries(penetration_id, timeseries_id)
-                if data is not None:
-                    entry.update(summarize_timeseries(data))
+            subresponse["penetrations"].append(entry)
 
-                subresponse["penetrations"].append(entry)
-
-            response["timeseries"].append(subresponse)
-
-    if stop < n_pens - 1:
-        response["link"] = f"/timeseries?timeseriesIds={','.join(timeseries_ids)}&page={page + 1}&limit={limit}"
+        response["timeseries"].append(subresponse)
 
     return response
-
-# @app.route("/timeseries/<timeseries_id>")
-# def get_timeseries_by_id(timeseries_id: str):
-#     response = {
-#         "timeseries": [],
-#         "timeMin": None,
-#         "timeMax": None,
-#         "timeStep": None,
-#         "minVal": None,
-#         "maxVal": None,
-#     }
-#
-#     for penetration_id in state.penetrations:
-
-#
-#         response["timeseries"].append(entry)
-#
-#     return response
 
 
 @app.route("/timeseries/<timeseries_id>/summary")

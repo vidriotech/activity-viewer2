@@ -10,6 +10,7 @@ import FormControl from "@material-ui/core/FormControl";
 import {ScalarMapperProps} from "./ScalarMapper";
 import Typography from "@material-ui/core/Typography";
 import Slider from "@material-ui/core/Slider";
+import Input from "@material-ui/core/Input";
 
 
 export interface ColorMapperProps extends ScalarMapperProps {
@@ -59,13 +60,15 @@ export function ColorMapper(props: ColorMapperProps): React.ReactElement {
     );
 
     const sliderMarks = [
-        props.sliderMin,
-        props.sliderMax,
-        props.sliderMax / 2
+        props.sliderMin * props.coef,
+        props.sliderMax * props.coef,
+        props.sliderMax  * props.coef / 2
     ].map((x) => ({
         label: x === Math.floor(x) ? x.toString() : x.toFixed(2),
-        value: x
+        value: x / props.coef
     }));
+
+    const disabled = props.busy || props.selectedTimeseries === "nothing";
 
     return (
         <Grid container
@@ -95,7 +98,7 @@ export function ColorMapper(props: ColorMapperProps): React.ReactElement {
                             Mapping
                         </InputLabel>
                         <Select
-                            disabled={props.selectedTimeseries === "nothing"}
+                            disabled={disabled}
                             labelId={"aesthetic-mapper-color-mapper-select"}
                             id={"aesthetic-mapper-color-mapper"}
                             defaultValue={"bwr"}
@@ -107,7 +110,7 @@ export function ColorMapper(props: ColorMapperProps): React.ReactElement {
                 </Grid>
             </Grid>
             <Grid item
-                  xs={9} >
+                  xs={6} >
                 <Typography variant="caption"
                             display="block"
                             gutterBottom>
@@ -120,7 +123,14 @@ export function ColorMapper(props: ColorMapperProps): React.ReactElement {
                         value={props.sliderVal}
                         onChange={(evt, newData) => props.onSliderChange(evt, newData as number[], false)}
                         onChangeCommitted={(evt, newData) => props.onSliderChange(evt, newData as number[], true)}
-                        disabled={props.selectedTimeseries === "nothing"} />
+                        disabled={disabled} />
+            </Grid>
+            <Grid item xs={3}>
+                <Input type="number"
+                       inputProps={{ min: 0, max: 10, step: 0.1, name: "Gamma" }}
+                       value={props.gamma}
+                       disabled={disabled}
+                       onChange={props.onGammaChange} />
             </Grid>
         </Grid>
     );

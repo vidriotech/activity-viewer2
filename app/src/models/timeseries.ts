@@ -7,16 +7,11 @@
  * Endpoint: /penetrations/<penetration_id>/timeseries/<timeseries_id>
  * Retrieve a specific timeseries' values for a specific penetration.
  */
-export interface TimeseriesEntry {
+export interface TimeseriesData {
     penetrationId: string;
     timeseriesId: string;
     times: number[];
     values: number[];
-    timeMin: number;
-    timeMax: number;
-    timeStep: number;
-    minVal: number;
-    maxVal: number;
 }
 
 export interface TimeseriesSummary {

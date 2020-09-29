@@ -178,7 +178,7 @@ export function UnitTable(props: UnitTableProps) {
     let k = 0;
     props.availablePenetrations.forEach((penetrationData, idx) => {
         penetrationData.ids.forEach((id, jdx) => {
-            if (penetrationData.compartments[jdx] === null || penetrationData.visible[jdx] === false) {
+            if (penetrationData.compartments[jdx] === null || penetrationData.selected[jdx] === false) {
                 return;
             }
 

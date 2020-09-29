@@ -1,8 +1,9 @@
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./colorMap";
-import {TimeseriesEntry} from "./timeseries";
+// eslint-disable-next-line import/no-unresolved
+import {TimeseriesData} from "./timeseries";
 
-export type AestheticSelection = "selectedColor" | "selectedOpacity" | "selectedRadius";
+export type AestheticSelection = "colorTimeseries" | "opacityTimeseries" | "radiusTimeseries";
 export type AestheticType = "color" | "opacity" | "radius";
 
 export interface ScalarParams {
@@ -14,6 +15,12 @@ export interface ColorParams extends ScalarParams {
     mapping: string;
 }
 
+export interface TransformParams {
+    domainBounds: [number, number]; // [minVal, maxVal] for this timeseries over ALL penetrations
+    targetBounds: [number, number]; // always a subset of [0, 1]
+    gamma: number; // a power to raise
+}
+
 export interface AestheticParams {
     color?: ColorParams;
     opacity?: ScalarParams;
@@ -21,9 +28,8 @@ export interface AestheticParams {
 }
 
 export interface ScalarMapping {
-    timeseriesId: string;
-    times: number[];
-    values: number[];
+    timeseriesData: TimeseriesData;
+    transformParams: TransformParams;
 }
 
 export interface ColorMapping extends ScalarMapping {
@@ -35,22 +41,20 @@ export interface AestheticMapping {
     color: ColorMapping;
     opacity: ScalarMapping;
     radius: ScalarMapping;
-    visibility: number[];
+    show: number[];
 }
 
 export interface AestheticProps {
+    colorTimeseries: string;
     colorBounds: [number, number];
-    opacityBounds: [number, number];
-    radiusBounds: [number, number];
-    selectedColor: string;
-    selectedColorMapping: string;
-    selectedOpacity: string;
-    selectedRadius: string;
-}
+    colorGamma: number;
+    colorMapping: string;
 
-export interface TransformParams {
-    entry: TimeseriesEntry;
-    aesthetic: AestheticType;
-    dataBounds: [number, number];
-    transformBounds: [number, number];
+    opacityTimeseries: string;
+    opacityBounds: [number, number];
+    opacityGamma: number;
+
+    radiusTimeseries: string;
+    radiusBounds: [number, number];
+    radiusGamma: number;
 }

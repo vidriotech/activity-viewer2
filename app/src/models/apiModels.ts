@@ -26,7 +26,7 @@ export interface PenetrationData {
     coordinates: number[];
     timeseries: string[];
     unitStats: string[];
-    visible: boolean[];
+    selected: boolean[];
 }
 
 export interface PenetrationRequest {

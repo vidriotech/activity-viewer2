@@ -10,24 +10,29 @@ import {AestheticProps, AestheticSelection, AestheticType} from "../../models/ae
 import {ColorMapper, ColorMapperProps} from './ColorMapper';
 // eslint-disable-next-line import/no-unresolved
 import {ScalarMapper, ScalarMapperProps} from './ScalarMapper';
+// eslint-disable-next-line import/no-unresolved
+import {AVConstants} from "../../constants";
 
 export interface TimeseriesMappersProps extends AestheticProps {
     busy: boolean;
+    constants: AVConstants;
     timeseriesList: string[];
     onCommit(props: AestheticProps): void;
-    onAestheticSelectionChange(aesthetic: AestheticType, value: string): void;
-    onAestheticSliderChange(event: React.ChangeEvent<{}>, value: [number, number]): void;
-    onColorMapperSelectionChange(event: React.ChangeEvent<{ name?: string; value: string }>): void;
 }
 
 interface TimeseriesMappersState {
+    colorTimeseries: string;
     colorBounds: [number, number];
+    colorGamma: number;
+    colorMapping: string;
+
+    opacityTimeseries: string;
     opacityBounds: [number, number];
+    opacityGamma: number;
+
+    radiusTimeseries: string;
     radiusBounds: [number, number];
-    selectedColor: string;
-    selectedColorMapping: string;
-    selectedOpacity: string;
-    selectedRadius: string;
+    radiusGamma: number;
 }
 
 export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, TimeseriesMappersState> {
@@ -35,30 +40,35 @@ export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, T
         super(props);
 
         this.state = {
-            colorBounds: [0, 255],
+            colorTimeseries: "nothing",
+            colorBounds: [0, 1],
+            colorGamma: 1,
+            colorMapping: "bwr",
+
+            opacityTimeseries: "nothing",
             opacityBounds: [0.01, 1],
-            radiusBounds: [5, 500],
-            selectedColor: "nothing",
-            selectedColorMapping: "bwr",
-            selectedOpacity: "nothing",
-            selectedRadius: "nothing",
+            opacityGamma: 1,
+
+            radiusTimeseries: "nothing",
+            radiusBounds: [0.01, 1],
+            radiusGamma: 1,
         }
     }
 
     public handleAestheticChange(aesthetic: AestheticType, timeseriesId: string): void {
         const newState = {
-            selectedColor: this.state.selectedColor,
-            selectedOpacity: this.state.selectedOpacity,
-            selectedRadius: this.state.selectedRadius,
+            colorTimeseries: this.state.colorTimeseries,
+            opacityTimeseries: this.state.opacityTimeseries,
+            radiusTimeseries: this.state.radiusTimeseries,
         };
 
-        const key = `selected${_.startCase(aesthetic)}` as AestheticSelection;
+        const key = `${aesthetic}Timeseries` as AestheticSelection;
         newState[key] = timeseriesId;
 
-        _.toPairs(newState).forEach((pair) => {
+        _.toPairs(newState).forEach((pair: [AestheticSelection, string]) => {
             const [pairKey, pairVal] = pair;
             if (pairKey !== key && pairVal === timeseriesId) {
-                newState[pairKey as AestheticSelection] = "nothing";
+                newState[pairKey] = "nothing";
             }
         });
 
@@ -67,24 +77,32 @@ export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, T
 
     public handleCommit(): void {
         this.props.onCommit({
+            colorTimeseries: this.state.colorTimeseries,
             colorBounds: this.state.colorBounds,
+            colorGamma: this.state.colorGamma,
+            colorMapping: this.state.colorMapping,
+
+            opacityTimeseries: this.state.opacityTimeseries,
             opacityBounds: this.state.opacityBounds,
+            opacityGamma: this.state.opacityGamma,
+
+            radiusTimeseries: this.state.radiusTimeseries,
             radiusBounds: this.state.radiusBounds,
-            selectedColor: this.state.selectedColor,
-            selectedColorMapping: this.state.selectedColorMapping,
-            selectedOpacity: this.state.selectedOpacity,
-            selectedRadius: this.state.selectedRadius,
+            radiusGamma: this.state.radiusGamma,
         });
     }
 
     public render(): React.ReactElement {
         const colorMapperProps: ColorMapperProps = {
+            busy: this.props.busy,
+            coef: 255,
+            gamma: this.state.colorGamma,
             mapperLabel: "Color",
-            selectedColorMapping: this.state.selectedColorMapping,
-            selectedTimeseries: this.state.selectedColor,
-            sliderMax: 255,
+            selectedColorMapping: this.state.colorMapping,
+            selectedTimeseries: this.state.colorTimeseries,
+            sliderMax: 1,
             sliderMin: 0,
-            sliderStep: 1,
+            sliderStep: 1 / 255,
             sliderVal: this.state.colorBounds,
             timeseriesList: this.props.timeseriesList,
             onSelectionChange: (event) => {
@@ -94,13 +112,20 @@ export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, T
                 this.setState({colorBounds: value});
             },
             onMappingChange: (event) => {
-                this.setState({selectedColorMapping: event.target.value});
+                this.setState({colorMapping: event.target.value});
+            },
+            onGammaChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                const value = event.target.value as unknown;
+                this.setState({colorGamma: value as number})
             },
         }
 
         const opacityMapperProps: ScalarMapperProps = {
+            busy: this.props.busy,
+            coef: 1,
+            gamma: this.state.opacityGamma,
             mapperLabel: 'Opacity',
-            selectedTimeseries: this.state.selectedOpacity,
+            selectedTimeseries: this.state.opacityTimeseries,
             sliderMax: 1,
             sliderMin: 0.01,
             sliderStep: 0.01,
@@ -112,14 +137,21 @@ export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, T
             onSliderChange: (event: React.ChangeEvent<{}>, value: [number, number]) => {
                 this.setState({opacityBounds: value})
             },
+            onGammaChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                const value = event.target.value as unknown;
+                this.setState({opacityGamma: value as number})
+            }
         }
 
         const radiusMapperProps: ScalarMapperProps = {
+            busy: this.props.busy,
+            coef: this.props.constants.radiusCoef,
+            gamma: this.state.radiusGamma,
             mapperLabel: 'Radius',
-            selectedTimeseries: this.state.selectedRadius,
-            sliderMax: 500,
-            sliderMin: 5,
-            sliderStep: 5,
+            selectedTimeseries: this.state.radiusTimeseries,
+            sliderMax: 1,
+            sliderMin: 0.01,
+            sliderStep: 0.01,
             sliderVal: this.state.radiusBounds,
             timeseriesList: this.props.timeseriesList,
             onSelectionChange: (event) => {
@@ -128,17 +160,24 @@ export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, T
             onSliderChange: (event: React.ChangeEvent<{}>, value: [number, number]) => {
                 this.setState({radiusBounds: value})
             },
+            onGammaChange: (event: React.ChangeEvent<HTMLInputElement>) => {
+                const value = event.target.value as unknown;
+                this.setState({radiusGamma: value as number})
+            },
         }
 
         let stateMatches = true;
         [
+            "colorTimeseries",
             "colorBounds",
+            "colorGamma",
+            "colorMapping",
+            "opacityTimeseries",
             "opacityBounds",
+            "opacityGamma",
+            "radiusTimeseries",
             "radiusBounds",
-            "selectedColor",
-            "selectedColorMapping",
-            "selectedOpacity",
-            "selectedRadius"
+            "radiusGamma",
         ].forEach((key) => {
             stateMatches = stateMatches && _.eq(
                 this.state[key as keyof(TimeseriesMappersState)],

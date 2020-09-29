@@ -6,13 +6,13 @@ import {
     PenetrationResponse,
     SettingsRequest,
     SliceData,
-    SliceType,
+    SliceType, UnitStatsListResponse,
 // eslint-disable-next-line import/no-unresolved
 } from "./models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./models/colorMap";
 // eslint-disable-next-line import/no-unresolved
-import {TimeseriesEntry, TimeseriesSummary} from "./models/timeseries";
+import {TimeseriesData, TimeseriesSummary} from "./models/timeseries";
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping, AestheticParams} from "./models/aestheticMapping";
 
@@ -25,7 +25,7 @@ export interface AestheticRequest {
 export interface PenetrationTimeseriesResponse {
     timeseries: {
         summary: TimeseriesSummary;
-        penetrations: TimeseriesEntry[];
+        penetrations: TimeseriesData[];
     }[];
     info: {
         totalCount: number;
@@ -34,7 +34,7 @@ export interface PenetrationTimeseriesResponse {
 }
 
 export interface TimeseriesResponse extends TimeseriesSummary {
-    timeseries: TimeseriesEntry[];
+    timeseries: TimeseriesData[];
 }
 
 export class APIClient {
@@ -42,6 +42,10 @@ export class APIClient {
 
     constructor(endpoint: string) {
         this.endpoint = endpoint;
+    }
+
+    public async GET(uri: string): Promise<any> {
+        return axios.get(uri);
     }
 
     async fetchAestheticMappings(params: AestheticRequest): Promise<AxiosResponse<{mappings: AestheticMapping[]}>> {
@@ -89,14 +93,18 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/slices/${sliceType}/${coordinate}`);
     }
 
-    async fetchTimeseries(penetrationId: string, timeseriesId: string): Promise<AxiosResponse<TimeseriesEntry>> {
+    async fetchTimeseries(penetrationId: string, timeseriesId: string): Promise<AxiosResponse<TimeseriesData>> {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries/${timeseriesId}`);
     }
 
-    async fetchPenetationTimeseries(timeseriesIds: string[], page = 1, limit = 5): Promise<AxiosResponse<PenetrationTimeseriesResponse>> {
-        const tids = timeseriesIds.join(",");
+    async fetchPenetationTimeseries(timeseriesIds: string[], penetrationIds: string[] = [], page = 1, limit = 5): Promise<AxiosResponse<PenetrationTimeseriesResponse>> {
+        let uri = `${this.endpoint}/timeseries?timeseriesIds=${timeseriesIds.join(",")}&page=${page}&limit=${limit}`;
 
-        return await axios.get(`${this.endpoint}/timeseries?timeseriesIds=${tids}&page=${page}&limit=${limit}`);
+        if (penetrationIds.length > 0) {
+            uri += `&penetrationIds=${penetrationIds.join(",")}`;
+        }
+
+        return await axios.get(uri);
     }
 
     async fetchTimeseriesList(penetrationId: string) {
@@ -111,7 +119,7 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/timeseries/${timeseriesId}/summary`);
     }
 
-    async fetchUnitStatsById(statId: string) {
+    async fetchUnitStatsById(statId: string): Promise<AxiosResponse<UnitStatsListResponse>> {
         return await axios.get(`${this.endpoint}/unit-stats/${statId}`);
     }
 

@@ -3,7 +3,7 @@ import * as _ from "lodash";
 // eslint-disable-next-line import/no-unresolved
 import {AestheticType, TransformParams} from "./models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
-import {TimeseriesEntry} from "./models/timeseries";
+import {TimeseriesData} from "./models/timeseries";
 
 const ctx: Worker = self as any;
 
@@ -28,14 +28,14 @@ const transformValues = function(data: number[], transformBounds: [number, numbe
     return xValues;
 }
 
-ctx.addEventListener("message", (event: MessageEvent) => {
-    const data: TransformParams = event.data;
-    if (data !== undefined) {
-        const aesthetic = data.aesthetic;
-        const entry = data.entry;
-
-        entry.values = transformValues(entry.values, data.transformBounds, data.dataBounds);
-
-        ctx.postMessage({entry, aesthetic});
-    }
-});
+// ctx.addEventListener("message", (event: MessageEvent) => {
+//     const data: TransformParams = event.data;
+//     if (data !== undefined) {
+//         const aesthetic = data.aesthetic;
+//         const entry = data.entry;
+//
+//         entry.values = transformValues(entry.values, data.targetBounds, data.domainBounds);
+//
+//         ctx.postMessage({entry, aesthetic});
+//     }
+// });
