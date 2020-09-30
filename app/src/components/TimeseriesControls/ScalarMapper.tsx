@@ -65,6 +65,7 @@ export function ScalarMapper(props: ScalarMapperProps): React.ReactElement {
                         {props.mapperLabel}
                     </InputLabel>
                     <Select
+                        disabled={props.busy}
                         labelId={`aesthetic-mapper-${props.mapperLabel}-select`}
                         id={`aesthetic-mapper-${props.mapperLabel}`}
                         defaultValue="nothing"

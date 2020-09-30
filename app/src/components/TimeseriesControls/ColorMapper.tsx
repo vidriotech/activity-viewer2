@@ -83,6 +83,7 @@ export function ColorMapper(props: ColorMapperProps): React.ReactElement {
                             Color
                         </InputLabel>
                         <Select
+                            disabled={props.busy}
                             labelId={"aesthetic-mapper-color-select"}
                             id={"aesthetic-mapper-color"}
                             defaultValue={"nothing"}

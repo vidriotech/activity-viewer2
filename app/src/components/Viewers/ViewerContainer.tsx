@@ -282,19 +282,16 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                             this.props.colorTimeseries,
                             this.props.opacityTimeseries,
                             this.props.radiusTimeseries,
-                        ], [timeseriesId]);
+                        ], [timeseriesId, "nothing"]);
 
-                        let coef = 0;
+                        const nRemainingCoef = 1 + otherTs.length;
                         otherTs.forEach((t) => {
-                            if (t === "nothing") {
-                                progress += nPenetrations;
-                            } else if (this.tsData.has(t)) {
+                            if (this.tsData.has(t)) {
                                 progress += this.tsData.get(t).length;
-                                coef += 1;
                             }
                         });
 
-                        const nTimeseriesToFetch = coef * nPenetrations;
+                        const nTimeseriesToFetch = nRemainingCoef * nPenetrations;
                         const progressMessage = progress === 3 * nPenetrations ?
                             "" :
                             `Fetched ${progress}/${nTimeseriesToFetch} timeseries.`;
