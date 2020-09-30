@@ -372,6 +372,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         }
 
         const compartmentListProps: CompartmentListProps = {
+            availablePenetrations: this.state.availablePenetrations,
             busy: this.isBusy,
             hidden: this.state.compartmentListHidden,
             compartmentSubsetOnly: this.state.compartmentSubsetOnly,

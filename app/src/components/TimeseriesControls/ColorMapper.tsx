@@ -72,7 +72,7 @@ export function ColorMapper(props: ColorMapperProps): React.ReactElement {
 
     return (
         <Grid container
-              spacing={0}>
+              spacing={1}>
             <Grid container
                   item
                   direction="column"
@@ -127,6 +127,11 @@ export function ColorMapper(props: ColorMapperProps): React.ReactElement {
                         disabled={disabled} />
             </Grid>
             <Grid item xs={3}>
+                <Typography variant="caption"
+                            display="block"
+                            gutterBottom>
+                    Gamma
+                </Typography>
                 <Input type="number"
                        inputProps={{ min: 0, max: 10, step: 0.1, name: "Gamma" }}
                        value={props.gamma}

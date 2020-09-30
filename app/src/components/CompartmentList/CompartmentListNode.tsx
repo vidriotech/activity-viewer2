@@ -14,9 +14,12 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
+// eslint-disable-next-line import/no-unresolved
+import {PenetrationData} from "../../models/apiModels";
 
 
 export interface CompartmentListNodeProps {
+    availablePenetrations: PenetrationData[];
     busy: boolean;
     compartmentNodeView: CompartmentNodeView;
     showChildren: boolean;
@@ -82,7 +85,8 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
                       key={`${this.props.compartmentNodeView.acronym}-children`}>
                 <List>
                     {children.map((child) => (
-                        <CompartmentListNode busy={this.props.busy}
+                        <CompartmentListNode availablePenetrations={this.props.availablePenetrations}
+                                             busy={this.props.busy}
                                              compartmentNodeView={child}
                                              showChildren={true}
                                              onToggleDescendantVisible={this.handleToggleDescendantVisible.bind(this)} />
@@ -102,6 +106,26 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
             );
         }
 
+        let nPenetrations = 0;
+        let nPoints = 0;
+        this.props.availablePenetrations.forEach((penetrationData) => {
+            let hasContributed = false;
+            penetrationData.compartments.forEach((compartment) => {
+                if (!compartment) {
+                    return;
+                }
+
+                if (compartment.name === this.props.compartmentNodeView.name) {
+                    if (!hasContributed) {
+                        nPenetrations += 1;
+                        hasContributed = true;
+                    }
+
+                    nPoints += 1;
+                }
+            });
+        });
+
         return (
             <div>
                 <ListItem key={this.props.compartmentNodeView.acronym} >
@@ -112,7 +136,7 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
                               tabIndex={-1}
                               inputProps={{ 'aria-labelledby': this.props.compartmentNodeView.acronym }}
                     />
-                    <ListItemText primary={this.props.compartmentNodeView.name} />
+                    <ListItemText primary={`${this.props.compartmentNodeView.name} (${nPoints} pts/${nPenetrations} pens)`} />
                     {expandIcon}
                 </ListItem>
                 {childList}

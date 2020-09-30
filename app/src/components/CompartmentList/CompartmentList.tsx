@@ -11,7 +11,7 @@ import Typography from '@material-ui/core/Typography';
 // eslint-disable-next-line import/no-unresolved
 import { AVConstants } from '../../constants';
 // eslint-disable-next-line import/no-unresolved
-import { AVSettings } from '../../models/apiModels';
+import {AVSettings, PenetrationData} from '../../models/apiModels';
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
@@ -23,6 +23,7 @@ import Grid from "@material-ui/core/Grid";
 
 
 export interface CompartmentListProps {
+    availablePenetrations: PenetrationData[];
     busy: boolean;
     compartmentSubsetOnly: boolean;
     compartmentViewTree: CompartmentNodeView;
@@ -110,7 +111,8 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
         if (this.state.filteredCompartments.length > 0) {
             listChildren = (
                 this.state.filteredCompartments.map((nodeView) => (
-                    <CompartmentListNode busy={this.props.busy}
+                    <CompartmentListNode availablePenetrations={this.props.availablePenetrations}
+                                         busy={this.props.busy}
                                          compartmentNodeView={nodeView}
                                          showChildren={false}
                                          onToggleDescendantVisible={this.toggleCompartmentVisible.bind(this)} />
@@ -119,6 +121,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
             );
         } else {
             const rootNodeProps: CompartmentListNodeProps = {
+                availablePenetrations: this.props.availablePenetrations,
                 busy: this.props.busy,
                 compartmentNodeView: this.props.compartmentViewTree,
                 showChildren: true,

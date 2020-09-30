@@ -3,7 +3,7 @@ import clsx from 'clsx';
 import { AutoSizer, Column, Table, TableCellRenderer, TableHeaderProps } from 'react-virtualized';
 
 import { createStyles, Theme, withStyles, WithStyles } from '@material-ui/core/styles';
-import IconButtton from '@material-ui/core/IconButton';
+import IconButton from '@material-ui/core/IconButton';
 import Container from '@material-ui/core/Container';
 import TableCell from '@material-ui/core/TableCell';
 
@@ -190,16 +190,16 @@ export function UnitTable(props: UnitTableProps): React.ReactElement {
                 unitId: id,
                 compartmentName: penetrationData.compartments[jdx].acronym,
             });
-        })
+        });
     });
 
     return (
         <Container style={{ height: 500, width: '100%' }}>
             <div>
-                <IconButtton disabled={props.busy || props.availablePenetrations.length === 0}
-                              onClick={props.onUnitExportRequest} >
+                <IconButton disabled={props.busy || props.availablePenetrations.length === 0}
+                            onClick={props.onUnitExportRequest} >
                     <SaveIcon />
-                </IconButtton>
+                </IconButton>
                 <Typography gutterBottom>
                     Export selected units to .npz.
                 </Typography>
