@@ -83,22 +83,22 @@ void main() {
     vColor = colorLUT[colorIdx];
     vOpacity = transformVal(opacity, opacityDomain, opacityTarget, opacityGamma);
     float xSize = 400.0 * transformVal(size, radiusDomain, radiusTarget, radiusGamma);
-    // vVisible = 1.0 - show;  // a problem!
-    vVisible = 1.0;
+    vVisible = show;  // a problem!
+    // vVisible = show;
     vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
     gl_PointSize = xSize * ( 3000.0 / -mvPosition.z );
     gl_Position = projectionMatrix * mvPosition;
 }`;
     private _pointFragmentShader = `
-    uniform sampler2D pointTexture;
-    varying vec3 vColor;
-    varying float vOpacity;
-    varying float vVisible;
+uniform sampler2D pointTexture;
+varying vec3 vColor;
+varying float vOpacity;
+varying float vVisible;
 
-    void main() {
-        gl_FragColor = vec4( vColor, vOpacity * vVisible );
-        gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
-    }`;
+void main() {
+    gl_FragColor = vec4( vColor, vOpacity * vVisible );
+    gl_FragColor = gl_FragColor * texture2D( pointTexture, gl_PointCoord );
+}`;
 
     public SagittalMax = 11400;
     public HorizontalMax = 8000;

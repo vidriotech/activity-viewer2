@@ -44,10 +44,12 @@ import {ImageType, SliceViewer} from "../../viewers/sliceViewer";
 import { PlayerSlider, PlayerSliderProps } from "./PlayerSlider";
 // eslint-disable-next-line import/no-unresolved
 import {SliceControl} from "./SliceControl";
+import Typography from "@material-ui/core/Typography";
 
 type ViewerType = "3D" | "slice" | "penetration";
 
 export interface ViewerContainerProps {
+    compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
     settings: AVSettings;
 
@@ -64,16 +66,17 @@ export interface ViewerContainerProps {
 
     availablePenetrations: PenetrationData[];
     busy: boolean;
-    compartmentViewTree: CompartmentNodeView;
+    progress: number;
+    progressMessage: string;
 
     onFilterPredicateUpdate(predicate: Predicate, newStat?: string): void;
+    onProgressUpdate(progress: number, progressMessage: string): void;
 }
 
 interface ViewerContainerState {
     dialogOpen: boolean;
     frameRate: number;
     imageType: ImageType;
-    progress: number;
     renderHeight: number;
     renderWidth: number;
     viewerType: ViewerType;
@@ -116,7 +119,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             dialogOpen: false,
             frameRate: 30,
             imageType: "annotation",
-            progress: 1,
             renderHeight: 0,
             renderWidth: 0,
             viewerType: "3D",
@@ -282,19 +284,23 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                             this.props.radiusTimeseries,
                         ], [timeseriesId]);
 
+                        let coef = 0;
                         otherTs.forEach((t) => {
                             if (t === "nothing") {
-                                progress += this.props.availablePenetrations.length;
+                                progress += nPenetrations;
                             } else if (this.tsData.has(t)) {
                                 progress += this.tsData.get(t).length;
+                                coef += 1;
                             }
                         });
 
-                        this.setState({
-                            progress: progress / (3 * nPenetrations),
-                        }, () => {
-                            this.fetchAndUpdateTimeseriesData(timeseriesId);
-                        });
+                        const nTimeseriesToFetch = coef * nPenetrations;
+                        const progressMessage = progress === 3 * nPenetrations ?
+                            "" :
+                            `Fetched ${progress}/${nTimeseriesToFetch} timeseries.`;
+
+                        this.props.onProgressUpdate(progress / (3 * nPenetrations), progressMessage);
+                        this.fetchAndUpdateTimeseriesData(timeseriesId);
                     })
                     .catch((err) => console.error(err));
             }
@@ -633,17 +639,15 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 this.setState({
                     timeMin,
                     timeMax,
-                    timeStep: timeStep / 2,
+                    timeStep: timeStep,
                     timeVal: timeMin
                 }, () => {
-                    this.viewer.setTime(this.state.timeMin, this.state.timeMax, this.state.timeStep, this.state.timeVal);
-                    this.setAestheticAssignments();
+                    if (this.viewer) {
+                        this.viewer.setTime(this.state.timeMin, this.state.timeMax, this.state.timeStep, this.state.timeVal);
+                        this.setAestheticAssignments();
+                    }
                 });
             });
-    }
-
-    public get isBusy(): boolean {
-        return this.state.progress < 1;
     }
 
     public componentDidMount(): void {
@@ -672,7 +676,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const timeseriesDidUpdate = (
             prevProps.colorTimeseries !== this.props.colorTimeseries ||
                 prevProps.opacityTimeseries !== this.props.opacityTimeseries ||
-                prevProps.radiusTimeseries !== this.props.radiusTimeseries
+                prevProps.radiusTimeseries !== this.props.radiusTimeseries ||
+                prevProps.availablePenetrations !== this.props.availablePenetrations
         );
 
         let aestheticsDidUpdate = timeseriesDidUpdate;
@@ -736,11 +741,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             onStopClick: this.handleStopClick.bind(this),
         };
 
-        const progressBar = this.isBusy ?
-            <LinearProgress variant="determinate"
-                            value={100 * this.state.progress} /> :
-            null;
-
         const dialog = (
             <Dialog fullWidth
                     open={this.state.dialogOpen}
@@ -793,11 +793,20 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
         return (
             <Grid container>
-                <Grid item xs={12}>
-                    <div>{progressBar}</div>
-                    <div style={{ padding: 40 }}
-                         id={this.canvasContainerId}>
-                    </div>
+                <Grid container item
+                      xs={12}>
+                    <Grid item xs={12}>
+                        <Typography gutterBottom>
+                            {this.props.progressMessage}
+                        </Typography>
+                        <LinearProgress variant="determinate"
+                                        value={100 * this.props.progress} />
+                    </Grid>
+                    <Grid item xs={12}>
+                        <div style={{ padding: 40 }}
+                             id={this.canvasContainerId}>
+                        </div>
+                    </Grid>
                 </Grid>
                 <Grid item xs={4}>
                     {switchButton}

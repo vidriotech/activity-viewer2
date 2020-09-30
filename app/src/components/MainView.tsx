@@ -55,8 +55,8 @@ interface MainViewState extends AestheticProps {
     compartmentSubsetOnly: boolean;
     compartmentViewTree: CompartmentNodeView;
     filterPredicate: Predicate;
-    loopAnimation: 'once' | 'repeat';
     progress: number;
+    progressMessage: string;
     selectedStat: string;
 }
 
@@ -94,9 +94,8 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             compartmentSubsetOnly: true,
             compartmentViewTree: compartmentViewTree,
 
-            loopAnimation: 'once',
-
-            progress: 100,
+            progress: 1,
+            progressMessage: "",
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -126,9 +125,15 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                     );
                 });
 
+                const nPenetrations = availablePenetrations.length + newPenetrations.length;
+                const progressMessage = nPenetrations < data.info.totalCount ?
+                    `Fetched ${nPenetrations}/${data.info.totalCount} penetrations.` :
+                    "";
+
                 this.setState({
                     availablePenetrations: _.concat(availablePenetrations, newPenetrations),
-                    progress: 100 * (availablePenetrations.length + newPenetrations.length) / data.info.totalCount,
+                    progress: nPenetrations / data.info.totalCount,
+                    progressMessage: progressMessage,
                 }, () => {
                     if (data.link) {
                         this.fetchAndUpdatePenetrations(page + 1);
@@ -280,7 +285,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     }
 
     public get isBusy(): boolean {
-        return this.state.progress < 100;
+        return this.state.progress < 1;
     }
 
     public componentDidMount(): void {
@@ -289,6 +294,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
     public render(): React.ReactNode {
         const viewerContainerProps: ViewerContainerProps = {
+            compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
             settings: this.props.settings,
 
@@ -305,8 +311,13 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
             availablePenetrations: this.state.availablePenetrations,
             busy: this.isBusy,
-            compartmentViewTree: this.state.compartmentViewTree,
+            progress: this.state.progress,
+            progressMessage: this.state.progressMessage,
+
             onFilterPredicateUpdate: this.handleFilterPredicateUpdate.bind(this),
+            onProgressUpdate: (progress: number, progressMessage: string): void => {
+                this.setState({progress, progressMessage})
+            },
         }
 
         const timeseriesControlsProps: TimeseriesMappersProps = {
