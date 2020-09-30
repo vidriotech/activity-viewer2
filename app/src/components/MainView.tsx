@@ -95,7 +95,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             compartmentViewTree: compartmentViewTree,
 
             progress: 1,
-            progressMessage: "",
+            progressMessage: "Ready.",
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -128,7 +128,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 const nPenetrations = availablePenetrations.length + newPenetrations.length;
                 const progressMessage = nPenetrations < data.info.totalCount ?
                     `Fetched ${nPenetrations}/${data.info.totalCount} penetrations.` :
-                    "";
+                    "Ready.";
 
                 this.setState({
                     availablePenetrations: _.concat(availablePenetrations, newPenetrations),

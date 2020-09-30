@@ -293,7 +293,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
                         const nTimeseriesToFetch = coef * nPenetrations;
                         const progressMessage = progress === coef * nPenetrations ?
-                            "" :
+                            "Ready." :
                             `Fetched ${progress}/${nTimeseriesToFetch} timeseries.`;
 
                         this.props.onProgressUpdate(progress / (coef * nPenetrations), progressMessage);
