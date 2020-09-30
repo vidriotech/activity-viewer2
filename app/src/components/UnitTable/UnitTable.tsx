@@ -11,6 +11,8 @@ import SaveIcon from '@material-ui/icons/Save';
 
 // eslint-disable-next-line import/no-unresolved
 import { PenetrationData } from '../../models/apiModels';
+import Grid from "@material-ui/core/Grid";
+import Typography from "@material-ui/core/Typography";
 
 declare module '@material-ui/core/styles/withStyles' {
     // Augment the BaseCSSProperties so that we can control jss-rtl
@@ -172,7 +174,7 @@ export interface UnitTableProps {
     onUnitExportRequest(): void;
 }
 
-export function UnitTable(props: UnitTableProps) {
+export function UnitTable(props: UnitTableProps): React.ReactElement {
     const rows: UnitData[] = [];
 
     let k = 0;
@@ -195,10 +197,12 @@ export function UnitTable(props: UnitTableProps) {
         <Container style={{ height: 500, width: '100%' }}>
             <div>
                 <IconButtton disabled={props.busy || props.availablePenetrations.length === 0}
-                             onClick={props.onUnitExportRequest} >
+                              onClick={props.onUnitExportRequest} >
                     <SaveIcon />
                 </IconButtton>
-
+                <Typography gutterBottom>
+                    Export selected units to .npz.
+                </Typography>
             </div>
             <VirtualizedTable rowCount={rows.length}
                             rowGetter={({ index }) => rows[index]}

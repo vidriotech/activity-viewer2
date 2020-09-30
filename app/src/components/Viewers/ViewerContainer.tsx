@@ -713,8 +713,12 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             this.setAestheticAssignments();
         }
 
-        this.renderCompartments();
-        this.renderPenetrations();
+        const { width, height } = this.computeDims();
+        if (this.viewer !== null) {
+            this.viewer.setSize(width, height);
+            this.renderCompartments();
+            this.renderPenetrations();
+        }
     }
 
     public render(): React.ReactNode {

@@ -38,6 +38,10 @@ import {TimeseriesData, TimeseriesSummary} from "../models/timeseries";
 
 // eslint-disable-next-line import/no-unresolved
 import MapperWorker from "worker-loader!../worker";
+import Typography from "@material-ui/core/Typography";
+import IconButton from "@material-ui/core/IconButton";
+import {ChevronLeft, ChevronRight} from "@material-ui/icons";
+import Container from "@material-ui/core/Container";
 
 interface UnitStatsData {
     penetrationId: string;
@@ -58,6 +62,9 @@ interface MainViewState extends AestheticProps {
     progress: number;
     progressMessage: string;
     selectedStat: string;
+
+    compartmentListHidden: boolean;
+    unitTableHidden: boolean;
 }
 
 export class MainView extends React.Component<MainViewProps, MainViewState> {
@@ -96,6 +103,9 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
             progress: 1,
             progressMessage: "Ready.",
+
+            compartmentListHidden: false,
+            unitTableHidden: false,
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -363,6 +373,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
         const compartmentListProps: CompartmentListProps = {
             busy: this.isBusy,
+            hidden: this.state.compartmentListHidden,
             compartmentSubsetOnly: this.state.compartmentSubsetOnly,
             compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
@@ -376,6 +387,14 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             onUnitExportRequest: this.handleUnitExportRequest.bind(this),
         }
 
+        const utWidth = this.state.unitTableHidden ? 0 : 3;
+        const clWidth = this.state.compartmentListHidden ? 0 : 3;
+        const vcWidth = 12 - utWidth - clWidth as 6 | 9 | 12;
+
+        // onTogglePanelVisible: () => {
+        //
+        // },
+
         const style = { padding: 30 };
         return (
             <div style={style}>
@@ -384,16 +403,43 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                     <Grid item xs={12}>
                         <FilterControls {...filterControlProps} />
                     </Grid>
-                    <Grid item xs={3}>
-                        {/* <UnitList {...unitListProps}/> */}
-                        <UnitTable {...unitTableProps} />
-                    </Grid>
-                    <Grid item xs={6}>
+                    {this.state.unitTableHidden ?
+                        null :
+                        <Grid item xs={3}>
+                            {/* <UnitList {...unitListProps}/> */}
+                            <UnitTable {...unitTableProps} />
+                        </Grid>
+                    }
+                    <Grid item xs={vcWidth}>
+                        <div>
+                            <Grid container xs={12}>
+                                <Grid item xs={2}>
+                                    <IconButton edge="start"
+                                                onClick={(): void => {
+                                                    this.setState({unitTableHidden: !this.state.unitTableHidden})
+                                                }} >
+                                        {this.state.unitTableHidden ? <ChevronRight /> : <ChevronLeft />}
+                                    </IconButton>
+                                </Grid>
+                                <Grid item xs={8}></Grid>
+                                <Grid item xs={2}>
+                                    <IconButton edge="end"
+                                                onClick={(): void => {
+                                                    this.setState({compartmentListHidden: !this.state.compartmentListHidden})
+                                                }} >
+                                        {this.state.compartmentListHidden ? <ChevronLeft /> : <ChevronRight />}
+                                    </IconButton>
+                                </Grid>
+                            </Grid>
+                        </div>
                         <ViewerContainer {...viewerContainerProps} />
                     </Grid>
-                    <Grid item xs={3}>
-                        <CompartmentList {...compartmentListProps} />
-                    </Grid>
+                    {this.state.compartmentListHidden ?
+                        null :
+                        <Grid item xs={3}>
+                            <CompartmentList {...compartmentListProps} />
+                        </Grid>
+                    }
                     <Grid item xs>
                         <TimeseriesMappers {...timeseriesControlsProps}/>
                     </Grid>

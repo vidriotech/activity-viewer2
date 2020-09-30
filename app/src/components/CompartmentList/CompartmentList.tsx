@@ -17,6 +17,9 @@ import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentListNode, CompartmentListNodeProps } from './CompartmentListNode';
+import IconButton from "@material-ui/core/IconButton";
+import {ChevronLeft, ChevronRight} from "@material-ui/icons";
+import Grid from "@material-ui/core/Grid";
 
 
 export interface CompartmentListProps {
@@ -24,6 +27,7 @@ export interface CompartmentListProps {
     compartmentSubsetOnly: boolean;
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
+    hidden: boolean;
     settings: AVSettings;
     onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
 }
@@ -100,27 +104,6 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
 
     public render(): React.ReactElement {
         const compartmentList = this.makeCompartmentIndex();
-        const header = (
-            <Typography variant='h5' gutterBottom>
-                Selected compartments
-            </Typography>
-        );
-
-        const autocomplete = (
-            <Autocomplete multiple
-                          disabled={this.props.busy}
-                          id='tags-outlined'
-                          options={compartmentList}
-                          getOptionLabel={(option): string => option.name}
-                          filterSelectedOptions
-                          onChange={(_evt, newValue: CompartmentNodeView[] ) => this.setState({ filteredCompartments: newValue})}
-                          renderInput={(params) => (
-                              <TextField {...params}
-                                         variant='outlined'
-                                         placeholder='Search compartments'
-                              />
-                          )}
-            />);
 
         // fill children of list depending on state of filter text
         let listChildren;
@@ -147,8 +130,23 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
 
         return (
             <Container>
-                {header}
-                {autocomplete}
+                <Typography variant='h5' gutterBottom>
+                    Selected compartments
+                </Typography>
+                <Autocomplete multiple
+                              disabled={this.props.busy}
+                              id='tags-outlined'
+                              options={compartmentList}
+                              getOptionLabel={(option): string => option.name}
+                              filterSelectedOptions
+                              onChange={(_evt, newValue: CompartmentNodeView[] ) => this.setState({ filteredCompartments: newValue})}
+                              renderInput={(params) => (
+                                  <TextField {...params}
+                                             variant='outlined'
+                                             placeholder='Search compartments'
+                                  />
+                              )}
+                />
                 <List dense
                       style={{ width: '100%', maxHeight: 500, overflow: 'auto', position: 'relative' }} >
                     {listChildren}

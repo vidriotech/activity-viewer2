@@ -14,15 +14,16 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import { PointModel } from '../../models/pointModel';
 import { Predicate, PredicateChain, ANDPredicateChain, ORPredicateChain } from '../../models/predicateModels';
 import { Typography } from '@material-ui/core';
+import ListItemIcon from "@material-ui/core/ListItemIcon";
 
-export interface IPredicateListNodeProps {
+export interface PredicateListNodeProps {
     indexChain: number[],
     level: number,
     predicate: Predicate,
     onDeleteSubpredicate(indexChain: number[]): void,
 }
 
-export function PredicateListNode(props: IPredicateListNodeProps) {
+export function PredicateListNode(props: PredicateListNodeProps) {
     if (props.predicate === null) {
         return null;
     }
@@ -59,14 +60,14 @@ export function PredicateListNode(props: IPredicateListNodeProps) {
     const itemKey=`predicate-level-${props.level}-idx-${_.join(props.indexChain, '-')}`;
     return (
         <ListItem key={itemKey}>
-            {listItemContents}
-            <ListItemSecondaryAction key={`${itemKey}-delete`}>
-                <IconButton edge='end'
+            <ListItemIcon key={`${itemKey}-delete`}>
+                <IconButton edge='start'
                             aria-label='delete'
                             onClick={() => props.onDeleteSubpredicate(props.indexChain)}>
                     <DeleteIcon />
                 </IconButton>
-            </ListItemSecondaryAction>
+            </ListItemIcon>
+            {listItemContents}
         </ListItem>
     );
 }
