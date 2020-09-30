@@ -155,8 +155,8 @@ def test_type_check(val, val_type, error):
     ({1, 2, 3}, [1, 2, 3]),  # so are sets
     ((1, 2, 3), [1, 2, 3]),  # so are tuples
     (1, 1),  # ints remain ints
-    (1., 1.),  # floats remain floats
-    (None, None)  # everything else gets stringified
+    (1.2, 1.2),  # floats remain floats
+    (None, None),  # Nones remain Nones
 ])
 def test_dictify_member(value, expected):
     assert Serializable._dictify_member(value) == expected
