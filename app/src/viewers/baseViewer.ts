@@ -3,8 +3,13 @@ import * as _ from "lodash";
 import {
     BufferGeometry,
     Color,
-    Float32BufferAttribute, Line, Object3D, PerspectiveCamera,
-    Points, PointsMaterial,
+    Float32BufferAttribute,
+    Line,
+    Mesh,
+    Object3D,
+    PerspectiveCamera,
+    Points,
+    PointsMaterial,
     Scene,
     ShaderMaterial,
     Vector2,
@@ -17,12 +22,12 @@ import {AVConstants} from "../constants";
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping} from "../models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
-import {Epoch, PenetrationData} from "../models/apiModels";
+import {Epoch, PenetrationData, SliceData} from "../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "../models/colorMap";
 
 // eslint-disable-next-line import/no-unresolved
-import {PenetrationViewModel} from "../viewmodels/penetrationViewModel";
+import {SliceImageType, SliceType} from "../models/enums";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const THREE = require("three");
@@ -79,6 +84,10 @@ export abstract class BaseViewer {
     protected radiusGamma: number;
 
     public flip = true; // flip y axis
+
+    private _imageType: SliceImageType = SliceImageType.ANNOTATION;
+    protected sliceData: SliceData = null;
+    private slice: Mesh = null;
 
     protected constructor(constants: AVConstants, epochs: Epoch[]) {
         this.constants = constants;
@@ -596,17 +605,6 @@ export abstract class BaseViewer {
         this.updatePenetrationAttributes();
     }
 
-    public updateAesthetics(): void {
-        this.penetrationPointsMap.forEach((pointObj, penetrationId) => {
-            const mapping = this.aestheticMappings.get(penetrationId);
-
-            pointObj.material = this.makeShaderMaterial(mapping);
-            pointObj.material.needsUpdate = true;
-        });
-
-        this.render();
-    }
-
     public setSize(width: number, height: number): void {
         this.camera.aspect = width / height;
         this.camera.updateProjectionMatrix();
@@ -692,5 +690,62 @@ export abstract class BaseViewer {
         this._timeVal = t;
         this.updatePenetrationAttributes();
         this.updateTimeSlider();
+    }
+
+    protected initSlice(): void {
+        const loader = new THREE.TextureLoader();
+        const imgData = this._imageType === SliceImageType.ANNOTATION ?
+            this.sliceData.annotationImage :
+            this.sliceData.templateImage;
+
+        loader.load(imgData, (texture: THREE.Texture) => {
+            let width: number, height: number;
+            switch (this.sliceType) {
+                case SliceType.CORONAL:
+                    width = this.constants.SagittalMax;
+                    height = this.constants.HorizontalMax;
+                    break;
+                case SliceType.SAGITTAL:
+                    width = this.constants.CoronalMax;
+                    height = this.constants.HorizontalMax;
+                    break;
+            }
+
+            const geometry = new THREE.PlaneBufferGeometry(width, height);
+            const material = new THREE.MeshBasicMaterial({
+                map: texture,
+                side: THREE.DoubleSide,
+                transparent: true,
+            });
+
+            texture.minFilter = THREE.LinearFilter;
+            texture.wrapS = THREE.ClampToEdgeWrapping;
+            texture.wrapT = THREE.ClampToEdgeWrapping;
+            texture.flipY = this.sliceType === SliceType.SAGITTAL;
+
+            const slice = new Mesh(geometry, material);
+            this.scene.add(slice);
+
+            this.slice = slice;
+        });
+    }
+
+    public get sliceType(): SliceType {
+        return this.sliceData ?
+            this.sliceData.sliceType :
+            null;
+    }
+
+    public set imageType(val: SliceImageType) {
+        if (val != this._imageType) {
+            this._imageType = val;
+
+            if (this.slice !== null) {
+                this.scene.remove(this.slice);
+                this.slice = null;
+
+                this.initSlice();
+            }
+        }
     }
 }

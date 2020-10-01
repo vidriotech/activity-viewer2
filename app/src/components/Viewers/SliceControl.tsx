@@ -10,7 +10,7 @@ import Slider from "@material-ui/core/Slider";
 // eslint-disable-next-line import/no-unresolved
 import {AVConstants} from "../../constants";
 // eslint-disable-next-line import/no-unresolved
-import {SliceType} from "../../models/apiModels";
+import {SliceType} from "../../models/enums";
 
 export interface SliceControlProps {
     constants: AVConstants;
@@ -28,7 +28,7 @@ export class SliceControl extends React.Component<SliceControlProps, SliceContro
 
         this.state = {
             projectionValues: [-500, 0, 500].map(x => x + this.props.constants.CoronalMax / 2),
-            selectedSliceType: "coronal",
+            selectedSliceType: SliceType.CORONAL,
         };
     }
 
@@ -37,10 +37,10 @@ export class SliceControl extends React.Component<SliceControlProps, SliceContro
 
         let projectionCenter: number;
         switch (selectedSliceType) {
-            case "coronal":
+            case SliceType.CORONAL:
                 projectionCenter = this.props.constants.CoronalMax / 2;
                 break;
-            case "sagittal":
+            case SliceType.SAGITTAL:
                 projectionCenter = this.props.constants.SagittalMax / 2;
                 break;
         }
@@ -73,10 +73,10 @@ export class SliceControl extends React.Component<SliceControlProps, SliceContro
         const sliderMin = 0;
         let sliderMax: number;
         switch (this.state.selectedSliceType) {
-            case "coronal":
+            case SliceType.CORONAL:
                 sliderMax = this.props.constants.CoronalMax;
                 break;
-            case "sagittal":
+            case SliceType.SAGITTAL:
                 sliderMax = this.props.constants.SagittalMax;
                 break;
         }

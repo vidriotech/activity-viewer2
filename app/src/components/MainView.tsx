@@ -42,6 +42,9 @@ import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import {ChevronLeft, ChevronRight} from "@material-ui/icons";
 import Container from "@material-ui/core/Container";
+import {DisplayPanel, DisplayPanelProps} from "./Panels/DisplayPanel";
+import {HeaderPanel} from "./Panels/HeaderPanel";
+import {QueryPanel} from "./Panels/QueryPanel";
 
 interface UnitStatsData {
     penetrationId: string;
@@ -65,6 +68,9 @@ interface MainViewState extends AestheticProps {
 
     compartmentListHidden: boolean;
     unitTableHidden: boolean;
+
+    showDisplayLeft: boolean;
+    showDisplayRight: boolean;
 }
 
 export class MainView extends React.Component<MainViewProps, MainViewState> {
@@ -106,6 +112,9 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
             compartmentListHidden: false,
             unitTableHidden: false,
+
+            showDisplayLeft: true,
+            showDisplayRight: true,
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -183,7 +192,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.setState(aestheticProps);
     }
 
-    private handleFilterPredicateUpdate(predicate: Predicate, newStat = "nothing"): void {
+    private handleUpdateFilterPredicate(predicate: Predicate, newStat = "nothing"): void {
         if (newStat !== 'nothing' && !this.statsData.has(newStat)) {
             this.apiClient.fetchUnitStatsById(newStat)
                 .then((res) => res.data)
@@ -303,33 +312,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     }
 
     public render(): React.ReactNode {
-        const viewerContainerProps: ViewerContainerProps = {
-            compartmentViewTree: this.state.compartmentViewTree,
-            constants: this.props.constants,
-            settings: this.props.settings,
-
-            colorTimeseries: this.state.colorTimeseries,
-            colorBounds: this.state.colorBounds,
-            colorGamma: this.state.colorGamma,
-            colorMapping: this.state.colorMapping,
-            opacityTimeseries: this.state.opacityTimeseries,
-            opacityBounds: this.state.opacityBounds,
-            opacityGamma: this.state.opacityGamma,
-            radiusTimeseries: this.state.radiusTimeseries,
-            radiusBounds: this.state.radiusBounds,
-            radiusGamma: this.state.radiusGamma,
-
-            availablePenetrations: this.state.availablePenetrations,
-            busy: this.isBusy,
-            progress: this.state.progress,
-            progressMessage: this.state.progressMessage,
-
-            onFilterPredicateUpdate: this.handleFilterPredicateUpdate.bind(this),
-            onProgressUpdate: (progress: number, progressMessage: string): void => {
-                this.setState({progress, progressMessage})
-            },
-        }
-
         const timeseriesControlsProps: TimeseriesMappersProps = {
             busy: this.isBusy,
             constants: this.props.constants,
@@ -366,7 +348,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 [] : _.union(
                     ...(this.statsData.get(this.state.selectedStat).map(entry => entry.values))
                 ),
-            onFilterPredicateUpdate: this.handleFilterPredicateUpdate.bind(this),
+            onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
             onStatSelectionChange: this.handleStatSelectionChange.bind(this),
             onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
         }
@@ -392,60 +374,98 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         const clWidth = this.state.compartmentListHidden ? 0 : 3;
         const vcWidth = 12 - utWidth - clWidth as 6 | 9 | 12;
 
-        // onTogglePanelVisible: () => {
-        //
-        // },
+        const displayPanelProps: DisplayPanelProps = {
+            availablePenetrations: this.state.availablePenetrations,
+            compartmentViewTree: this.state.compartmentViewTree,
+            constants: this.props.constants,
+            settings: this.props.settings,
+
+            colorTimeseries: this.state.colorTimeseries,
+            colorBounds: this.state.colorBounds,
+            colorGamma: this.state.colorGamma,
+            colorMapping: this.state.colorMapping,
+            opacityTimeseries: this.state.opacityTimeseries,
+            opacityBounds: this.state.opacityBounds,
+            opacityGamma: this.state.opacityGamma,
+            radiusTimeseries: this.state.radiusTimeseries,
+            radiusBounds: this.state.radiusBounds,
+            radiusGamma: this.state.radiusGamma,
+
+            busy: this.isBusy,
+            progress: this.state.progress,
+            progressMessage: this.state.progressMessage,
+
+            onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
+            onUpdateProgress: (progress: number, progressMessage: string): void => {
+                this.setState({progress, progressMessage})
+            }
+        }
 
         const style = { padding: 30 };
         return (
             <div style={style}>
-                <Grid container
-                      spacing={2}>
+                <Grid container>
                     <Grid item xs={12}>
-                        <FilterControls {...filterControlProps} />
+                        <HeaderPanel busy />
                     </Grid>
-                    {this.state.unitTableHidden ?
-                        null :
-                        <Grid item xs={3}>
-                            {/* <UnitList {...unitListProps}/> */}
-                            <UnitTable {...unitTableProps} />
-                        </Grid>
-                    }
-                    <Grid item xs={vcWidth}>
-                        <div>
-                            <Grid container xs={12}>
-                                <Grid item xs={2}>
-                                    <IconButton edge="start"
-                                                onClick={(): void => {
-                                                    this.setState({unitTableHidden: !this.state.unitTableHidden})
-                                                }} >
-                                        {this.state.unitTableHidden ? <ChevronRight /> : <ChevronLeft />}
-                                    </IconButton>
-                                </Grid>
-                                <Grid item xs={8}></Grid>
-                                <Grid item xs={2}>
-                                    <IconButton edge="end"
-                                                onClick={(): void => {
-                                                    this.setState({compartmentListHidden: !this.state.compartmentListHidden})
-                                                }} >
-                                        {this.state.compartmentListHidden ? <ChevronLeft /> : <ChevronRight />}
-                                    </IconButton>
-                                </Grid>
-                            </Grid>
-                        </div>
-                        <ViewerContainer {...viewerContainerProps} />
+                    <Grid item xs={12}>
+                        <QueryPanel busy />
                     </Grid>
-                    {this.state.compartmentListHidden ?
-                        null :
-                        <Grid item xs={3}>
-                            <CompartmentList {...compartmentListProps} />
-                        </Grid>
-                    }
-                    <Grid item xs>
-                        <TimeseriesMappers {...timeseriesControlsProps}/>
+                    <Grid item xs={12}>
+                        <DisplayPanel {...displayPanelProps} />
                     </Grid>
                 </Grid>
             </div>
         );
+        // return (
+        //     <div style={style}>
+        //         <Grid container
+        //               spacing={2}>
+        //             <Grid item xs={12}>
+        //                 <FilterControls {...filterControlProps} />
+        //             </Grid>
+        //             {this.state.unitTableHidden ?
+        //                 null :
+        //                 <Grid item xs={3}>
+        //                     {/* <UnitList {...unitListProps}/> */}
+        //                     <UnitTable {...unitTableProps} />
+        //                 </Grid>
+        //             }
+        //             <Grid item xs={vcWidth}>
+        //                 <div>
+        //                     <Grid container xs={12}>
+        //                         <Grid item xs={2}>
+        //                             <IconButton edge="start"
+        //                                         onClick={(): void => {
+        //                                             this.setState({unitTableHidden: !this.state.unitTableHidden})
+        //                                         }} >
+        //                                 {this.state.unitTableHidden ? <ChevronRight /> : <ChevronLeft />}
+        //                             </IconButton>
+        //                         </Grid>
+        //                         <Grid item xs={8}></Grid>
+        //                         <Grid item xs={2}>
+        //                             <IconButton edge="end"
+        //                                         onClick={(): void => {
+        //                                             this.setState({compartmentListHidden: !this.state.compartmentListHidden})
+        //                                         }} >
+        //                                 {this.state.compartmentListHidden ? <ChevronLeft /> : <ChevronRight />}
+        //                             </IconButton>
+        //                         </Grid>
+        //                     </Grid>
+        //                 </div>
+        //                 <ViewerContainer {...viewerContainerProps} />
+        //             </Grid>
+        //             {this.state.compartmentListHidden ?
+        //                 null :
+        //                 <Grid item xs={3}>
+        //                     <CompartmentList {...compartmentListProps} />
+        //                 </Grid>
+        //             }
+        //             <Grid item xs>
+        //                 <TimeseriesMappers {...timeseriesControlsProps}/>
+        //             </Grid>
+        //         </Grid>
+        //     </div>
+        // );
     }
 }

@@ -1,5 +1,5 @@
+import enum
 import json
-from math import nan
 from pathlib import Path
 import shutil
 from tempfile import mkdtemp
@@ -16,6 +16,11 @@ from activity_viewer.settings import AVSettings, make_default_settings
 app = Flask(__name__)
 CORS(app)
 state = APIState()
+
+
+class SliceType(enum.Enum):
+    CORONAL = 0
+    SAGITTAL = 1
 
 
 @app.route("/")
@@ -242,15 +247,16 @@ def get_slices(slice_type: str, coordinate: float):
     coordinate = float(coordinate)
     rotate = 0
 
-    if slice_type == "coronal":
+    if slice_type == SliceType.CORONAL:
         template_slice = state.get_coronal_template_slice(coordinate)
         annotation_rgb = state.get_coronal_annotation_rgb(coordinate)
         annotation_slice = state.get_coronal_annotation_slice(coordinate)
-    elif slice_type == "sagittal":
+    elif slice_type == SliceType.SAGITTAL:
         template_slice = state.get_sagittal_template_slice(coordinate)
         annotation_rgb = state.get_sagittal_annotation_rgb(coordinate)
         annotation_slice = state.get_sagittal_annotation_slice(coordinate)
         rotate = 1
+        slice_type = 1
     else:
         template_slice = annotation_rgb = annotation_slice = None
 
@@ -276,12 +282,6 @@ def get_slices(slice_type: str, coordinate: float):
 
 @app.route("/timeseries")
 def get_timeseries_by_id():
-    """
-
-    Returns
-    -------
-
-    """
     page = request.args.get("page", type=int, default=1)
     limit = request.args.get("limit", type=int, default=10)
     timeseries_ids = request.args.get("timeseriesIds", type=str, default="").split(",")

@@ -6,7 +6,7 @@ import {
     PenetrationResponse,
     SettingsRequest,
     SliceData,
-    SliceType, UnitStatsListResponse,
+    UnitStatsListResponse,
 // eslint-disable-next-line import/no-unresolved
 } from "./models/apiModels";
 // eslint-disable-next-line import/no-unresolved
@@ -15,6 +15,8 @@ import {ColorLUT} from "./models/colorMap";
 import {TimeseriesData, TimeseriesSummary} from "./models/timeseries";
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping, AestheticParams} from "./models/aestheticMapping";
+// eslint-disable-next-line import/no-unresolved
+import {SliceType} from "./models/enums";
 
 
 export interface AestheticRequest {

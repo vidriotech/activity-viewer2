@@ -23,7 +23,7 @@ export interface PredicateListProps {
     busy: boolean;
     compartmentTree: CompartmentTree;
     filterPredicate: Predicate;
-    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void;
+    onUpdateFilterPredicate(predicate: Predicate, newStat: string): void;
 }
 
 interface PredicateListState {
@@ -92,7 +92,7 @@ export class PredicateList extends React.Component<PredicateListProps, Predicate
         }
 
         this.resetForm();
-        this.props.onFilterPredicateUpdate(
+        this.props.onUpdateFilterPredicate(
             predicate,
             isPropPredicate ? 'nothing' : this.state.currentCondition,
         );
@@ -106,7 +106,7 @@ export class PredicateList extends React.Component<PredicateListProps, Predicate
 
     private handleDeleteSubpredicate(indexChain: number[]) {
         if (indexChain.length === 0) { // delete entire filter
-            this.props.onFilterPredicateUpdate(null, 'nothing');
+            this.props.onUpdateFilterPredicate(null, 'nothing');
         } else {
             const deleteSubpredicate = (predicate: PredicateChain, indexChain: number[]): Predicate => {
                 const idx = indexChain[0];
@@ -147,7 +147,7 @@ export class PredicateList extends React.Component<PredicateListProps, Predicate
                 _.clone(indexChain)
             );
 
-            this.props.onFilterPredicateUpdate(predicate, 'nothing');
+            this.props.onUpdateFilterPredicate(predicate, 'nothing');
         }
     }
 

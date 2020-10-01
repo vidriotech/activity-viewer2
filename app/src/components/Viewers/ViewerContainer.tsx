@@ -16,35 +16,40 @@ import Radio from "@material-ui/core/Radio";
 // eslint-disable-next-line import/no-unresolved
 import {APIClient} from "../../apiClient";
 // eslint-disable-next-line import/no-unresolved
-import { AVConstants } from "../../constants";
+import {AVConstants} from "../../constants";
 
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping, ColorMapping, ScalarMapping, TransformParams} from "../../models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
-import {AVSettings, PenetrationData, SliceType} from "../../models/apiModels";
+import {AVSettings, PenetrationData} from "../../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "../../models/colorMap";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate, PropEqPredicate, PropIneqPredicate} from "../../models/predicateModels";
+import {SliceImageType, SliceType} from "../../models/enums";
+// eslint-disable-next-line import/no-unresolved
+import {Predicate, PropIneqPredicate} from "../../models/predicateModels";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesData, TimeseriesSummary} from "../../models/timeseries";
 // eslint-disable-next-line import/no-unresolved
-import { CompartmentNodeView } from "../../viewmodels/compartmentViewModel";
+import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
 // eslint-disable-next-line import/no-unresolved
-import {PenetrationViewModel} from "../../viewmodels/penetrationViewModel";
-
 // eslint-disable-next-line import/no-unresolved
 import {BaseViewer} from "../../viewers/baseViewer";
 // eslint-disable-next-line import/no-unresolved
 import {BrainViewer} from "../../viewers/brainViewer";
 // eslint-disable-next-line import/no-unresolved
-import {ImageType, SliceViewer} from "../../viewers/sliceViewer";
+import {SliceViewer} from "../../viewers/sliceViewer";
 
 // eslint-disable-next-line import/no-unresolved
-import { PlayerSlider, PlayerSliderProps } from "./PlayerSlider";
+import {PlayerSlider, PlayerSliderProps} from "./PlayerSlider";
 // eslint-disable-next-line import/no-unresolved
 import {SliceControl} from "./SliceControl";
 import Typography from "@material-ui/core/Typography";
+// eslint-disable-next-line import/no-unresolved
+import {headerStyle} from "../../styles";
+import {ChevronLeft, ChevronRight, ExpandLess, ExpandMore} from "@material-ui/icons";
+import Box from "@material-ui/core/Box";
+import IconButton from "@material-ui/core/IconButton";
 
 type ViewerType = "3D" | "slice" | "penetration";
 
@@ -69,14 +74,18 @@ export interface ViewerContainerProps {
     progress: number;
     progressMessage: string;
 
-    onFilterPredicateUpdate(predicate: Predicate, newStat?: string): void;
-    onProgressUpdate(progress: number, progressMessage: string): void;
+    showLeft: boolean;
+    showRight: boolean;
+
+    onExpandContract(side: "l" | "r"): void;
+    onUpdateFilterPredicate(predicate: Predicate, newStat?: string): void;
+    onUpdateProgress(progress: number, progressMessage: string): void;
 }
 
 interface ViewerContainerState {
     dialogOpen: boolean;
     frameRate: number;
-    imageType: ImageType;
+    imageType: SliceImageType;
     renderHeight: number;
     renderWidth: number;
     viewerType: ViewerType;
@@ -118,7 +127,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         this.state = {
             dialogOpen: false,
             frameRate: 30,
-            imageType: "annotation",
+            imageType: SliceImageType.ANNOTATION,
             renderHeight: 0,
             renderWidth: 0,
             viewerType: "3D",
@@ -200,7 +209,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 .then((res) => res.data)
                 .then((sliceData) => {
                     v = new SliceViewer(this.props.constants, this.props.settings.epochs, sliceData);
-                    (v as SliceViewer).imageType = this.state.imageType;
+                    v.imageType = this.state.imageType;
                     this.initViewer(v);
                 });
         }
@@ -296,7 +305,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                             "Ready." :
                             `Fetched ${progress}/${nTimeseriesToFetch} timeseries.`;
 
-                        this.props.onProgressUpdate(progress / (coef * nPenetrations), progressMessage);
+                        this.props.onUpdateProgress(progress / (coef * nPenetrations), progressMessage);
                         this.fetchAndUpdateTimeseriesData(timeseriesId);
                     })
                     .catch((err) => console.error(err));
@@ -337,10 +346,10 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     private handleSliceCommit(sliceType: SliceType, sliceBounds: number[]): void {
         let boundsPredicate: PropIneqPredicate;
         switch (sliceType) {
-            case "coronal":
+            case SliceType.CORONAL:
                 boundsPredicate = new PropIneqPredicate("x", sliceBounds[0], sliceBounds[2]);
                 break;
-            case "sagittal":
+            case SliceType.SAGITTAL:
                 boundsPredicate = new PropIneqPredicate("z", sliceBounds[0], sliceBounds[2]);
                 break;
         }
@@ -349,7 +358,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         this.sliceBounds = sliceBounds;
 
         this.setState({dialogOpen: false, viewerType: "slice"}, () => {
-            this.props.onFilterPredicateUpdate(boundsPredicate);
+            this.props.onUpdateFilterPredicate(boundsPredicate);
         });
     }
 
@@ -441,6 +450,45 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             viewer.setCompartmentVisible(compartmentNodeView);
             queue = queue.concat(compartmentNodeView.children);
         }
+    }
+
+    private renderHeader(): React.ReactElement {
+        const expandContractLeft = this.props.showLeft ?
+            null :
+            <Grid container item
+                  justify="flex-start"
+                  xs={3}>
+                <IconButton color="inherit"
+                            size="small"
+                            onClick={(): void => this.props.onExpandContract("l")}>
+                    <ChevronRight />
+                </IconButton>
+            </Grid>;
+
+        const expandContractRight = this.props.showRight ?
+            null :
+            <Grid container item
+                  justify="flex-end"
+                  xs={3}>
+                <IconButton color="inherit"
+                            size="small"
+                            onClick={(): void => this.props.onExpandContract("r")}>
+                    <ChevronLeft />
+                </IconButton>
+            </Grid>;
+
+        return <div style={headerStyle}>
+            <Grid container
+                  spacing={0} >
+                {expandContractLeft}
+                <Grid container item xs>
+                    <LinearProgress color="secondary"
+                                    variant="determinate"
+                                    value={100 * this.props.progress} />
+                </Grid>
+                {expandContractRight}
+            </Grid>
+        </div>
     }
 
     private renderPenetrations(): void {
@@ -650,7 +698,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     public componentDidMount(): void {
         window.addEventListener("resize", () => this.updateDims());
 
-        this.createAndRender();
+        // this.createAndRender();
     }
 
     public componentDidUpdate(
@@ -722,103 +770,103 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     public render(): React.ReactNode {
-        const playerSliderProps: PlayerSliderProps = {
-            busy: this.props.busy,
-            frameRate: this.state.frameRate,
-            isPlaying: this.state.isPlaying,
-            isRecording: this.state.isRecording,
-            loopAnimation: this.state.loopAnimation,
-            timeMax: this.state.timeMax,
-            timeMin: this.state.timeMin,
-            timeStep: this.state.timeStep,
-            timeVal: this.state.timeVal,
-            onFrameRateUpdate: (frameRate: number): void => {
-                this.setState({frameRate});
-            },
-            onLoopToggle: this.handleLoopToggle.bind(this),
-            onPlayToggle: this.handlePlayToggle.bind(this),
-            onRecordToggle: this.handleRecordToggle.bind(this),
-            onSliderChange: this.handleSliderChange.bind(this),
-            onStopClick: this.handleStopClick.bind(this),
-        };
+        // const playerSliderProps: PlayerSliderProps = {
+        //     busy: this.props.busy,
+        //     frameRate: this.state.frameRate,
+        //     isPlaying: this.state.isPlaying,
+        //     isRecording: this.state.isRecording,
+        //     loopAnimation: this.state.loopAnimation,
+        //     timeMax: this.state.timeMax,
+        //     timeMin: this.state.timeMin,
+        //     timeStep: this.state.timeStep,
+        //     timeVal: this.state.timeVal,
+        //     onFrameRateUpdate: (frameRate: number): void => {
+        //         this.setState({frameRate});
+        //     },
+        //     onLoopToggle: this.handleLoopToggle.bind(this),
+        //     onPlayToggle: this.handlePlayToggle.bind(this),
+        //     onRecordToggle: this.handleRecordToggle.bind(this),
+        //     onSliderChange: this.handleSliderChange.bind(this),
+        //     onStopClick: this.handleStopClick.bind(this),
+        // };
+        //
+        // const dialog = (
+        //     <Dialog fullWidth
+        //             open={this.state.dialogOpen}
+        //             onClose={(): void => this.setState({dialogOpen: false})}>
+        //         <DialogTitle id={"form-dialog-title"}>Slice and dice</DialogTitle>
+        //         <DialogContent>
+        //             <SliceControl constants={this.props.constants}
+        //                           onCommit={this.handleSliceCommit.bind(this)} />
+        //         </DialogContent>
+        //     </Dialog>
+        // );
+        //
+        // const buttonText = this.state.viewerType === "3D" ?
+        //     "Slice and dice" :
+        //     "Return to 3D";
+        //
+        // const imageTypeSwitch = (
+        //     <FormControl component="fieldset">
+        //         <FormLabel component="legend">Image type</FormLabel>
+        //         <RadioGroup row
+        //                     aria-label="image type"
+        //                     name="imgType"
+        //                     value={this.state.imageType}
+        //                     onChange={(evt): void => {
+        //                         this.setState({imageType: SliceImageType.ANNOTATION})
+        //                     }}>
+        //             <FormControlLabel value="annotation"
+        //                               disabled={this.props.busy}
+        //                               control={<Radio />}
+        //                               label="A" />
+        //             <FormControlLabel value="template"
+        //                               disabled={this.props.busy}
+        //                               control={<Radio />}
+        //                               label="T" />
+        //         </RadioGroup>
+        //     </FormControl>
+        // );
 
-        const dialog = (
-            <Dialog fullWidth
-                    open={this.state.dialogOpen}
-                    onClose={(): void => this.setState({dialogOpen: false})}>
-                <DialogTitle id={"form-dialog-title"}>Slice and dice</DialogTitle>
-                <DialogContent>
-                    <SliceControl constants={this.props.constants}
-                                  onCommit={this.handleSliceCommit.bind(this)} />
-                </DialogContent>
-            </Dialog>
-        );
+        // const switchButton = (
+        //     <div>
+        //         <Button disabled={this.props.busy}
+        //                 color={"primary"}
+        //                 variant={"contained"}
+        //                 onClick={this.handleViewerChange.bind(this)}>
+        //             {buttonText}
+        //         </Button>
+        //         {this.state.viewerType === "slice" ? imageTypeSwitch : null}
+        //     </div>
+        // );
 
-        const buttonText = this.state.viewerType === "3D" ?
-            "Slice and dice" :
-            "Return to 3D";
-
-        const imageTypeSwitch = (
-            <FormControl component="fieldset">
-                <FormLabel component="legend">Image type</FormLabel>
-                <RadioGroup row
-                            aria-label="image type"
-                            name="imgType"
-                            value={this.state.imageType}
-                            onChange={(evt): void => {
-                                this.setState({imageType: evt.target.value as ImageType})
-                            }}>
-                    <FormControlLabel value="annotation"
-                                      disabled={this.props.busy}
-                                      control={<Radio />}
-                                      label="A" />
-                    <FormControlLabel value="template"
-                                      disabled={this.props.busy}
-                                      control={<Radio />}
-                                      label="T" />
-                </RadioGroup>
-            </FormControl>
-        );
-
-        const switchButton = (
-            <div>
-                <Button disabled={this.props.busy}
-                        color={"primary"}
-                        variant={"contained"}
-                        onClick={this.handleViewerChange.bind(this)}>
-                    {buttonText}
-                </Button>
-                {this.state.viewerType === "slice" ? imageTypeSwitch : null}
-            </div>
-        );
-
-        return (
-            <Grid container>
-                <Grid container item
-                      xs={12}>
-                    <Grid item xs={12}>
-                        <Typography gutterBottom>
-                            {this.props.progressMessage}
-                        </Typography>
-                        <LinearProgress variant="determinate"
-                                        value={100 * this.props.progress} />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <div style={{ padding: 40 }}
-                             id={this.canvasContainerId}>
-                        </div>
-                    </Grid>
-                </Grid>
-                <Grid item xs={4}>
-                    {switchButton}
-                </Grid>
-                <Grid item xs={8}>
-                    <PlayerSlider {...playerSliderProps} />
-                </Grid>
-                <Grid item xs>
-                    {dialog}
-                </Grid>
-            </Grid>
-        );
+        const header = this.renderHeader();
+        return header;
+        // return (
+        //     <Grid container>
+        //         <Grid container item
+        //               xs={12}>
+        //             <Grid item xs={12}>
+        //                 <Typography gutterBottom>
+        //                     {this.props.progressMessage}
+        //                 </Typography>
+        //             </Grid>
+        //             <Grid item xs={12}>
+        //                 <div style={{ padding: 40 }}
+        //                      id={this.canvasContainerId}>
+        //                 </div>
+        //             </Grid>
+        //         </Grid>
+        //         <Grid item xs={4}>
+        //             {switchButton}
+        //         </Grid>
+        //         <Grid item xs={8}>
+        //             <PlayerSlider {...playerSliderProps} />
+        //         </Grid>
+        //         <Grid item xs>
+        //             {dialog}
+        //         </Grid>
+        //     </Grid>
+        // );
     }
 }

@@ -31,7 +31,7 @@ export interface FilterControlsProps {
     filterPredicate: Predicate;
     selectedStat: string;
     settings: AVSettings;
-    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void;
+    onUpdateFilterPredicate(predicate: Predicate, newStat: string): void;
     onStatSelectionChange(event: any): void;
     onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
 }
@@ -42,7 +42,7 @@ export function FilterControls(props: FilterControlsProps) {
         busy: props.busy,
         compartmentTree: props.compartmentTree,
         filterPredicate: props.filterPredicate,
-        onFilterPredicateUpdate: props.onFilterPredicateUpdate,
+        onUpdateFilterPredicate: props.onUpdateFilterPredicate,
     };
 
     const histogramProps: StatsHistogramProps = {
@@ -53,7 +53,7 @@ export function FilterControls(props: FilterControlsProps) {
         selectedStat: props.selectedStat,
         statName: props.selectedStat,
         width: 400,
-        onFilterPredicateUpdate: props.onFilterPredicateUpdate,
+        onUpdateFilterPredicate: props.onUpdateFilterPredicate,
         onStatSelectionChange: props.onStatSelectionChange,
     }
 
