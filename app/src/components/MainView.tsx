@@ -59,7 +59,6 @@ export interface MainViewProps {
 
 interface MainViewState extends AestheticProps {
     availablePenetrations: PenetrationData[];
-    compartmentSubsetOnly: boolean;
     compartmentViewTree: CompartmentNodeView;
     filterPredicate: Predicate;
     progress: number;
@@ -104,7 +103,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
             filterPredicate: null,
 
-            compartmentSubsetOnly: true,
             compartmentViewTree: compartmentViewTree,
 
             progress: 1,
@@ -220,11 +218,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.fetchAndUpdateUnitStats(value);
     }
 
-    private handleToggleCompartmentVisible(rootNode: CompartmentNodeView): void {
-        this.setState({ compartmentViewTree: rootNode });
-    }
-
-    public handleUnitExportRequest(): void {
+    public handleRequestUnitExport(): void {
         const unitExport: ExportingUnit[] = [];
         this.state.availablePenetrations.forEach((penetrationData) => {
             unitExport.push({
@@ -350,24 +344,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 ),
             onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
             onStatSelectionChange: this.handleStatSelectionChange.bind(this),
-            onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
-        }
-
-        const compartmentListProps: CompartmentListProps = {
-            availablePenetrations: this.state.availablePenetrations,
-            busy: this.isBusy,
-            hidden: this.state.compartmentListHidden,
-            compartmentSubsetOnly: this.state.compartmentSubsetOnly,
-            compartmentViewTree: this.state.compartmentViewTree,
-            constants: this.props.constants,
-            settings: this.props.settings,
-            onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
-        }
-
-        const unitTableProps: UnitTableProps = {
-            availablePenetrations: this.state.availablePenetrations,
-            busy: this.isBusy,
-            onUnitExportRequest: this.handleUnitExportRequest.bind(this),
         }
 
         const utWidth = this.state.unitTableHidden ? 0 : 3;
@@ -395,6 +371,10 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             progress: this.state.progress,
             progressMessage: this.state.progressMessage,
 
+            onToggleCompartmentVisible: (rootNode: CompartmentNodeView): void => {
+                this.setState({ compartmentViewTree: rootNode })
+            },
+            onRequestUnitExport: this.handleRequestUnitExport.bind(this),
             onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
             onUpdateProgress: (progress: number, progressMessage: string): void => {
                 this.setState({progress, progressMessage})
@@ -424,13 +404,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         //             <Grid item xs={12}>
         //                 <FilterControls {...filterControlProps} />
         //             </Grid>
-        //             {this.state.unitTableHidden ?
-        //                 null :
-        //                 <Grid item xs={3}>
-        //                     {/* <UnitList {...unitListProps}/> */}
-        //                     <UnitTable {...unitTableProps} />
-        //                 </Grid>
-        //             }
+
         //             <Grid item xs={vcWidth}>
         //                 <div>
         //                     <Grid container xs={12}>
@@ -457,9 +431,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         //             </Grid>
         //             {this.state.compartmentListHidden ?
         //                 null :
-        //                 <Grid item xs={3}>
-        //                     <CompartmentList {...compartmentListProps} />
-        //                 </Grid>
+
         //             }
         //             <Grid item xs>
         //                 <TimeseriesMappers {...timeseriesControlsProps}/>

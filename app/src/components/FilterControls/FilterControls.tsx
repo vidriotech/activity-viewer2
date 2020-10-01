@@ -33,7 +33,6 @@ export interface FilterControlsProps {
     settings: AVSettings;
     onUpdateFilterPredicate(predicate: Predicate, newStat: string): void;
     onStatSelectionChange(event: any): void;
-    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
 }
 
 export function FilterControls(props: FilterControlsProps) {

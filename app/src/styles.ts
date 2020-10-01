@@ -4,7 +4,7 @@ export const tab10Orange = "rgb(255, 127, 14)";
 export const headerStyle = {
     backgroundColor: tab10Blue,
     color: "white",
-    height: "40px",
+    height: "30px",
     width: "100%",
     margin: 0,
     padding: "10px",

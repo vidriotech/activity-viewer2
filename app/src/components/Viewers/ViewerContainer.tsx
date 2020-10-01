@@ -50,6 +50,7 @@ import {headerStyle} from "../../styles";
 import {ChevronLeft, ChevronRight, ExpandLess, ExpandMore} from "@material-ui/icons";
 import Box from "@material-ui/core/Box";
 import IconButton from "@material-ui/core/IconButton";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 type ViewerType = "3D" | "slice" | "penetration";
 
@@ -71,13 +72,7 @@ export interface ViewerContainerProps {
 
     availablePenetrations: PenetrationData[];
     busy: boolean;
-    progress: number;
-    progressMessage: string;
 
-    showLeft: boolean;
-    showRight: boolean;
-
-    onExpandContract(side: "l" | "r"): void;
     onUpdateFilterPredicate(predicate: Predicate, newStat?: string): void;
     onUpdateProgress(progress: number, progressMessage: string): void;
 }
@@ -185,7 +180,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
 
         const width = container.clientWidth;
-        const height = width / 1.85; // 1.85:1 aspect ratio
+        const height = 500;
 
         return { width, height };
     }
@@ -452,45 +447,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    private renderHeader(): React.ReactElement {
-        const expandContractLeft = this.props.showLeft ?
-            null :
-            <Grid container item
-                  justify="flex-start"
-                  xs={3}>
-                <IconButton color="inherit"
-                            size="small"
-                            onClick={(): void => this.props.onExpandContract("l")}>
-                    <ChevronRight />
-                </IconButton>
-            </Grid>;
-
-        const expandContractRight = this.props.showRight ?
-            null :
-            <Grid container item
-                  justify="flex-end"
-                  xs={3}>
-                <IconButton color="inherit"
-                            size="small"
-                            onClick={(): void => this.props.onExpandContract("r")}>
-                    <ChevronLeft />
-                </IconButton>
-            </Grid>;
-
-        return <div style={headerStyle}>
-            <Grid container
-                  spacing={0} >
-                {expandContractLeft}
-                <Grid container item xs>
-                    <LinearProgress color="secondary"
-                                    variant="determinate"
-                                    value={100 * this.props.progress} />
-                </Grid>
-                {expandContractRight}
-            </Grid>
-        </div>
-    }
-
     private renderPenetrations(): void {
         if (this.viewer === null) {
             return;
@@ -698,7 +654,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     public componentDidMount(): void {
         window.addEventListener("resize", () => this.updateDims());
 
-        // this.createAndRender();
+        this.createAndRender();
     }
 
     public componentDidUpdate(
@@ -840,33 +796,26 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         //     </div>
         // );
 
-        const header = this.renderHeader();
-        return header;
-        // return (
-        //     <Grid container>
-        //         <Grid container item
-        //               xs={12}>
-        //             <Grid item xs={12}>
-        //                 <Typography gutterBottom>
-        //                     {this.props.progressMessage}
-        //                 </Typography>
-        //             </Grid>
-        //             <Grid item xs={12}>
-        //                 <div style={{ padding: 40 }}
-        //                      id={this.canvasContainerId}>
-        //                 </div>
-        //             </Grid>
-        //         </Grid>
-        //         <Grid item xs={4}>
-        //             {switchButton}
-        //         </Grid>
-        //         <Grid item xs={8}>
-        //             <PlayerSlider {...playerSliderProps} />
-        //         </Grid>
-        //         <Grid item xs>
-        //             {dialog}
-        //         </Grid>
-        //     </Grid>
-        // );
+        return (
+            <Grid container>
+                <Grid container item
+                      xs={12}>
+                    <Grid item xs={12}>
+                        <div style={{ padding: 40 }}
+                             id={this.canvasContainerId}>
+                        </div>
+                    </Grid>
+                </Grid>
+                {/*<Grid item xs={4}>*/}
+                {/*    {switchButton}*/}
+                {/*</Grid>*/}
+                {/*<Grid item xs={8}>*/}
+                {/*    <PlayerSlider {...playerSliderProps} />*/}
+                {/*</Grid>*/}
+                {/*<Grid item xs>*/}
+                {/*    {dialog}*/}
+                {/*</Grid>*/}
+            </Grid>
+        );
     }
 }

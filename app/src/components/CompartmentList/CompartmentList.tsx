@@ -20,16 +20,16 @@ import { CompartmentListNode, CompartmentListNodeProps } from './CompartmentList
 import IconButton from "@material-ui/core/IconButton";
 import {ChevronLeft, ChevronRight} from "@material-ui/icons";
 import Grid from "@material-ui/core/Grid";
+import CircularProgress from "@material-ui/core/CircularProgress";
 
 
 export interface CompartmentListProps {
     availablePenetrations: PenetrationData[];
     busy: boolean;
-    compartmentSubsetOnly: boolean;
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
-    hidden: boolean;
     settings: AVSettings;
+
     onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
 }
 
@@ -133,9 +133,6 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
 
         return (
             <Container>
-                <Typography variant='h5' gutterBottom>
-                    Selected compartments
-                </Typography>
                 <Autocomplete multiple
                               disabled={this.props.busy}
                               id='tags-outlined'

@@ -171,7 +171,8 @@ interface UnitData {
 export interface UnitTableProps {
     availablePenetrations: PenetrationData[];
     busy: boolean;
-    onUnitExportRequest(): void;
+
+    onRequestUnitExport(): void;
 }
 
 export function UnitTable(props: UnitTableProps): React.ReactElement {
@@ -197,7 +198,7 @@ export function UnitTable(props: UnitTableProps): React.ReactElement {
         <Container style={{ height: 500, width: '100%' }}>
             <div>
                 <IconButton disabled={props.busy || props.availablePenetrations.length === 0}
-                            onClick={props.onUnitExportRequest} >
+                            onClick={props.onRequestUnitExport} >
                     <SaveIcon />
                 </IconButton>
                 <Typography gutterBottom>
