@@ -72,10 +72,11 @@ export class APIClient {
         };
 
         return axios({
-            "method": "post",
-            "url": `${this.endpoint}/data-file`,
-            "data": data,
-            "timeout": 5000
+            method: "POST",
+            url: `${this.endpoint}/data-file`,
+            data: data,
+            timeout: 5000,
+            responseType: "blob",
         });
     }
 

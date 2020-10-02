@@ -229,16 +229,14 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
         this.apiClient.fetchExportedData(unitExport)
             .then((data) => data.data)
-            .then((data: any) => {
-                console.log(data);
-                window.alert("Data is saved in export.npz");
-                const blob = new Blob([data], {"type": "octet-stream"});
+            .then((data: Blob) => {
+                const blob = new Blob([data]);
                 const url = URL.createObjectURL(blob);
 
                 const a = document.createElement('a');
                 document.body.appendChild(a);
                 a.href = url;
-                a.download = 'export.npz';
+                a.download = "export.npz";
                 a.click();
 
                 window.URL.revokeObjectURL(url);

@@ -83,8 +83,6 @@ def get_export_data_file():
             unit_ids = export_request["unitIds"]
             export_data[penetration_id] = unit_ids
 
-        np.savez(tmpfile, **export_data)
-        shutil.copy2(tmpfile, Path(state.settings.filename.parent, "export.npz"))
         return send_file(tmpfile)
 
 
