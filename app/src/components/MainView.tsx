@@ -231,17 +231,17 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             .then((data) => data.data)
             .then((data: any) => {
                 console.log(data);
-                window.alert('Data is saved in export.npz');
-                const blob = new Blob([data]);
-                // const url = URL.createObjectURL(blob);
+                window.alert("Data is saved in export.npz");
+                const blob = new Blob([data], {"type": "octet-stream"});
+                const url = URL.createObjectURL(blob);
 
-                // let a = document.createElement('a');
-                // document.body.appendChild(a);
-                // a.href = url;
-                // a.download = 'export.npz';
-                // a.click();
+                const a = document.createElement('a');
+                document.body.appendChild(a);
+                a.href = url;
+                a.download = 'export.npz';
+                a.click();
 
-                // window.URL.revokeObjectURL(url);
+                window.URL.revokeObjectURL(url);
             });
     }
 
@@ -381,21 +381,20 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             }
         }
 
-        const style = { padding: 30 };
         return (
-            <div style={style}>
-                <Grid container>
-                    <Grid item xs={12}>
-                        <HeaderPanel busy />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <QueryPanel busy />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <DisplayPanel {...displayPanelProps} />
-                    </Grid>
+            <Grid container
+                  direction="column"
+                  style={{padding: 20}}>
+                <Grid item>
+                    <HeaderPanel busy />
                 </Grid>
-            </div>
+                <Grid item>
+                    <QueryPanel busy />
+                </Grid>
+                <Grid item>
+                    <DisplayPanel {...displayPanelProps} />
+                </Grid>
+            </Grid>
         );
         // return (
         //     <div style={style}>

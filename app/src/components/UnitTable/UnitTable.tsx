@@ -171,8 +171,6 @@ interface UnitData {
 export interface UnitTableProps {
     availablePenetrations: PenetrationData[];
     busy: boolean;
-
-    onRequestUnitExport(): void;
 }
 
 export function UnitTable(props: UnitTableProps): React.ReactElement {
@@ -197,10 +195,6 @@ export function UnitTable(props: UnitTableProps): React.ReactElement {
     return (
         <Container style={{ height: 500, width: '100%' }}>
             <div>
-                <IconButton disabled={props.busy || props.availablePenetrations.length === 0}
-                            onClick={props.onRequestUnitExport} >
-                    <SaveIcon />
-                </IconButton>
                 <Typography gutterBottom>
                     Export selected units to .npz.
                 </Typography>

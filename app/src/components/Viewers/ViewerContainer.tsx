@@ -46,11 +46,12 @@ import {PlayerSlider, PlayerSliderProps} from "./PlayerSlider";
 import {SliceControl} from "./SliceControl";
 import Typography from "@material-ui/core/Typography";
 // eslint-disable-next-line import/no-unresolved
-import {headerStyle} from "../../styles";
+import {headerStyle, tab10Blue} from "../../styles";
 import {ChevronLeft, ChevronRight, ExpandLess, ExpandMore} from "@material-ui/icons";
 import Box from "@material-ui/core/Box";
 import IconButton from "@material-ui/core/IconButton";
 import CircularProgress from "@material-ui/core/CircularProgress";
+import SaveIcon from "@material-ui/icons/Save";
 
 type ViewerType = "3D" | "slice" | "penetration";
 
@@ -72,7 +73,13 @@ export interface ViewerContainerProps {
 
     availablePenetrations: PenetrationData[];
     busy: boolean;
+    progress: number;
+    progressMessage: string;
 
+    showLeft: boolean;
+    showRight: boolean;
+
+    onExpand(side: "l" | "r"): void;
     onUpdateFilterPredicate(predicate: Predicate, newStat?: string): void;
     onUpdateProgress(progress: number, progressMessage: string): void;
 }
@@ -180,7 +187,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
 
         const width = container.clientWidth;
-        const height = 500;
+        const height = 600;
 
         return { width, height };
     }
@@ -445,6 +452,79 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             viewer.setCompartmentVisible(compartmentNodeView);
             queue = queue.concat(compartmentNodeView.children);
         }
+    }
+
+    private renderHeader(): React.ReactElement {
+        const dataPanelHeader = (
+            this.props.showLeft ?
+                null :
+                <Grid container item
+                      justify="flex-start"
+                      xs={1}>
+                    <IconButton color="inherit"
+                                size="small"
+                                onClick={(): void => this.props.onExpand("l")}>
+                        <ChevronRight />
+                    </IconButton>
+                </Grid>
+        );
+
+        const physiologyPanelHeader = (
+            this.props.showRight ?
+                null :
+                <Grid container item
+                      justify="flex-end"
+                      xs={1}>
+                    <IconButton color="inherit"
+                                size="small"
+                                onClick={(): void => this.props.onExpand("r")}>
+                        <ChevronLeft />
+                    </IconButton>
+                </Grid>
+        );
+
+        const xs = 12 - (Number(this.props.showLeft) + Number(this.props.showRight));
+
+        return (
+            <Grid container
+                  item
+                  spacing={0}
+                  style={{
+                      backgroundColor: tab10Blue,
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                      // @ts-ignore
+                      "border-left": "1px solid black",
+                      "border-right": "1px solid black",
+                      "border-bottom": "1px solid black",
+                      color: "white",
+                      height: "50px",
+                      width: "100%",
+                      margin: 0,
+                      padding: "10px",
+                  }}>
+                {dataPanelHeader}
+                <Grid container item xs={xs as 10 | 11 | 12}
+                      justify="flex-start">
+                    {this.props.progress < 1 ?
+                        <Grid item xs={1}>
+                            <CircularProgress color="secondary"
+                                              variant="indeterminate"
+                                              value={100 * this.props.progress}
+                                              size={20} />
+
+                        </Grid> : null
+                    }
+                    {this.props.progress < 1 ?
+                        <Grid item xs>
+                            <Typography align="left" gutterBottom>
+                                {this.props.progressMessage}
+                            </Typography>
+                        </Grid> : null
+                    }
+                </Grid>
+                {physiologyPanelHeader}
+            </Grid>
+        );
     }
 
     private renderPenetrations(): void {
@@ -796,14 +876,25 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         //     </div>
         // );
 
+        const header = this.renderHeader();
+
         return (
             <Grid container>
+                <Grid item xs={12}>
+                    {header}
+                </Grid>
                 <Grid container item
-                      xs={12}>
-                    <Grid item xs={12}>
-                        <div style={{ padding: 40 }}
-                             id={this.canvasContainerId}>
-                        </div>
+                      xs={12}
+                      style={{
+                          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                          // @ts-ignore
+                          "border-left": "1px solid black",
+                          "border-right": "1px solid black",
+                          margin: 0}}>
+                    <Grid item xs={12} id={this.canvasContainerId}>
+                        {/*<div style={{ padding: 40 }}*/}
+                        {/*     id={this.canvasContainerId}>*/}
+                        {/*</div>*/}
                     </Grid>
                 </Grid>
                 {/*<Grid item xs={4}>*/}

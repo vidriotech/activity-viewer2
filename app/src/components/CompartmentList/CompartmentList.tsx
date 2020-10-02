@@ -134,6 +134,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
         return (
             <Container>
                 <Autocomplete multiple
+                              size="small"
                               disabled={this.props.busy}
                               id='tags-outlined'
                               options={compartmentList}

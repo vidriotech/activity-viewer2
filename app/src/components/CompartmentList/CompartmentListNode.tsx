@@ -35,7 +35,7 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
         super(props);
 
         this.state = {
-            open: false,
+            open: props.compartmentNodeView.name === "root",
         }
     }
 
@@ -81,7 +81,7 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
             <Collapse in={this.state.open}
                       timeout='auto'
                       unmountOnExit
-                      style={{ paddingLeft: 12 }}
+                      style={{ paddingLeft: 16 }}
                       key={`${this.props.compartmentNodeView.acronym}-children`}>
                 <List>
                     {children.map((child) => (

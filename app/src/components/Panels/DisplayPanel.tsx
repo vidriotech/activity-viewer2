@@ -1,6 +1,9 @@
 import React from "react";
 
+import CircularProgress from "@material-ui/core/CircularProgress";
 import Grid from "@material-ui/core/Grid";
+import SaveIcon from "@material-ui/icons/Save";
+import Typography from "@material-ui/core/Typography";
 
 // eslint-disable-next-line import/no-unresolved
 import {AVConstants} from "../../constants";
@@ -21,9 +24,12 @@ import {UnitTable, UnitTableProps} from "../UnitTable/UnitTable";
 import {ViewerContainer, ViewerContainerProps} from "../Viewers/ViewerContainer";
 import IconButton from "@material-ui/core/IconButton";
 import {ChevronLeft, ChevronRight} from "@material-ui/icons";
+// eslint-disable-next-line import/no-unresolved
 import {headerStyle} from "../../styles";
-import CircularProgress from "@material-ui/core/CircularProgress";
-import Typography from "@material-ui/core/Typography";
+
+// eslint-disable-next-line import/no-unresolved
+import {PhysiologyPanel, PhysiologyPanelProps} from "./PhysiologyPanel";
+import {DataPanel, DataPanelProps} from "./DataPanel";
 
 export interface DisplayPanelProps {
     availablePenetrations: PenetrationData[];
@@ -69,113 +75,22 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         };
     }
 
-    private renderHeader(): React.ReactElement {
-        const xs = 12 - (this.state.showLeft ? 3 : 1) - (this.state.showRight ? 3 : 1);
-        const expandContractLeft = this.state.showLeft ?
-            <Grid container item
-                  justify="flex-end"
-                  xs={3}>
-                <Grid item xs>
-                    <Typography align="center"
-                                variant="h6"
-                                component="h4"
-                                gutterBottom>
-                        Units
-                    </Typography>
-                </Grid>
-                <Grid item xs={1}>
-                    <IconButton color="inherit"
-                                size="small"
-                                onClick={(): void => {
-                                    this.setState({showLeft: false})
-                                }}>
-                        <ChevronLeft />
-                    </IconButton>
-                </Grid>
-            </Grid> :
-            <Grid container item
-                  justify="flex-start"
-                  xs={1}>
-                <IconButton color="inherit"
-                            size="small"
-                            onClick={(): void => {
-                                this.setState({showLeft: true})
-                            }}>
-                    <ChevronRight />
-                </IconButton>
-            </Grid>;
-
-        const expandContractRight = this.state.showRight ?
-            <Grid container item
-                  justify="flex-start"
-                  xs={3}>
-                <Grid item xs={1}>
-                    <IconButton aria-label="showOrHideUnitTable"
-                                color="inherit"
-                                size="small"
-                                onClick={(): void => {
-                                    this.setState({showRight: false})
-                                }}>
-                        <ChevronRight />
-                    </IconButton>
-                </Grid>
-                <Grid item xs>
-                    <Typography align="center"
-                                variant="h6"
-                                component="h4"
-                                gutterBottom>
-                        Compartments
-                    </Typography>
-                </Grid>
-            </Grid> :
-            <Grid container item
-                  justify="flex-end"
-                  xs={1}>
-                <IconButton color="inherit"
-                            size="small"
-                            onClick={(): void => {
-                                this.setState({showRight: true})
-                            }}>
-                    <ChevronLeft />
-                </IconButton>
-            </Grid>;
-
-        return <div style={headerStyle}>
-            <Grid container
-                  item
-                  spacing={0} >
-                {expandContractLeft}
-                <Grid container item xs={xs as 6 | 8 | 10 | 12}
-                      justify="flex-start">
-                    {this.props.progress < 1 ?
-                        <Grid item xs={1}>
-                            <CircularProgress color="secondary"
-                                              variant="indeterminate"
-                                              value={100 * this.props.progress}
-                                              size={30} />
-
-                        </Grid> : null
-                    }
-                    {this.props.progress < 1 ?
-                        <Grid item xs>
-                            <Typography align="left" gutterBottom>
-                                {this.props.progressMessage}
-                            </Typography>
-                        </Grid> : null
-                    }
-                </Grid>
-                {expandContractRight}
-            </Grid>
-        </div>
-    }
-
     public render(): React.ReactElement {
         const unitTableProps: UnitTableProps = {
             availablePenetrations: this.props.availablePenetrations,
             busy: this.props.busy,
-
-            onRequestUnitExport: this.props.onRequestUnitExport,
         };
+
+        const dataPanelProps: DataPanelProps = {
+            availablePenetrations: this.props.availablePenetrations,
+            constants: this.props.constants,
+            settings: this.props.settings,
+
+            busy: this.props.busy,
+
+            onCollapse: () => {this.setState({showLeft: false})},
+            onRequestUnitExport: this.props.onRequestUnitExport,
+        }
 
         const viewerContainerProps: ViewerContainerProps = {
             compartmentViewTree: this.props.compartmentViewTree,
@@ -197,32 +112,57 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
 
             availablePenetrations: this.props.availablePenetrations,
             busy: this.props.busy,
+            progress: this.props.progress,
+            progressMessage: this.props.progressMessage,
 
+            showLeft: this.state.showLeft,
+            showRight: this.state.showRight,
+
+            onExpand: (side: "l" | "r"): void => {
+                if (side === "l") {
+                    this.setState({showLeft: true});
+                } else if (side === "r") {
+                    this.setState({showRight: true});
+                }
+            },
             onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
             onUpdateProgress: this.props.onUpdateProgress,
         };
 
-        const compartmentListProps: CompartmentListProps = {
+        const physiologyPanelProps: PhysiologyPanelProps = {
             availablePenetrations: this.props.availablePenetrations,
             busy: this.props.busy,
             compartmentViewTree: this.props.compartmentViewTree,
             constants: this.props.constants,
             settings: this.props.settings,
 
+            onCollapse: () => {this.setState({showRight: false})},
             onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
         };
 
         const xs = 12 - 3 * (Number(this.state.showLeft) + Number(this.state.showRight));
 
-        const header = this.renderHeader();
-
         return (
             <Grid container
-                  spacing={0} >
-                <Grid item xs={12}>{header}</Grid>
+                  spacing={0}
+                  style={{
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                      // @ts-ignore
+                      "border-top": "1px solid black",
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                      // @ts-ignore
+                      "border-bottom": "1px solid black",
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                      // @ts-ignore
+                      "border-right": this.state.showRight ? "1px solid black" : "none",
+                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
+                      // @ts-ignore
+                      "border-left": this.state.showLeft ? "1px solid black" : "none",
+                      margin: 0
+                  }}>
                 {this.state.showLeft ?
                     <Grid item xs={3}>
-                        <UnitTable {...unitTableProps} />
+                        <DataPanel {...dataPanelProps} />
                     </Grid> :
                     null
                 }
@@ -231,7 +171,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
                 </Grid>
                 {this.state.showRight ?
                     <Grid item xs={3}>
-                        <CompartmentList {...compartmentListProps} />
+                        <PhysiologyPanel {...physiologyPanelProps} />
                     </Grid> :
                     null
                 }
