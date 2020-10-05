@@ -1,6 +1,7 @@
 import axios, {AxiosResponse} from "axios";
 
 import {
+    AVSettings, CompartmentNode,
     ExportingUnit,
     PenetrationData,
     PenetrationResponse,
@@ -17,11 +18,16 @@ import {TimeseriesData, TimeseriesSummary} from "./models/timeseries";
 import {AestheticMapping, AestheticParams} from "./models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
 import {SliceType} from "./models/enums";
+import {PenetrationInterface} from "./models/penetration";
 
 
 export interface AestheticRequest {
     penetrationIds: string[];
     params: AestheticParams;
+}
+
+export interface PenetrationIdsResponse {
+    penetrationIds: string[];
 }
 
 export interface PenetrationTimeseriesResponse {
@@ -62,11 +68,11 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/color-map/${mapping}`);
     }
 
-    async fetchCompartmentTree() {
+    async fetchCompartmentTree(): Promise<AxiosResponse<CompartmentNode>> {
         return await axios.get(`${this.endpoint}/compartments`);
     }
 
-    async fetchExportedData(exportData: ExportingUnit[]) {
+    async fetchExportedData(exportData: ExportingUnit[]): Promise<AxiosResponse<Blob>> {
         const data = {
             data: exportData,
         };
@@ -80,15 +86,19 @@ export class APIClient {
         });
     }
 
+    async fetchPenetrationIds(): Promise<AxiosResponse<PenetrationIdsResponse>> {
+        return await axios.get(`${this.endpoint}/penetration-names`);
+    }
+
     async fetchPenetrations(limit: number, page: number): Promise<AxiosResponse<PenetrationResponse>> {
         return await axios.get(`${this.endpoint}/penetrations?page=${page}&limit=${limit}`);
     }
 
-    async fetchPenetrationVitals(penetrationId: string): Promise<AxiosResponse<PenetrationData>> {
+    async fetchPenetrationVitals(penetrationId: string): Promise<AxiosResponse<PenetrationInterface>> {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
     }
 
-    async fetchSettings() {
+    async fetchSettings(): Promise<AxiosResponse<AVSettings>> {
         return await axios.get(`${this.endpoint}/settings`);
     }
 

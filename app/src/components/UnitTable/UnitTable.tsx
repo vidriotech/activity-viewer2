@@ -13,6 +13,7 @@ import SaveIcon from '@material-ui/icons/Save';
 import { PenetrationData } from '../../models/apiModels';
 import Grid from "@material-ui/core/Grid";
 import Typography from "@material-ui/core/Typography";
+import {Penetration} from "../../models/penetration";
 
 declare module '@material-ui/core/styles/withStyles' {
     // Augment the BaseCSSProperties so that we can control jss-rtl
@@ -162,14 +163,14 @@ const VirtualizedTable = withStyles(styles)(MuiVirtualizedTable);
 // ---
 
 interface UnitData {
-    id: number,
-    penetrationId: string,
-    unitId: number,
-    compartmentName: string,
+    id: number;
+    penetrationId: string;
+    unitId: number;
+    compartmentName: string;
 }
 
 export interface UnitTableProps {
-    availablePenetrations: PenetrationData[];
+    selectedPenetrations: Map<string, Penetration>;
     busy: boolean;
 }
 
@@ -177,16 +178,16 @@ export function UnitTable(props: UnitTableProps): React.ReactElement {
     const rows: UnitData[] = [];
 
     let k = 0;
-    props.availablePenetrations.forEach((penetrationData, idx) => {
-        penetrationData.ids.forEach((id, jdx) => {
-            if (penetrationData.compartments[jdx] === null || penetrationData.selected[jdx] === false) {
+    props.selectedPenetrations.forEach((penetrationData, penetrationId) => {
+        penetrationData.unitIds.forEach((uid, jdx) => {
+            if (penetrationData.compartments[jdx] === null || penetrationData.isSelected(uid) === false) {
                 return;
             }
 
             rows.push({
                 id: k++,
-                penetrationId: penetrationData.penetrationId,
-                unitId: id,
+                penetrationId: penetrationId,
+                unitId: uid,
                 compartmentName: penetrationData.compartments[jdx].acronym,
             });
         });

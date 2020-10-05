@@ -18,9 +18,10 @@ import {CompartmentList, CompartmentListProps} from "../CompartmentList/Compartm
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import {ChevronRight} from "@material-ui/icons";
+import {Penetration} from "../../models/penetration";
 
 export interface PhysiologyPanelProps {
-    availablePenetrations: PenetrationData[];
+    selectedPenetrations: Map<string, Penetration>;
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
     settings: AVSettings;
@@ -48,9 +49,7 @@ export class PhysiologyPanel extends React.Component<PhysiologyPanelProps, Physi
                   justify="flex-start"
                   style={{
                       backgroundColor: tab10Blue,
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                      // @ts-ignore
-                      "border-bottom": "1px solid black",
+                      borderBottom: "1px solid black",
                       color: "white",
                       height: "50px",
                       width: "100%",
@@ -79,7 +78,7 @@ export class PhysiologyPanel extends React.Component<PhysiologyPanelProps, Physi
 
     public render(): React.ReactElement {
         const compartmentListProps: CompartmentListProps = {
-            availablePenetrations: this.props.availablePenetrations,
+            selectedPenetrations: this.props.selectedPenetrations,
             busy: this.props.busy,
             compartmentViewTree: this.props.compartmentViewTree,
             constants: this.props.constants,

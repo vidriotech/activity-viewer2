@@ -129,7 +129,10 @@ class NpzLoader:
     def get(self, key: str):
         """Get value from data keyed by `key`, or None if `key` is not found."""
         if self._data is not None:
-            return self._data.get(key)
+            try:
+                return self._data.get(key)
+            except:
+                return None
 
     def load_file(self, file_path: PathType, validate: bool = True):
         """Load data from the file living at `file_path`.

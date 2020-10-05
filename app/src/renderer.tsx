@@ -44,40 +44,14 @@ import { CompartmentTree } from "./compartmentTree";
 import { CompartmentNode, AVSettings } from "./models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
-import { App, AppProps } from "./components/App";
+import { App } from "./components/App";
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
 const root = document.createElement("div");
 root.id = "root";
 document.body.appendChild(root);
 
-const constants = new AVConstants();
-const apiClient = new APIClient(constants.apiEndpoint);
+ReactDOM.render(<App />, document.getElementById("root"));
 
-const props: AppProps = {
-    compartmentTree: null,
-    constants: constants,
-    settings: null
-}
-
-apiClient.fetchSettings()
-    .then((res: any) => res.data)
-    .then((data: AVSettings) => {
-        props.settings = data;
-
-        return apiClient.fetchCompartmentTree();
-    })
-    .then((res: any) => res.data)
-    .then((root: CompartmentNode) => {
-        props.compartmentTree = new CompartmentTree(root, props.settings);
-
-        ReactDOM.render(
-            <App {...props}/>,
-            document.getElementById("root")
-        );
-    })
-    .catch((err: any) => {
-        console.error(err);
-    });
 
 

@@ -16,10 +16,12 @@ import ExpandMore from '@material-ui/icons/ExpandMore';
 import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 // eslint-disable-next-line import/no-unresolved
 import {PenetrationData} from "../../models/apiModels";
+// eslint-disable-next-line import/no-unresolved
+import {Penetration} from "../../models/penetration";
 
 
 export interface CompartmentListNodeProps {
-    availablePenetrations: PenetrationData[];
+    selectedPenetrations: Map<string, Penetration>;
     busy: boolean;
     compartmentNodeView: CompartmentNodeView;
     showChildren: boolean;
@@ -85,7 +87,7 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
                       key={`${this.props.compartmentNodeView.acronym}-children`}>
                 <List>
                     {children.map((child) => (
-                        <CompartmentListNode availablePenetrations={this.props.availablePenetrations}
+                        <CompartmentListNode selectedPenetrations={this.props.selectedPenetrations}
                                              busy={this.props.busy}
                                              compartmentNodeView={child}
                                              showChildren={true}
@@ -108,7 +110,7 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
 
         let nPenetrations = 0;
         let nPoints = 0;
-        this.props.availablePenetrations.forEach((penetrationData) => {
+        this.props.selectedPenetrations.forEach((penetrationData) => {
             let hasContributed = false;
             penetrationData.compartments.forEach((compartment) => {
                 if (!compartment) {

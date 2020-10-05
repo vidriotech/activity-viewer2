@@ -83,6 +83,7 @@ def get_export_data_file():
             unit_ids = export_request["unitIds"]
             export_data[penetration_id] = unit_ids
 
+        np.savez(tmpfile, **export_data)
         return send_file(tmpfile)
 
 
@@ -101,6 +102,11 @@ def get_penetration_data_file(penetration_id: str):
 @app.route("/mesh/<int:structure_id>")
 def get_mesh(structure_id: int):
     return state.cache.load_structure_mesh(structure_id)
+
+
+@app.route("/penetration-names")
+def get_penetration_names():
+    return {"penetrationIds": state.penetrations}
 
 
 @app.route("/penetrations", methods=["GET", "POST", "PUT", "DELETE"])
@@ -164,12 +170,12 @@ def get_penetration_vitals(penetration_id: str):
     unit_stats = unit_stats.tolist() if unit_stats is not None else []
 
     return {
-        "penetrationId": penetration_id,
-        "ids": ids.ravel().tolist(),
+        "id": penetration_id,
+        "unitIds": ids.ravel().tolist(),
         "compartments": compartments,
         "coordinates": coords.ravel().tolist(),
-        "timeseries": timeseries,
-        "unitStats": unit_stats,
+        "timeseriesIds": timeseries,
+        "unitStatIds": unit_stats,
     }
 
 
@@ -221,6 +227,28 @@ def get_pseudocoronal_annotation_slice(penetration_id: str):
         "penetration": penetration_id,
         "voxels": plane.ravel().tolist(),
         "stride": plane.shape[1]
+    }
+
+
+@app.route("/unit-stat")
+def get_penetration_unit_stat():
+    penetration_id = request.args.get("penetrationId", type=str, default=None)
+    unit_stat_id = request.args.get("unitStatId", type=str, default=None)
+
+    if penetration_id is None or unit_stat_id is None:
+        return make_response("penetrationId or unitStatId not specified.", 400)
+
+    if not state.has_penetration(penetration_id):
+        return make_response(f"penetrationId '{penetration_id}' not found.", 404)
+
+    unit_stat = state.get_unit_stat(penetration_id, unit_stat_id)
+    if unit_stat is None:
+        return make_response(f"unitStatId '{unit_stat_id}' not found for penetration '{penetration_id}'.", 404)
+
+    return {
+        "penetrationId": penetration_id,
+        "unitStatId": unit_stat_id,
+        "data": unit_stat.tolist()
     }
 
 

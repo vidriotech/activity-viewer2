@@ -42,9 +42,23 @@ import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import {ChevronLeft, ChevronRight} from "@material-ui/icons";
 import Container from "@material-ui/core/Container";
+// eslint-disable-next-line import/no-unresolved
 import {DisplayPanel, DisplayPanelProps} from "./Panels/DisplayPanel";
+// eslint-disable-next-line import/no-unresolved
 import {HeaderPanel} from "./Panels/HeaderPanel";
+// eslint-disable-next-line import/no-unresolved
 import {QueryPanel} from "./Panels/QueryPanel";
+// eslint-disable-next-line import/no-unresolved
+import {Penetration} from "../models/penetration";
+import Dialog from "@material-ui/core/Dialog";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import DialogContent from "@material-ui/core/DialogContent";
+import List from "@material-ui/core/List";
+import ListItem from "@material-ui/core/ListItem";
+import Checkbox from "@material-ui/core/Checkbox";
+import ListItemIcon from "@material-ui/core/ListItemIcon";
+import ListItemText from "@material-ui/core/ListItemText";
+import {SelectPenetrationsDialog} from "./SelectPenetrationsDialog";
 
 interface UnitStatsData {
     penetrationId: string;
@@ -55,6 +69,14 @@ export interface MainViewProps {
     compartmentTree: CompartmentTree;
     constants: AVConstants;
     settings: AVSettings;
+
+    availablePenetrations: Set<string>;
+    loadedPenetrations: Set<string>;
+    selectedPenetrations: Map<string, Penetration>;
+
+    onRequestUnitExport(): void;
+    onRequestUnloadPenetration(penetrationId: string): void;
+    onUpdateSelectedPenetrations(selectedPenetrationIds: string[]): void;
 }
 
 interface MainViewState extends AestheticProps {
@@ -70,6 +92,10 @@ interface MainViewState extends AestheticProps {
 
     showDisplayLeft: boolean;
     showDisplayRight: boolean;
+
+    dialogOpen: boolean;
+    selectPenetrationsDialog: boolean;
+    selectedPenetrationIds: string[];
 }
 
 export class MainView extends React.Component<MainViewProps, MainViewState> {
@@ -113,6 +139,10 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
             showDisplayLeft: true,
             showDisplayRight: true,
+
+            dialogOpen: true,
+            selectPenetrationsDialog: true,
+            selectedPenetrationIds: Array.from(this.props.selectedPenetrations.keys()),
         }
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -126,41 +156,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         //     worker.onmessage = this.onMapperMessage.bind(this);
         //     this.workers.push(worker);
         // }
-    }
-
-    private fetchAndUpdatePenetrations(page: number): void {
-        this.apiClient.fetchPenetrations(10, page)
-            .then((res) => res.data)
-            .then((data) => {
-                const availablePenetrations = this.state.availablePenetrations.slice();
-                const newPenetrations: PenetrationData[] = new Array(data.penetrations.length);
-
-                data.penetrations.forEach((penetrationData, idx) => {
-                    newPenetrations[idx] = _.extend(
-                        penetrationData,
-                        {"selected": penetrationData.ids.map(() => true)}
-                    );
-                });
-
-                const nPenetrations = availablePenetrations.length + newPenetrations.length;
-                const progressMessage = nPenetrations < data.info.totalCount ?
-                    `Fetched ${nPenetrations}/${data.info.totalCount} penetrations.` :
-                    "Ready.";
-
-                this.setState({
-                    availablePenetrations: _.concat(availablePenetrations, newPenetrations),
-                    progress: nPenetrations / data.info.totalCount,
-                    progressMessage: progressMessage,
-                }, () => {
-                    if (data.link) {
-                        this.fetchAndUpdatePenetrations(page + 1);
-                    }
-                });
-            })
-            .catch((err: Error) => {
-                console.error(err);
-                window.alert(err.message);
-            });
     }
 
     private fetchAndUpdateUnitStats(value: string): void {
@@ -216,31 +211,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     private handleStatSelectionChange(event: React.ChangeEvent<{name?: string; value: string}>): void {
         const value = event.target.value;
         this.fetchAndUpdateUnitStats(value);
-    }
-
-    public handleRequestUnitExport(): void {
-        const unitExport: ExportingUnit[] = [];
-        this.state.availablePenetrations.forEach((penetrationData) => {
-            unitExport.push({
-                penetrationId: penetrationData.penetrationId,
-                unitIds: penetrationData.ids.filter((_id, idx) => penetrationData.selected[idx]),
-            });
-        });
-
-        this.apiClient.fetchExportedData(unitExport)
-            .then((data) => data.data)
-            .then((data: Blob) => {
-                const blob = new Blob([data]);
-                const url = URL.createObjectURL(blob);
-
-                const a = document.createElement('a');
-                document.body.appendChild(a);
-                a.href = url;
-                a.download = "export.npz";
-                a.click();
-
-                window.URL.revokeObjectURL(url);
-            });
     }
 
     private updateFilter(predicate: Predicate): void {
@@ -299,8 +269,17 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         return this.state.progress < 1;
     }
 
-    public componentDidMount(): void {
-        this.fetchAndUpdatePenetrations(1);
+    // public componentDidMount(): void {
+    //     this.fetchAndUpdatePenetrations(1);
+    // }
+
+    public componentDidUpdate(
+        prevProps: Readonly<MainViewProps>,
+        prevState: Readonly<MainViewState>
+    ): void {
+        if (prevProps.loadedPenetrations !== this.props.loadedPenetrations) {
+            this.setState({dialogOpen: true});
+        }
     }
 
     public render(): React.ReactNode {
@@ -349,7 +328,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         const vcWidth = 12 - utWidth - clWidth as 6 | 9 | 12;
 
         const displayPanelProps: DisplayPanelProps = {
-            availablePenetrations: this.state.availablePenetrations,
+            selectedPenetrations: this.props.selectedPenetrations,
             compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
             settings: this.props.settings,
@@ -372,7 +351,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             onToggleCompartmentVisible: (rootNode: CompartmentNodeView): void => {
                 this.setState({ compartmentViewTree: rootNode })
             },
-            onRequestUnitExport: this.handleRequestUnitExport.bind(this),
+            onRequestUnitExport: this.props.onRequestUnitExport,
             onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
             onUpdateProgress: (progress: number, progressMessage: string): void => {
                 this.setState({progress, progressMessage})
@@ -391,6 +370,18 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 </Grid>
                 <Grid item>
                     <DisplayPanel {...displayPanelProps} />
+                </Grid>
+                <Grid item>
+                    <SelectPenetrationsDialog open={this.state.dialogOpen}
+                                              loadedPenetrationIds={Array.from(this.props.loadedPenetrations)}
+                                              selectedPenetrations={this.props.selectedPenetrations}
+                                              onCommitSelection={(selectedPenetrationIds): void => {
+                                                  this.setState({dialogOpen: false}, () => {
+                                                      if (selectedPenetrationIds) {
+                                                          this.props.onUpdateSelectedPenetrations(selectedPenetrationIds);
+                                                      }
+                                                  });
+                                              }} />
                 </Grid>
             </Grid>
         );

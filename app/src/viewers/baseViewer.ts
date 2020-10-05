@@ -28,6 +28,7 @@ import {ColorLUT} from "../models/colorMap";
 
 // eslint-disable-next-line import/no-unresolved
 import {SliceImageType, SliceType} from "../models/enums";
+import {Penetration} from "../models/penetration";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const THREE = require("three");
@@ -508,11 +509,10 @@ export abstract class BaseViewer {
         document.getElementById(this.container).appendChild(this.renderer.domElement);
     }
 
-    public loadPenetration(penetrationData: PenetrationData): void {
-        const nPoints = penetrationData.ids.length;
+    public loadPenetration(penetration: Penetration): void {
         const centerPoint = this.constants.centerPoint.map((t: number) => -t) as [number, number, number];
         const defaultAesthetics: AestheticMapping = {
-            penetrationId: penetrationData.penetrationId,
+            penetrationId: penetration.id,
             color: null,
             opacity: null,
             radius: null,
@@ -520,21 +520,19 @@ export abstract class BaseViewer {
         };
 
         // fixed attributes
-        const positions = new Float32Array(penetrationData.coordinates.map(t => t + 10 * (Math.random() - 0.5)));
+        const positions = new Float32Array(penetration.getXYZ().map((t) => t + 10 * (Math.random() - 0.5)));
 
         // mutable attributes, initialize at default
-        const kolor = new Float32Array(nPoints);
+        const kolor = new Float32Array(penetration.nUnits);
         kolor.fill(0);
 
-        const opacity = new Float32Array(nPoints);
+        const opacity = new Float32Array(penetration.nUnits);
         opacity.fill(this.constants.defaultOpacity);
 
-        const size = new Float32Array(nPoints);
+        const size = new Float32Array(penetration.nUnits);
         size.fill(400 * this.constants.defaultRadius);
 
-        const visible = new Float32Array(penetrationData.selected.map((v) => Number(v)));
-        // const visible = new Float32Array(nPoints);
-        // visible.fill(0.99);
+        const visible = new Float32Array(penetration.visible);
 
         const geometry: BufferGeometry = new BufferGeometry();
         geometry.setAttribute("show", new Float32BufferAttribute(visible, 1));
@@ -544,13 +542,13 @@ export abstract class BaseViewer {
         geometry.setAttribute("size", new Float32BufferAttribute(size, 1).setUsage(THREE.DynamicDrawUsage));
 
         const material = this.makeShaderMaterial(defaultAesthetics);
-        const penetration: Points<BufferGeometry> = new Points(geometry, material);
-        penetration.position.set(...centerPoint);
+        const points: Points<BufferGeometry> = new Points(geometry, material);
+        points.position.set(...centerPoint);
 
-        this.penetrationPointsMap.set(penetrationData.penetrationId, penetration);
-        this.aestheticMappings.set(penetrationData.penetrationId, defaultAesthetics);
+        this.penetrationPointsMap.set(penetration.id, points);
+        this.aestheticMappings.set(penetration.id, defaultAesthetics);
 
-        this.scene.add(penetration);
+        this.scene.add(points);
     }
 
     public render(): void {

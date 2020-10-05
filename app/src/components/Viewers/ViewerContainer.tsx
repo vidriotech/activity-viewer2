@@ -37,8 +37,6 @@ import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
 import {BaseViewer} from "../../viewers/baseViewer";
 // eslint-disable-next-line import/no-unresolved
 import {BrainViewer} from "../../viewers/brainViewer";
-// eslint-disable-next-line import/no-unresolved
-import {SliceViewer} from "../../viewers/sliceViewer";
 
 // eslint-disable-next-line import/no-unresolved
 import {PlayerSlider, PlayerSliderProps} from "./PlayerSlider";
@@ -52,6 +50,8 @@ import Box from "@material-ui/core/Box";
 import IconButton from "@material-ui/core/IconButton";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import SaveIcon from "@material-ui/icons/Save";
+// eslint-disable-next-line import/no-unresolved
+import {Penetration} from "../../models/penetration";
 
 type ViewerType = "3D" | "slice" | "penetration";
 
@@ -71,7 +71,7 @@ export interface ViewerContainerProps {
     radiusBounds: [number, number];
     radiusGamma: number;
 
-    availablePenetrations: PenetrationData[];
+    selectedPenetrations: Map<string, Penetration>;
     busy: boolean;
     progress: number;
     progressMessage: string;
@@ -206,15 +206,15 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         if (this.state.viewerType === "3D") {
             v = new BrainViewer(this.props.constants, this.props.settings.epochs);
             this.initViewer(v);
-        } else if (this.state.viewerType === "slice") {
-            return this.apiClient.fetchSliceData(this.sliceType, this.sliceBounds[1])
-                .then((res) => res.data)
-                .then((sliceData) => {
-                    v = new SliceViewer(this.props.constants, this.props.settings.epochs, sliceData);
-                    v.imageType = this.state.imageType;
-                    this.initViewer(v);
-                });
-        }
+        }   //else if (this.state.viewerType === "slice") {
+            // return this.apiClient.fetchSliceData(this.sliceType, this.sliceBounds[1])
+            //     .then((res) => res.data)
+            //     .then((sliceData) => {
+            //         v = new SliceViewer(this.props.constants, this.props.settings.epochs, sliceData);
+            //         v.imageType = this.state.imageType;
+            //         this.initViewer(v);
+            //     });
+        // }
     }
 
     private downloadRecording(): void {
@@ -263,13 +263,14 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 })
                 .catch((err) => console.error(err));
         } else {
-            const nPenetrations = this.props.availablePenetrations.length;
+            const nPenetrations = this.props.selectedPenetrations.size;
 
             const data = this.tsData.has(timeseriesId) ?
                 this.tsData.get(timeseriesId).slice() :
                 [];
 
-            const availablePenetrations = this.props.availablePenetrations.map((p) => p.penetrationId);
+
+            const availablePenetrations = Array.from(this.props.selectedPenetrations.keys());
             const savedPenetrations = data.map((d) => d.penetrationId);
             const diff = _.difference(availablePenetrations, savedPenetrations).slice(0, 10);
 
@@ -491,11 +492,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                   spacing={0}
                   style={{
                       backgroundColor: tab10Blue,
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                      // @ts-ignore
-                      "border-left": "1px solid black",
-                      "border-right": "1px solid black",
-                      "border-bottom": "1px solid black",
+                      "borderLeft": "1px solid black",
+                      "borderRight": "1px solid black",
+                      "borderBottom": "1px solid black",
                       color: "white",
                       height: "50px",
                       width: "100%",
@@ -532,10 +531,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             return;
         }
 
-        this.props.availablePenetrations.forEach((penetrationData) => {
-            const penetrationId = penetrationData.penetrationId;
+        this.props.selectedPenetrations.forEach((penetration, penetrationId) => {
             if (!this.viewer.hasPenetration(penetrationId)) {
-                this.viewer.loadPenetration(penetrationData);
+                this.viewer.loadPenetration(penetration);
             }
         });
 
@@ -545,33 +543,32 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     private setAestheticAssignments(): void {
         const mappings: AestheticMapping[] = [];
 
-        this.props.availablePenetrations.forEach((penetrationData) => {
-            if (penetrationData.ids.length == 0) {
+        this.props.selectedPenetrations.forEach((penetration, id) => {
+            if (penetration.nUnits == 0) {
                 return;
             }
 
-            const penetrationId = penetrationData.penetrationId;
-            if (!this.viewer.hasPenetration(penetrationId)) {
-                this.viewer.loadPenetration(penetrationData);
+            if (!this.viewer.hasPenetration(id)) {
+                this.viewer.loadPenetration(penetration);
             }
 
             // set aesthetics
-            if (!this.colorMappings.has(penetrationId)) {
-                this.colorMappings.set(penetrationId, null);
+            if (!this.colorMappings.has(id)) {
+                this.colorMappings.set(id, null);
             }
-            if (!this.opacityMappings.has(penetrationId)) {
-                this.opacityMappings.set(penetrationId, null);
+            if (!this.opacityMappings.has(id)) {
+                this.opacityMappings.set(id, null);
             }
-            if (!this.radiusMappings.has(penetrationId)) {
-                this.radiusMappings.set(penetrationId, null);
+            if (!this.radiusMappings.has(id)) {
+                this.radiusMappings.set(id, null);
             }
 
             mappings.push({
-                penetrationId,
-                color: this.colorMappings.get(penetrationId),
-                opacity: this.opacityMappings.get(penetrationId),
-                radius: this.radiusMappings.get(penetrationId),
-                show: penetrationData.selected.map((p) => Number(p))
+                penetrationId: id,
+                color: this.colorMappings.get(id),
+                opacity: this.opacityMappings.get(id),
+                radius: this.radiusMappings.get(id),
+                show: penetration.visible
             });
         });
 
@@ -588,13 +585,12 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 });
         } else {
             const colorTimeseries = this.props.colorTimeseries;
-            this.props.availablePenetrations.forEach((penetrationData) => {
-                const penetrationId = penetrationData.penetrationId;
+            this.props.selectedPenetrations.forEach((penetration, id) => {
                 let colorMapping: ColorMapping = null;
 
                 if (colorTimeseries !== "nothing" && this.tsData.has(colorTimeseries)) {
                     const timeseriesData = this.tsData.get(colorTimeseries)
-                        .filter((d) => d.penetrationId === penetrationId)[0];
+                        .filter((d) => d.penetrationId === id)[0];
 
                     if (timeseriesData !== undefined) {
                         const summary = this.tsSummaries.get(colorTimeseries);
@@ -612,7 +608,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                     }
                 }
 
-                this.colorMappings.set(penetrationId, colorMapping);
+                this.colorMappings.set(id, colorMapping);
             });
 
             this.setAestheticAssignments();
@@ -640,13 +636,12 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             return;
         }
 
-        this.props.availablePenetrations.forEach((penetrationData) => {
-            const penetrationId = penetrationData.penetrationId;
+        this.props.selectedPenetrations.forEach((penetration, id) => {
             let mapping: ScalarMapping = null;
 
             if (timeseries !== "nothing" && this.tsData.has(timeseries)) {
                 const timeseriesData = this.tsData.get(timeseries)
-                    .filter((d) => d.penetrationId === penetrationId)[0];
+                    .filter((d) => d.penetrationId === id)[0];
 
                 if (timeseriesData !== undefined) {
                     const summary = this.tsSummaries.get(timeseries);
@@ -663,7 +658,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 }
             }
 
-            mappings.set(penetrationId, mapping);
+            mappings.set(id, mapping);
         });
 
         this.setAestheticAssignments();
@@ -750,15 +745,15 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
         if (prevState.viewerType !== this.state.viewerType) {
             this.reinitViewer();
-        } else if (prevState.imageType !== this.state.imageType) {
-            (this.viewer as SliceViewer).imageType = this.state.imageType;
-        }
+        } // else if (prevState.imageType !== this.state.imageType) {
+        //     (this.viewer as SliceViewer).imageType = this.state.imageType;
+        // }
 
         const timeseriesDidUpdate = (
             prevProps.colorTimeseries !== this.props.colorTimeseries ||
                 prevProps.opacityTimeseries !== this.props.opacityTimeseries ||
                 prevProps.radiusTimeseries !== this.props.radiusTimeseries ||
-                prevProps.availablePenetrations !== this.props.availablePenetrations
+                prevProps.selectedPenetrations !== this.props.selectedPenetrations
         );
 
         let aestheticsDidUpdate = timeseriesDidUpdate;
@@ -886,10 +881,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 <Grid container item
                       xs={12}
                       style={{
-                          // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                          // @ts-ignore
-                          "border-left": "1px solid black",
-                          "border-right": "1px solid black",
+                          "borderLeft": "1px solid black",
+                          "borderRight": "1px solid black",
                           margin: 0}}>
                     <Grid item xs={12} id={this.canvasContainerId}>
                         {/*<div style={{ padding: 40 }}*/}

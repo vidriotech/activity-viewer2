@@ -14,9 +14,14 @@ import {tab10Blue} from "../../styles";
 
 // eslint-disable-next-line import/no-unresolved
 import {AVSettings, PenetrationData} from "../../models/apiModels";
+// eslint-disable-next-line import/no-unresolved
+import {Penetration} from "../../models/penetration";
+
+// eslint-disable-next-line import/no-unresolved
+import {UnitTable2} from "../UnitTable/UnitTable2";
 
 export interface DataPanelProps {
-    availablePenetrations: PenetrationData[];
+    selectedPenetrations: Map<string, Penetration>;
     constants: AVConstants;
     settings: AVSettings;
 
@@ -43,9 +48,7 @@ export class DataPanel extends React.Component<DataPanelProps, DataPanelState> {
                   justify="flex-start"
                   style={{
                       backgroundColor: tab10Blue,
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                      // @ts-ignore
-                      "border-bottom": "1px solid black",
+                      "borderBottom": "1px solid black",
                       color: "white",
                       height: "50px",
                       width: "100%",
@@ -55,7 +58,7 @@ export class DataPanel extends React.Component<DataPanelProps, DataPanelState> {
                 <Grid item xs={1}>
                     <IconButton color="inherit"
                                 size="small"
-                                disabled={this.props.busy || this.props.availablePenetrations.length === 0}
+                                disabled={this.props.busy || this.props.selectedPenetrations.size === 0}
                                 onClick={this.props.onRequestUnitExport} >
                         <SaveIcon />
                     </IconButton>
@@ -87,6 +90,9 @@ export class DataPanel extends React.Component<DataPanelProps, DataPanelState> {
             <Grid container
                   item>
                 <Grid item xs={12}>{header}</Grid>
+                <Grid item xs={12}>
+                    <UnitTable2 selectedPenetrations={this.props.selectedPenetrations} />
+                </Grid>
                 {/*<Grid item xs={12}>*/}
                 {/*    <CompartmentList {...compartmentListProps} />*/}
                 {/*</Grid>*/}

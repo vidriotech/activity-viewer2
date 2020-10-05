@@ -30,9 +30,10 @@ import {headerStyle} from "../../styles";
 // eslint-disable-next-line import/no-unresolved
 import {PhysiologyPanel, PhysiologyPanelProps} from "./PhysiologyPanel";
 import {DataPanel, DataPanelProps} from "./DataPanel";
+import {Penetration} from "../../models/penetration";
 
 export interface DisplayPanelProps {
-    availablePenetrations: PenetrationData[];
+    selectedPenetrations: Map<string, Penetration>;
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
     settings: AVSettings;
@@ -77,12 +78,12 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
 
     public render(): React.ReactElement {
         const unitTableProps: UnitTableProps = {
-            availablePenetrations: this.props.availablePenetrations,
+            selectedPenetrations: this.props.selectedPenetrations,
             busy: this.props.busy,
         };
 
         const dataPanelProps: DataPanelProps = {
-            availablePenetrations: this.props.availablePenetrations,
+            selectedPenetrations: this.props.selectedPenetrations,
             constants: this.props.constants,
             settings: this.props.settings,
 
@@ -110,7 +111,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             radiusBounds: this.props.radiusBounds,
             radiusGamma: this.props.radiusGamma,
 
-            availablePenetrations: this.props.availablePenetrations,
+            selectedPenetrations: this.props.selectedPenetrations,
             busy: this.props.busy,
             progress: this.props.progress,
             progressMessage: this.props.progressMessage,
@@ -130,7 +131,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         };
 
         const physiologyPanelProps: PhysiologyPanelProps = {
-            availablePenetrations: this.props.availablePenetrations,
+            selectedPenetrations: this.props.selectedPenetrations,
             busy: this.props.busy,
             compartmentViewTree: this.props.compartmentViewTree,
             constants: this.props.constants,
@@ -146,18 +147,10 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             <Grid container
                   spacing={0}
                   style={{
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                      // @ts-ignore
-                      "border-top": "1px solid black",
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                      // @ts-ignore
-                      "border-bottom": "1px solid black",
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                      // @ts-ignore
-                      "border-right": this.state.showRight ? "1px solid black" : "none",
-                      // eslint-disable-next-line @typescript-eslint/ban-ts-ignore
-                      // @ts-ignore
-                      "border-left": this.state.showLeft ? "1px solid black" : "none",
+                      borderTop: "1px solid black",
+                      borderBottom: "1px solid black",
+                      borderRight: this.state.showRight ? "1px solid black" : "none",
+                      borderLeft: this.state.showLeft ? "1px solid black" : "none",
                       margin: 0
                   }}>
                 {this.state.showLeft ?

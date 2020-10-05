@@ -21,10 +21,12 @@ import IconButton from "@material-ui/core/IconButton";
 import {ChevronLeft, ChevronRight} from "@material-ui/icons";
 import Grid from "@material-ui/core/Grid";
 import CircularProgress from "@material-ui/core/CircularProgress";
+// eslint-disable-next-line import/no-unresolved
+import {Penetration} from "../../models/penetration";
 
 
 export interface CompartmentListProps {
-    availablePenetrations: PenetrationData[];
+    selectedPenetrations: Map<string, Penetration>;
     busy: boolean;
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
@@ -111,7 +113,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
         if (this.state.filteredCompartments.length > 0) {
             listChildren = (
                 this.state.filteredCompartments.map((nodeView) => (
-                    <CompartmentListNode availablePenetrations={this.props.availablePenetrations}
+                    <CompartmentListNode selectedPenetrations={this.props.selectedPenetrations}
                                          busy={this.props.busy}
                                          compartmentNodeView={nodeView}
                                          showChildren={false}
@@ -121,7 +123,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
             );
         } else {
             const rootNodeProps: CompartmentListNodeProps = {
-                availablePenetrations: this.props.availablePenetrations,
+                selectedPenetrations: this.props.selectedPenetrations,
                 busy: this.props.busy,
                 compartmentNodeView: this.props.compartmentViewTree,
                 showChildren: true,
