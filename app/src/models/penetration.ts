@@ -7,6 +7,8 @@ import {AVConstants} from "../constants";
 import {Compartment} from "./apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesData} from "./timeseries";
+import {Predicate} from "./predicateModels";
+import {UnitModel} from "./unitModel";
 
 export interface PenetrationInterface {
     id: string;
@@ -37,7 +39,12 @@ export class Penetration implements PenetrationInterface {
     private _timeseries: Map<string, TimeseriesData>;
     private _unitStats: Map<string, number[]>;
 
+    // unit models
+    private unitModels: UnitModel[];
+
     constructor(id: string) {
+        this.constants = new AVConstants();
+
         this._id = id;
 
         this._unitIds = [];
@@ -51,7 +58,7 @@ export class Penetration implements PenetrationInterface {
         this._timeseries = new Map<string, TimeseriesData>();
         this._unitStats = new Map<string, number[]>();
 
-        this.constants = new AVConstants();
+        this.unitModels = [];
     }
 
     private constructUri(dataType: "unit-stat" | "timeseries", dataId: string): string {
@@ -71,6 +78,23 @@ export class Penetration implements PenetrationInterface {
         return subset;
     }
 
+    private makeUnitModels(): void {
+        const unitModels: UnitModel[] = [];
+
+        this.unitIds.forEach((uid, idx) => {
+            unitModels.push(
+                new UnitModel({
+                    id: uid,
+                    compartment: this.compartments[idx],
+                    coordinates: this.getXYZ([uid]),
+                    penetrationId: this.id
+                })
+            );
+        });
+
+        this.unitModels = unitModels;
+    }
+
     public static fromResponse(data: PenetrationInterface): Penetration {
         const p = new Penetration(data.id);
 
@@ -78,6 +102,7 @@ export class Penetration implements PenetrationInterface {
         p.setSelected();
         p.assignCompartments(data.unitIds, data.compartments);
         p.assignCoordinates(data.unitIds, data.coordinates);
+        p.makeUnitModels();
 
         data.timeseriesIds.forEach((tsid) => {
             p.registerTimeseries(tsid);
@@ -140,6 +165,13 @@ export class Penetration implements PenetrationInterface {
                 .then((res) => res.data)
                 .then((data: {penetrationId: string; unitStatId: string; data: number[]}) => {
                     const stat = data.data;
+
+                    // register stats with stat map, point models
+                    this._unitStats.set(unitStatId, stat);
+                    this.unitModels.forEach((pointModel, idx) => {
+                        pointModel.setStat(unitStatId, stat[idx]);
+                    });
+
                     return selectedOnly ? this.getSelectedSubset(stat) : stat;
                 });
         } else {
@@ -186,6 +218,14 @@ export class Penetration implements PenetrationInterface {
     public registerUnitStat(unitStatId: string): void {
         if (!this._unitStatIds.includes(unitStatId)) {
             this._unitStatIds.push(unitStatId);
+        }
+    }
+
+    public setFilter(predicate: Predicate): void {
+        if (predicate) {
+            this._selected = predicate.eval(this.unitModels);
+        } else {
+            this._selected.fill(true);
         }
     }
 

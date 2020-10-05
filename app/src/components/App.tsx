@@ -1,10 +1,14 @@
 import React from "react";
 import * as _ from "lodash";
 
-import CircularProgress from '@material-ui/core/CircularProgress';
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Container from "@material-ui/core/Container";
+import Typography from "@material-ui/core/Typography";
 
 import {createMuiTheme, ThemeProvider} from '@material-ui/core/styles';
 
+// eslint-disable-next-line import/no-unresolved
+import {APIClient} from "../apiClient";
 // eslint-disable-next-line import/no-unresolved
 import { AVConstants } from "../constants";
 // eslint-disable-next-line import/no-unresolved
@@ -14,14 +18,13 @@ import { CompartmentTree } from "../compartmentTree";
 import {AVSettings, ExportingUnit, PenetrationData} from "../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration, PenetrationInterface} from "../models/penetration";
-
 // eslint-disable-next-line import/no-unresolved
-import {APIClient} from "../apiClient";
+import {Predicate} from "../models/predicateModels";
+// eslint-disable-next-line import/no-unresolved
+import {UnitModel} from "../models/unitModel";
 
 // eslint-disable-next-line import/no-unresolved
 import { MainView, MainViewProps } from "./MainView";
-import Container from "@material-ui/core/Container";
-import Typography from "@material-ui/core/Typography";
 
 const theme = createMuiTheme({
     palette: {
@@ -57,6 +60,8 @@ interface AppState {
     loadedPenetrations: Set<string>;
     selectedPenetrations: Set<string>;
 
+    filterPredicate: Predicate;
+
     ready: boolean;
 }
 
@@ -75,6 +80,8 @@ export class App extends React.Component<{}, AppState> {
             availablePenetrations: new Set<string>(),
             loadedPenetrations: new Set<string>(),
             selectedPenetrations: new Set<string>(),
+
+            filterPredicate: null,
 
             ready: false,
         };
@@ -103,41 +110,10 @@ export class App extends React.Component<{}, AppState> {
 
                 const loadedPenetrations = _.clone(this.state.loadedPenetrations);
                 loadedPenetrations.add(pid);
+
                 this.setState({loadedPenetrations});
             }
         }
-        // this.apiClient.fetchPenetrations(10, page)
-        //     .then((res) => res.data)
-        //     .then((data) => {
-        //         const availablePenetrations = _.clone(this.state.availablePenetrations);
-        //         const newPenetrations: PenetrationData[] = new Array(data.penetrations.length);
-        //
-        //         data.penetrations.forEach((penetrationData, idx) => {
-        //             newPenetrations[idx] = _.extend(
-        //                 penetrationData,
-        //                 {"selected": penetrationData.ids.map(() => true)}
-        //             );
-        //         });
-        //
-        //         const nPenetrations = availablePenetrations.length + newPenetrations.length;
-        //         const progressMessage = nPenetrations < data.info.totalCount ?
-        //             `Fetched ${nPenetrations}/${data.info.totalCount} penetrations.` :
-        //             "Ready.";
-        //
-        //         this.setState({
-        //             availablePenetrations: _.concat(availablePenetrations, newPenetrations),
-        //             progress: nPenetrations / data.info.totalCount,
-        //             progressMessage: progressMessage,
-        //         }, () => {
-        //             if (data.link) {
-        //                 this.fetchAndUpdatePenetrations(page + 1);
-        //             }
-        //         });
-        //     })
-        //     .catch((err: Error) => {
-        //         console.error(err);
-        //         window.alert(err.message);
-        //     });
     }
 
     private getSelectedPenetrations(): Map<string, Penetration> {
@@ -194,6 +170,16 @@ export class App extends React.Component<{}, AppState> {
         }
     }
 
+    private handleUpdateFilterPredicate(predicate: Predicate): void {
+        this.penetrations.forEach((penetration) => {
+            penetration.setFilter(predicate);
+        });
+
+        this.setState({
+            filterPredicate: predicate
+        });
+    }
+
     public componentDidMount(): void {
         let availablePenetrations: Set<string>;
         let settings: AVSettings = null;
@@ -235,19 +221,22 @@ export class App extends React.Component<{}, AppState> {
             loadedPenetrations: this.state.loadedPenetrations,
             selectedPenetrations: this.getSelectedPenetrations(),
 
+            filterPredicate: this.state.filterPredicate,
+
             onRequestUnitExport: this.handleRequestUnitExport.bind(this),
             onRequestUnloadPenetration: this.handleRequestUnloadPenetration.bind(this),
             onUpdateSelectedPenetrations: (selectedPenetrations: string[]) => {
                 this.setState({
                     selectedPenetrations: new Set<string>(selectedPenetrations)
                 });
-            }
+            },
+            onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
         }
 
         const nAvailable = this.state.availablePenetrations.size;
         const nLoaded = this.state.loadedPenetrations.size;
         const message = nAvailable > 0 ?
-            `Loading penetration ${nLoaded} / ${nAvailable} ...` :
+            `Fetching penetration ${nLoaded + 1} / ${nAvailable} ...` :
             "Loading ...";
         if (!(this.state.compartmentTree && this.state.settings && this.state.ready)) {
             return (

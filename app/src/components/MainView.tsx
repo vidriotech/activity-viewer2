@@ -13,7 +13,7 @@ import {AVConstants} from '../constants';
 // eslint-disable-next-line import/no-unresolved
 import {AVSettings, ExportingUnit, PenetrationData, UnitStatsListResponse} from "../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
-import {PointModel} from '../models/pointModel';
+import {UnitModel} from '../models/unitModel';
 // eslint-disable-next-line import/no-unresolved
 import {Predicate} from '../models/predicateModels';
 
@@ -24,8 +24,6 @@ import {CompartmentNodeView} from '../viewmodels/compartmentViewModel';
 
 // eslint-disable-next-line import/no-unresolved
 import {CompartmentList, CompartmentListProps} from './CompartmentList/CompartmentList';
-// eslint-disable-next-line import/no-unresolved
-import {FilterControls, FilterControlsProps} from './FilterControls/FilterControls';
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesMappers, TimeseriesMappersProps} from './TimeseriesControls/TimeseriesMappers';
 // eslint-disable-next-line import/no-unresolved
@@ -47,7 +45,7 @@ import {DisplayPanel, DisplayPanelProps} from "./Panels/DisplayPanel";
 // eslint-disable-next-line import/no-unresolved
 import {HeaderPanel} from "./Panels/HeaderPanel";
 // eslint-disable-next-line import/no-unresolved
-import {QueryPanel} from "./Panels/QueryPanel";
+import {QueryPanel, QueryPanelProps} from "./Panels/QueryPanel";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../models/penetration";
 import Dialog from "@material-ui/core/Dialog";
@@ -58,6 +56,7 @@ import ListItem from "@material-ui/core/ListItem";
 import Checkbox from "@material-ui/core/Checkbox";
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
+// eslint-disable-next-line import/no-unresolved
 import {SelectPenetrationsDialog} from "./SelectPenetrationsDialog";
 
 interface UnitStatsData {
@@ -74,8 +73,11 @@ export interface MainViewProps {
     loadedPenetrations: Set<string>;
     selectedPenetrations: Map<string, Penetration>;
 
+    filterPredicate: Predicate;
+
     onRequestUnitExport(): void;
     onRequestUnloadPenetration(penetrationId: string): void;
+    onUpdateFilterPredicate(predicate: Predicate): void;
     onUpdateSelectedPenetrations(selectedPenetrationIds: string[]): void;
 }
 
@@ -185,93 +187,14 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.setState(aestheticProps);
     }
 
-    private handleUpdateFilterPredicate(predicate: Predicate, newStat = "nothing"): void {
-        if (newStat !== 'nothing' && !this.statsData.has(newStat)) {
-            this.apiClient.fetchUnitStatsById(newStat)
-                .then((res) => res.data)
-                .then((data) => {
-                    const statsData: UnitStatsData[] = [];
-
-                    data.unitStats.forEach((data) => {
-                        statsData.push({
-                            penetrationId: data.penetrationId,
-                            values: data.data
-                        });
-                    });
-
-                    this.statsData.set(newStat, statsData);
-                    this.updateFilter(predicate);
-                })
-                .catch((err: Error) => console.error(err));
-        } else {
-            this.updateFilter(predicate);
-        }
-    }
-
     private handleStatSelectionChange(event: React.ChangeEvent<{name?: string; value: string}>): void {
         const value = event.target.value;
         this.fetchAndUpdateUnitStats(value);
     }
 
-    private updateFilter(predicate: Predicate): void {
-        const availablePenetrations: PenetrationData[] = [];
-
-        this.state.availablePenetrations.forEach((penetrationData, idx) => {
-            const penetrationId = penetrationData.penetrationId;
-
-            let selected: boolean[];
-            if (predicate === null) { // clear filter
-                selected = new Array(penetrationData.ids.length);
-                selected.fill(true);
-            } else {
-                // collect stats data for points in this penetration
-                const penStatsData = new Map<string, UnitStatsData>();
-                this.statsData.forEach((statValues, statName) => {
-                    const idx = statValues.map(v => v.penetrationId).indexOf(penetrationId);
-                    if (idx === -1) {
-                        return;
-                    }
-
-                    penStatsData.set(statName, statValues[idx]);
-                });
-
-                // filter points
-                const pointModels: PointModel[] = [];
-                for (let i = 0; i < penetrationData.ids.length; i++) {
-                    const pointModel = new PointModel({
-                        compartment: penetrationData.compartments[i],
-                        coordinates: penetrationData.coordinates.slice(i*3, (i+1)*3),
-                        id: penetrationData.ids[i],
-                        penetrationId: penetrationId,
-                    });
-
-                    penStatsData.forEach((statValues, statName) => {
-                        pointModel.setStat(statName, statValues.values[i]);
-                    });
-                    pointModels.push(pointModel);
-                }
-
-                selected = predicate.eval(pointModels);
-            }
-
-            const newPenetrationData = _.cloneDeep(penetrationData);
-            newPenetrationData.selected = selected;
-            availablePenetrations.push(newPenetrationData);
-        });
-
-        this.setState({
-            availablePenetrations,
-            filterPredicate: predicate
-        });
-    }
-
     public get isBusy(): boolean {
         return this.state.progress < 1;
     }
-
-    // public componentDidMount(): void {
-    //     this.fetchAndUpdatePenetrations(1);
-    // }
 
     public componentDidUpdate(
         prevProps: Readonly<MainViewProps>,
@@ -306,26 +229,18 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             onCommit: this.handleAestheticCommit.bind(this),
         };
 
-        const filterControlProps: FilterControlsProps = {
-            availablePenetrations: this.state.availablePenetrations,
+        /* ay yo */
+
+        const queryPanelProps: QueryPanelProps = {
             busy: this.isBusy,
             compartmentTree: this.props.compartmentTree,
             compartmentViewTree: this.state.compartmentViewTree,
-            constants: this.props.constants,
-            filterPredicate: this.state.filterPredicate,
-            selectedStat: this.state.selectedStat,
-            settings: this.props.settings,
-            statsData: this.state.selectedStat === 'nothing' ?
-                [] : _.union(
-                    ...(this.statsData.get(this.state.selectedStat).map(entry => entry.values))
-                ),
-            onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
-            onStatSelectionChange: this.handleStatSelectionChange.bind(this),
-        }
+            selectedPenetrations: this.props.selectedPenetrations,
 
-        const utWidth = this.state.unitTableHidden ? 0 : 3;
-        const clWidth = this.state.compartmentListHidden ? 0 : 3;
-        const vcWidth = 12 - utWidth - clWidth as 6 | 9 | 12;
+            filterPredicate: this.props.filterPredicate,
+
+            onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
+        };
 
         const displayPanelProps: DisplayPanelProps = {
             selectedPenetrations: this.props.selectedPenetrations,
@@ -352,11 +267,11 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 this.setState({ compartmentViewTree: rootNode })
             },
             onRequestUnitExport: this.props.onRequestUnitExport,
-            onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
+            onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
             onUpdateProgress: (progress: number, progressMessage: string): void => {
                 this.setState({progress, progressMessage})
             }
-        }
+        };
 
         return (
             <Grid container
@@ -366,7 +281,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                     <HeaderPanel busy />
                 </Grid>
                 <Grid item>
-                    <QueryPanel busy />
+                    <QueryPanel {...queryPanelProps} />
                 </Grid>
                 <Grid item>
                     <DisplayPanel {...displayPanelProps} />
@@ -385,47 +300,5 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 </Grid>
             </Grid>
         );
-        // return (
-        //     <div style={style}>
-        //         <Grid container
-        //               spacing={2}>
-        //             <Grid item xs={12}>
-        //                 <FilterControls {...filterControlProps} />
-        //             </Grid>
-
-        //             <Grid item xs={vcWidth}>
-        //                 <div>
-        //                     <Grid container xs={12}>
-        //                         <Grid item xs={2}>
-        //                             <IconButton edge="start"
-        //                                         onClick={(): void => {
-        //                                             this.setState({unitTableHidden: !this.state.unitTableHidden})
-        //                                         }} >
-        //                                 {this.state.unitTableHidden ? <ChevronRight /> : <ChevronLeft />}
-        //                             </IconButton>
-        //                         </Grid>
-        //                         <Grid item xs={8}></Grid>
-        //                         <Grid item xs={2}>
-        //                             <IconButton edge="end"
-        //                                         onClick={(): void => {
-        //                                             this.setState({compartmentListHidden: !this.state.compartmentListHidden})
-        //                                         }} >
-        //                                 {this.state.compartmentListHidden ? <ChevronLeft /> : <ChevronRight />}
-        //                             </IconButton>
-        //                         </Grid>
-        //                     </Grid>
-        //                 </div>
-        //                 <ViewerContainer {...viewerContainerProps} />
-        //             </Grid>
-        //             {this.state.compartmentListHidden ?
-        //                 null :
-
-        //             }
-        //             <Grid item xs>
-        //                 <TimeseriesMappers {...timeseriesControlsProps}/>
-        //             </Grid>
-        //         </Grid>
-        //     </div>
-        // );
     }
 }

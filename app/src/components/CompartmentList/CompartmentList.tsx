@@ -40,26 +40,28 @@ interface CompartmentListState {
 }
 
 export class CompartmentList extends React.Component<CompartmentListProps, CompartmentListState> {
+    private availableCompartments: CompartmentNodeView[];
+
     constructor(props: CompartmentListProps) {
         super(props);
 
         this.state = {
             filteredCompartments: [],
         };
+
+        this.availableCompartments = [];
     }
 
-    private makeCompartmentIndex(): CompartmentNodeView[] {
+    private registerCompartments(): void {
         let queue = [this.props.compartmentViewTree];
-        const flattenedList = [];
+        this.availableCompartments = [];
 
         while (queue.length > 0) {
             const node = queue.splice(0, 1)[0];
             queue = queue.concat(node.children);
 
-            flattenedList.push(node);
+            this.availableCompartments.push(node);
         }
-
-        return flattenedList;
     }
 
     private toggleCompartmentVisible(compartmentNodeView: CompartmentNodeView): void {
@@ -106,7 +108,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
     }
 
     public render(): React.ReactElement {
-        const compartmentList = this.makeCompartmentIndex();
+        const availableCompartments = this.availableCompartments;
 
         // fill children of list depending on state of filter text
         let listChildren;
@@ -138,15 +140,17 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
                 <Autocomplete multiple
                               size="small"
                               disabled={this.props.busy}
-                              id='tags-outlined'
-                              options={compartmentList}
+                              id="ac-compartment-search"
+                              options={availableCompartments}
                               getOptionLabel={(option): string => option.name}
                               filterSelectedOptions
-                              onChange={(_evt, newValue: CompartmentNodeView[] ) => this.setState({ filteredCompartments: newValue})}
-                              renderInput={(params) => (
+                              onChange={(_evt, newValue: CompartmentNodeView[] ) => {
+                                  this.setState({filteredCompartments: newValue})
+                              }}
+                              renderInput={(params): React.ReactElement => (
                                   <TextField {...params}
-                                             variant='outlined'
-                                             placeholder='Search compartments'
+                                             variant="outlined"
+                                             placeholder="Search compartments"
                                   />
                               )}
                 />

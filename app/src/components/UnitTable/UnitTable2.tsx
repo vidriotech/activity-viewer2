@@ -100,14 +100,14 @@ export class UnitTable2 extends React.Component<UnitTable2Props, UnitTable2State
             { field: "compartmentId", headerName: "Compartment ID", width: 200 },
         ];
 
-        this.availableStats.forEach((statId) => {
-            columns.push({
-                field: statId,
-                headerName: statId,
-                type: "number",
-                width: 130
-            });
-        });
+        // this.availableStats.forEach((statId) => {
+        //     columns.push({
+        //         field: statId,
+        //         headerName: statId,
+        //         type: "number",
+        //         width: 130
+        //     });
+        // });
 
         let rows: any[] = [];
 
@@ -128,12 +128,12 @@ export class UnitTable2 extends React.Component<UnitTable2Props, UnitTable2State
                 compartmentId: compartmentIds[idx],
             }));
 
-            penetrationStatData.forEach((unitStatData) => {
-                unitStatData.unitIds.forEach((uid, idx) => {
-                    penetrationRows[idx].unitId = uid;
-                    penetrationRows[idx][unitStatData.unitStatId] = unitStatData.unitStats[idx];
-                });
-            });
+            // penetrationStatData.forEach((unitStatData) => {
+            //     unitStatData.unitIds.forEach((uid, idx) => {
+            //         penetrationRows[idx].unitId = uid;
+            //         penetrationRows[idx][unitStatData.unitStatId] = unitStatData.unitStats[idx];
+            //     });
+            // });
 
             rows = rows.concat(penetrationRows);
             offset += penetrationRows.length;
@@ -141,7 +141,7 @@ export class UnitTable2 extends React.Component<UnitTable2Props, UnitTable2State
 
         return (
             <div style={{ height: 500, width: "100%" }}>
-                <DataGrid rows={rows} columns={columns} pageSize={5} checkboxSelection />
+                <DataGrid rows={rows} columns={columns} pageSize={10} checkboxSelection />
             </div>
         );
     }
