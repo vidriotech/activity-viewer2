@@ -116,6 +116,7 @@ export interface SliceData {
     annotationSlice: number[];
     sliceType: SliceType;
     stride: number;
+    coordinate: number;
 }
 
 /*

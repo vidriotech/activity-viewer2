@@ -1,17 +1,6 @@
 import React from "react";
 import * as _ from "underscore";
-
-import Button from '@material-ui/core/Button';
-import Dialog from "@material-ui/core/Dialog";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle"
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormLabel from "@material-ui/core/FormLabel";
 import Grid from "@material-ui/core/Grid";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import Radio from "@material-ui/core/Radio";
 
 // eslint-disable-next-line import/no-unresolved
 import {APIClient} from "../../apiClient";
@@ -21,7 +10,7 @@ import {AVConstants} from "../../constants";
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping, ColorMapping, ScalarMapping, TransformParams} from "../../models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
-import {AVSettings, PenetrationData} from "../../models/apiModels";
+import {AVSettings} from "../../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "../../models/colorMap";
 // eslint-disable-next-line import/no-unresolved
@@ -33,27 +22,20 @@ import {TimeseriesData, TimeseriesSummary} from "../../models/timeseries";
 // eslint-disable-next-line import/no-unresolved
 import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
 // eslint-disable-next-line import/no-unresolved
-// eslint-disable-next-line import/no-unresolved
-import {BaseViewer} from "../../viewers/baseViewer";
-// eslint-disable-next-line import/no-unresolved
 import {BrainViewer} from "../../viewers/brainViewer";
 
 // eslint-disable-next-line import/no-unresolved
-import {PlayerSlider, PlayerSliderProps} from "./PlayerSlider";
 // eslint-disable-next-line import/no-unresolved
-import {SliceControl} from "./SliceControl";
 import Typography from "@material-ui/core/Typography";
 // eslint-disable-next-line import/no-unresolved
-import {headerStyle, tab10Blue} from "../../styles";
-import {ChevronLeft, ChevronRight, ExpandLess, ExpandMore} from "@material-ui/icons";
-import Box from "@material-ui/core/Box";
+import {tab10Blue} from "../../styles";
+import {ChevronLeft, ChevronRight} from "@material-ui/icons";
 import IconButton from "@material-ui/core/IconButton";
 import CircularProgress from "@material-ui/core/CircularProgress";
-import SaveIcon from "@material-ui/icons/Save";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
-
-type ViewerType = "3D" | "slice" | "penetration";
+// eslint-disable-next-line import/no-unresolved
+import {TomographySlice} from "../../models/tomographySlice";
 
 export interface ViewerContainerProps {
     compartmentViewTree: CompartmentNodeView;
@@ -76,8 +58,17 @@ export interface ViewerContainerProps {
     progress: number;
     progressMessage: string;
 
-    showLeft: boolean;
-    showRight: boolean;
+    showDataPanel: boolean;
+    showPhysPanel: boolean;
+
+    showTomographyAnnotation: boolean;
+    showTomographySlice: boolean;
+    tomographySliceType: SliceType;
+    tomographySliceCoordinate: number;
+
+    showTestSlice: boolean;
+    testSliceType: SliceType;
+    testSliceBounds: [number, number];
 
     onExpand(side: "l" | "r"): void;
     onUpdateFilterPredicate(predicate: Predicate, newStat?: string): void;
@@ -90,7 +81,6 @@ interface ViewerContainerState {
     imageType: SliceImageType;
     renderHeight: number;
     renderWidth: number;
-    viewerType: ViewerType;
 
     isPlaying: boolean;
     isRecording: boolean;
@@ -112,7 +102,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     private recordedBlobs: Blob[];
     private sliceBounds: number[];
     private sliceType: SliceType;
-    private viewer: BaseViewer = null;
+    private viewer: BrainViewer = null;
 
     private tsSummaries: Map<string, TimeseriesSummary>;
     private tsData: Map<string, TimeseriesData[]>;
@@ -132,7 +122,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             imageType: SliceImageType.ANNOTATION,
             renderHeight: 0,
             renderWidth: 0,
-            viewerType: "3D",
 
             isPlaying: false,
             isRecording: false,
@@ -192,29 +181,66 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         return { width, height };
     }
 
-    private async createAndRender(): Promise<void> {
-        return this.createViewer()
-            .then(() => {
-                this.renderCompartments();
-                this.renderPenetrations();
+    private async createViewer(): Promise<void> {
+        const v = new BrainViewer(this.props.constants, this.props.settings.epochs);
+        this.initViewer(v);
+    }
+
+    private setTestSlice(): void {
+        if (!this.viewer) {
+            return;
+        }
+
+        const center = (this.props.testSliceBounds[0] + this.props.testSliceBounds[1]) / 2;
+        const offset = Math.abs(this.props.testSliceBounds[0] - center);
+
+        this.viewer.setSlicingPlanes(this.props.testSliceType, {center, offset});
+    }
+
+    private removeTestSlice(): void {
+        if (!this.viewer) {
+            return;
+        }
+
+        this.viewer.removeSlicingPlanes();
+    }
+
+    private setTomographySlice(): void {
+        if (!this.viewer) {
+            return;
+        }
+
+        const coordinate = this.props.tomographySliceCoordinate;
+        this.apiClient.fetchSliceData(this.props.tomographySliceType, coordinate)
+            .then((res) => res.data)
+            .then((sliceData) =>  TomographySlice.fromResponse(sliceData))
+            .then((slice) => {
+                slice.imageType = this.props.showTomographyAnnotation ?
+                    SliceImageType.ANNOTATION :
+                    SliceImageType.TEMPLATE;
+
+                this.viewer.setTomographySlice(slice);
+            })
+            .catch((err) => {
+                console.error(err);
             });
     }
 
-    private async createViewer(): Promise<void> {
-        let v: BaseViewer;
+    private removeTomographySlice(): void {
+        if (!this.viewer) {
+            return;
+        }
 
-        if (this.state.viewerType === "3D") {
-            v = new BrainViewer(this.props.constants, this.props.settings.epochs);
-            this.initViewer(v);
-        }   //else if (this.state.viewerType === "slice") {
-            // return this.apiClient.fetchSliceData(this.sliceType, this.sliceBounds[1])
-            //     .then((res) => res.data)
-            //     .then((sliceData) => {
-            //         v = new SliceViewer(this.props.constants, this.props.settings.epochs, sliceData);
-            //         v.imageType = this.state.imageType;
-            //         this.initViewer(v);
-            //     });
-        // }
+        this.viewer.removeTomographySlice();
+    }
+
+    private updateTomographySliceTexture(): void {
+        if (!this.viewer) {
+            return;
+        }
+
+        const displayTemplate = !this.props.showTomographyAnnotation;
+        this.viewer.updateSliceTexture(displayTemplate);
     }
 
     private downloadRecording(): void {
@@ -346,25 +372,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         });
     }
 
-    private handleSliceCommit(sliceType: SliceType, sliceBounds: number[]): void {
-        let boundsPredicate: PropIneqPredicate;
-        switch (sliceType) {
-            case SliceType.CORONAL:
-                boundsPredicate = new PropIneqPredicate("x", sliceBounds[0], sliceBounds[2]);
-                break;
-            case SliceType.SAGITTAL:
-                boundsPredicate = new PropIneqPredicate("z", sliceBounds[0], sliceBounds[2]);
-                break;
-        }
-
-        this.sliceType = sliceType;
-        this.sliceBounds = sliceBounds;
-
-        this.setState({dialogOpen: false, viewerType: "slice"}, () => {
-            this.props.onUpdateFilterPredicate(boundsPredicate);
-        });
-    }
-
     private handleSliderChange(_event: any, timeVal: number): void {
         this.setState({ timeVal }, () => {
             this.viewer.timeVal = this.state.timeVal;
@@ -394,15 +401,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    private handleViewerChange(): void {
-        if (this.state.viewerType === "3D") {
-            this.setState({dialogOpen: true});
-        } else {
-            this.setState({viewerType: "3D"});
-        }
-    }
-
-    private initViewer(v: BaseViewer): void {
+    private initViewer(v: BrainViewer): void {
         const { width, height } = this.computeDims();
 
         v.container = this.canvasContainerId; // div is created in render()
@@ -432,19 +431,12 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    private reinitViewer(): void {
-        this.viewer.destroy();
-        this.viewer = null;
-        this.createAndRender()
-            .then(() => this.setAestheticAssignments());
-    }
-
     private renderCompartments(): void {
-        if (this.viewer === null || !(this.viewer instanceof BrainViewer)) {
+        if (this.viewer === null) {
             return;
         }
 
-        const viewer = this.viewer as BrainViewer;
+        const viewer = this.viewer;
 
         // traverse the compartment tree and set visible or invisible
         let queue: CompartmentNodeView[] = [this.props.compartmentViewTree];
@@ -457,7 +449,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
     private renderHeader(): React.ReactElement {
         const dataPanelHeader = (
-            this.props.showLeft ?
+            this.props.showDataPanel ?
                 null :
                 <Grid container item
                       justify="flex-start"
@@ -471,7 +463,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         );
 
         const physiologyPanelHeader = (
-            this.props.showRight ?
+            this.props.showPhysPanel ?
                 null :
                 <Grid container item
                       justify="flex-end"
@@ -484,7 +476,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 </Grid>
         );
 
-        const xs = 12 - (Number(this.props.showLeft) + Number(this.props.showRight));
+        const xs = 12 - (Number(this.props.showDataPanel) + Number(this.props.showPhysPanel));
 
         return (
             <Grid container
@@ -729,25 +721,39 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     public componentDidMount(): void {
         window.addEventListener("resize", () => this.updateDims());
 
-        this.createAndRender();
+        this.createViewer()
+            .then(() => {
+                this.renderCompartments();
+                this.renderPenetrations();
+            });
     }
 
     public componentDidUpdate(
         prevProps: Readonly<ViewerContainerProps>,
         prevState: Readonly<ViewerContainerState>
     ): void {
-        // viewer type changes
-        // image type changes
-        // any aesthetics changed:
-            // times need updating
-            // timeseries needs fetching
-            // color map needs fetching
+        // slice needs updating
+        if (this.props.showTestSlice && (
+            !prevProps.showTestSlice ||
+            (prevProps.testSliceType !== this.props.testSliceType) ||
+            (prevProps.testSliceBounds !== this.props.testSliceBounds))
+        ) {
+            this.setTestSlice();
+        } else if (!this.props.showTestSlice) {
+            this.removeTestSlice();
+        }
 
-        if (prevState.viewerType !== this.state.viewerType) {
-            this.reinitViewer();
-        } // else if (prevState.imageType !== this.state.imageType) {
-        //     (this.viewer as SliceViewer).imageType = this.state.imageType;
-        // }
+        if (this.props.showTomographySlice && (
+            !prevProps.showTomographySlice ||
+            (prevProps.tomographySliceType !== this.props.tomographySliceType) ||
+            (prevProps.tomographySliceCoordinate !== this.props.tomographySliceCoordinate))
+        ) {
+            this.setTomographySlice();
+        } else if (!this.props.showTomographySlice) {
+            this.removeTomographySlice();
+        } else if (prevProps.showTomographyAnnotation !== this.props.showTomographyAnnotation) {
+            this.updateTomographySliceTexture();
+        }
 
         const timeseriesDidUpdate = (
             prevProps.colorTimeseries !== this.props.colorTimeseries ||
@@ -833,10 +839,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         //     </Dialog>
         // );
         //
-        // const buttonText = this.state.viewerType === "3D" ?
-        //     "Slice and dice" :
-        //     "Return to 3D";
-        //
         // const imageTypeSwitch = (
         //     <FormControl component="fieldset">
         //         <FormLabel component="legend">Image type</FormLabel>
@@ -857,18 +859,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         //                               label="T" />
         //         </RadioGroup>
         //     </FormControl>
-        // );
-
-        // const switchButton = (
-        //     <div>
-        //         <Button disabled={this.props.busy}
-        //                 color={"primary"}
-        //                 variant={"contained"}
-        //                 onClick={this.handleViewerChange.bind(this)}>
-        //             {buttonText}
-        //         </Button>
-        //         {this.state.viewerType === "slice" ? imageTypeSwitch : null}
-        //     </div>
         // );
 
         const header = this.renderHeader();

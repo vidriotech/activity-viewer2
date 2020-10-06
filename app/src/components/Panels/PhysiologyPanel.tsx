@@ -18,7 +18,12 @@ import {CompartmentList, CompartmentListProps} from "../CompartmentList/Compartm
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
 import {ChevronRight} from "@material-ui/icons";
+// eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
+// eslint-disable-next-line import/no-unresolved
+import {TomographyPanel, TomographyPanelProps} from "./TomographyPanel";
+// eslint-disable-next-line import/no-unresolved
+import {SliceType} from "../../models/enums";
 
 export interface PhysiologyPanelProps {
     selectedPenetrations: Map<string, Penetration>;
@@ -28,8 +33,19 @@ export interface PhysiologyPanelProps {
 
     busy: boolean;
 
+    showTomographyAnnotation: boolean;
+    showTestSlice: boolean;
+    testSliceBounds: [number, number];
+    testSliceType: SliceType;
+
     onCollapse(): void;
     onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
+
+    onCommitSlicing(): void;
+    onSelectSliceType(sliceType: SliceType, testSliceBounds: [number, number]): void;
+    onUnselectSliceType(): void;
+    onUpdateTestSliceBounds(bounds: [number, number]): void;
+    onToggleTemplateDisplay(): void;
 }
 
 interface PhysiologyPanelState {
@@ -39,8 +55,6 @@ interface PhysiologyPanelState {
 export class PhysiologyPanel extends React.Component<PhysiologyPanelProps, PhysiologyPanelState> {
     constructor(props: PhysiologyPanelProps) {
         super(props);
-
-
     }
 
     private renderHeader(): React.ReactElement {
@@ -87,6 +101,21 @@ export class PhysiologyPanel extends React.Component<PhysiologyPanelProps, Physi
             onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
         };
 
+        const tomographyPanelProps: TomographyPanelProps = {
+            busy: this.props.busy,
+
+            showTomographyAnnotation: this.props.showTomographyAnnotation,
+            showTestSlice: this.props.showTestSlice,
+            testSliceBounds: this.props.testSliceBounds,
+            testSliceType: this.props.testSliceType,
+
+            onCommitSlicing: this.props.onCommitSlicing,
+            onSelectSliceType: this.props.onSelectSliceType,
+            onUnselectSliceType: this.props.onUnselectSliceType,
+            onUpdateTestSliceBounds: this.props.onUpdateTestSliceBounds,
+            onToggleTemplateDisplay: this.props.onToggleTemplateDisplay,
+        }
+
         const header = this.renderHeader();
 
         return (
@@ -95,6 +124,9 @@ export class PhysiologyPanel extends React.Component<PhysiologyPanelProps, Physi
                 <Grid item xs={12}>{header}</Grid>
                 <Grid item xs={12}>
                     <CompartmentList {...compartmentListProps} />
+                </Grid>
+                <Grid item xs={12}>
+                    <TomographyPanel {...tomographyPanelProps} />
                 </Grid>
             </Grid>
         );

@@ -83,27 +83,35 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
         this.props.onToggleCompartmentVisible(root);
     }
 
+    public componentDidMount(): void {
+        this.registerCompartments();
+    }
+
     public componentDidUpdate(prevProps: Readonly<CompartmentListProps>): void {
-        if (prevProps.compartmentViewTree !== this.props.compartmentViewTree && this.state.filteredCompartments.length > 0) {
-            const filteredCompartmentNames = this.state.filteredCompartments.map((c) => c.name);
-            const filteredCompartments: CompartmentNodeView[] = [];
-            let queue = [this.props.compartmentViewTree]
+        if (prevProps.compartmentViewTree !== this.props.compartmentViewTree) {
+            this.registerCompartments();
 
-            let node;
-            while (queue.length > 0) {
-                node = queue.splice(0, 1)[0];
-                queue = queue.concat(node.children);
+            if (this.state.filteredCompartments.length > 0) {
+                const filteredCompartmentNames = this.state.filteredCompartments.map((c) => c.name);
+                const filteredCompartments: CompartmentNodeView[] = [];
+                let queue = [this.props.compartmentViewTree]
 
-                if (filteredCompartmentNames.includes(node.name)) {
-                    filteredCompartments.push(node);
+                let node;
+                while (queue.length > 0) {
+                    node = queue.splice(0, 1)[0];
+                    queue = queue.concat(node.children);
+
+                    if (filteredCompartmentNames.includes(node.name)) {
+                        filteredCompartments.push(node);
+                    }
+
+                    if (filteredCompartments.length === this.state.filteredCompartments.length) {
+                        break;
+                    }
                 }
 
-                if (filteredCompartments.length === this.state.filteredCompartments.length) {
-                    break;
-                }
+                this.setState({ filteredCompartments });
             }
-
-            this.setState({ filteredCompartments });
         }
     }
 
@@ -155,7 +163,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
                               )}
                 />
                 <List dense
-                      style={{ width: '100%', maxHeight: 500, overflow: 'auto', position: 'relative' }} >
+                      style={{ width: '100%', maxHeight: 300, overflow: 'auto', position: 'relative' }} >
                     {listChildren}
                 </List>
             </Container>

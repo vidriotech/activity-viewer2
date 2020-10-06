@@ -6,7 +6,7 @@ import { CompartmentNode } from './apiModels';
 import { UnitModel } from './unitModel';
 
 
-export type PredicateType = 'string' | 'stat' | 'mixed';
+export type PredicateType = "string" | "number" | "stat" | "mixed";
 
 export abstract class Predicate {
     private readonly type: PredicateType;
@@ -140,7 +140,7 @@ export class PropIneqPredicate extends Predicate {
     protected _upperBound: number;
     
     constructor(propName: keyof(UnitModel), lowerBound: number, upperBound: number) {
-        super('string');
+        super("number");
 
         this._propName = propName;
         this._lowerBound = lowerBound;

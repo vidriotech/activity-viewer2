@@ -1,6 +1,10 @@
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./models/colorMap";
 
+export const SagittalMax = 11400;
+export const HorizontalMax = 8000;
+export const CoronalMax = 13200;
+
 export class AVConstants {
     private endpoint = 'http://localhost:3030';
     private _rootId = 997;
@@ -114,9 +118,9 @@ void main() {
 
     public get centerPoint() {
         return [
-            this.SagittalMax,
+            this.CoronalMax,
             this.HorizontalMax,
-            this.CoronalMax
+            this.SagittalMax,
         ].map(x => x / 2);
     }
 

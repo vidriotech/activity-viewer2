@@ -1,7 +1,5 @@
-import enum
 import json
 from pathlib import Path
-import shutil
 from tempfile import mkdtemp
 
 from flask import Flask, make_response, request, send_file
@@ -11,16 +9,12 @@ import numpy as np
 from activity_viewer.api.state import APIState
 from activity_viewer.api.compute import slice_to_data_uri
 from activity_viewer.compute.mappings import color_map
+from activity_viewer.constants import SliceType, AP_MAX
 from activity_viewer.settings import AVSettings, make_default_settings
 
 app = Flask(__name__)
 CORS(app)
 state = APIState()
-
-
-class SliceType(enum.Enum):
-    CORONAL = 0
-    SAGITTAL = 1
 
 
 @app.route("/")
@@ -268,16 +262,20 @@ def get_settings():
     return state.settings.to_dict()
 
 
-@app.route("/slices/<slice_type>/<coordinate>")
-def get_slices(slice_type: str, coordinate: float):
-    coordinate = float(coordinate)
+@app.route("/slices")
+def get_slices():
     rotate = 0
 
-    if slice_type == SliceType.CORONAL:
+    slice_type = request.args.get("sliceType", type=int, default=SliceType.CORONAL)
+    coordinate = request.args.get("coordinate", type=float, default=AP_MAX / 2)
+
+    if slice_type == SliceType.CORONAL.value:
+        print("coronal")
         template_slice = state.get_coronal_template_slice(coordinate)
         annotation_rgb = state.get_coronal_annotation_rgb(coordinate)
         annotation_slice = state.get_coronal_annotation_slice(coordinate)
-    elif slice_type == SliceType.SAGITTAL:
+    elif slice_type == SliceType.SAGITTAL.value:
+        print("sagittal")
         template_slice = state.get_sagittal_template_slice(coordinate)
         annotation_rgb = state.get_sagittal_annotation_rgb(coordinate)
         annotation_slice = state.get_sagittal_annotation_slice(coordinate)
@@ -287,7 +285,7 @@ def get_slices(slice_type: str, coordinate: float):
         template_slice = annotation_rgb = annotation_slice = None
 
     if template_slice is None or annotation_rgb is None or annotation_slice is None:
-        return make_response(f"No slices found for slice type '{slice_type}' and coordinate '{coordinate}'.")
+        return make_response(f"No slices found for slice type '{slice_type}' and coordinate '{coordinate}'.", 404)
 
     return {
         "annotationImage": slice_to_data_uri(
@@ -303,6 +301,7 @@ def get_slices(slice_type: str, coordinate: float):
             annotation_slice,
             rotate
         ),
+        "coordinate": coordinate,
     }
 
 

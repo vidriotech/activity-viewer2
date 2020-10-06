@@ -18,6 +18,7 @@ import {TimeseriesData, TimeseriesSummary} from "./models/timeseries";
 import {AestheticMapping, AestheticParams} from "./models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
 import {SliceType} from "./models/enums";
+// eslint-disable-next-line import/no-unresolved
 import {PenetrationInterface} from "./models/penetration";
 
 
@@ -103,7 +104,7 @@ export class APIClient {
     }
 
     async fetchSliceData(sliceType: SliceType, coordinate: number): Promise<AxiosResponse<SliceData>> {
-        return await axios.get(`${this.endpoint}/slices/${sliceType}/${coordinate}`);
+        return await axios.get(`${this.endpoint}/slices?sliceType=${sliceType}&coordinate=${coordinate}`);
     }
 
     async fetchTimeseries(penetrationId: string, timeseriesId: string): Promise<AxiosResponse<TimeseriesData>> {

@@ -1,36 +1,30 @@
 import React from "react";
-
-import CircularProgress from "@material-ui/core/CircularProgress";
 import Grid from "@material-ui/core/Grid";
-import SaveIcon from "@material-ui/icons/Save";
-import Typography from "@material-ui/core/Typography";
 
 // eslint-disable-next-line import/no-unresolved
 import {AVConstants} from "../../constants";
 
 // eslint-disable-next-line import/no-unresolved
-import {AVSettings, PenetrationData} from "../../models/apiModels";
+import {AVSettings} from "../../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate} from "../../models/predicateModels";
+import {Predicate, PropIneqPredicate} from "../../models/predicateModels";
 
 // eslint-disable-next-line import/no-unresolved
 import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
 
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentList, CompartmentListProps} from "../CompartmentList/CompartmentList";
 // eslint-disable-next-line import/no-unresolved
-import {UnitTable, UnitTableProps} from "../UnitTable/UnitTable";
 // eslint-disable-next-line import/no-unresolved
 import {ViewerContainer, ViewerContainerProps} from "../Viewers/ViewerContainer";
-import IconButton from "@material-ui/core/IconButton";
-import {ChevronLeft, ChevronRight} from "@material-ui/icons";
 // eslint-disable-next-line import/no-unresolved
-import {headerStyle} from "../../styles";
-
 // eslint-disable-next-line import/no-unresolved
 import {PhysiologyPanel, PhysiologyPanelProps} from "./PhysiologyPanel";
+// eslint-disable-next-line import/no-unresolved
 import {DataPanel, DataPanelProps} from "./DataPanel";
+// eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
+// eslint-disable-next-line import/no-unresolved
+import {SliceType} from "../../models/enums";
 
 export interface DisplayPanelProps {
     selectedPenetrations: Map<string, Penetration>;
@@ -62,8 +56,17 @@ export interface DisplayPanelProps {
 }
 
 interface DisplayPanelState {
-    showLeft: boolean;
-    showRight: boolean;
+    showDataPanel: boolean;
+    showPhysPanel: boolean;
+
+    showTomographyAnnotation: boolean;
+    showTomographySlice: boolean;
+    tomographySliceType: SliceType;
+    tomographySliceCoordinate: number;
+
+    showTestSlice: boolean;
+    testSliceBounds: [number, number];
+    testSliceType: SliceType;
 }
 
 export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPanelState> {
@@ -71,17 +74,37 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         super(props);
 
         this.state = {
-            showLeft: true,
-            showRight: true,
+            showDataPanel: true,
+            showPhysPanel: true,
+
+            showTomographyAnnotation: true,
+            showTomographySlice: false,
+            tomographySliceType: null,
+            tomographySliceCoordinate: NaN,
+
+            showTestSlice: false,
+            testSliceBounds: [NaN, NaN],
+            testSliceType: null,
         };
     }
 
-    public render(): React.ReactElement {
-        const unitTableProps: UnitTableProps = {
-            selectedPenetrations: this.props.selectedPenetrations,
-            busy: this.props.busy,
-        };
+    private handleCommitSlicing(): void {
+        const tomographySliceCoordinate = (this.state.testSliceBounds[0] + this.state.testSliceBounds[1]) / 2
 
+        this.setState({
+            showTestSlice: false,
+            showTomographySlice: true,
+            tomographySliceType: this.state.testSliceType,
+            tomographySliceCoordinate,
+        }, () => {
+            const coordName = this.state.tomographySliceType === SliceType.CORONAL ?
+                "x" : "z";
+            const predicate = new PropIneqPredicate(coordName, ...this.state.testSliceBounds);
+            this.props.onUpdateFilterPredicate(predicate);
+        });
+    }
+
+    public render(): React.ReactElement {
         const dataPanelProps: DataPanelProps = {
             selectedPenetrations: this.props.selectedPenetrations,
             constants: this.props.constants,
@@ -89,7 +112,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
 
             busy: this.props.busy,
 
-            onCollapse: () => {this.setState({showLeft: false})},
+            onCollapse: () => {this.setState({showDataPanel: false})},
             onRequestUnitExport: this.props.onRequestUnitExport,
         }
 
@@ -116,14 +139,23 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             progress: this.props.progress,
             progressMessage: this.props.progressMessage,
 
-            showLeft: this.state.showLeft,
-            showRight: this.state.showRight,
+            showDataPanel: this.state.showDataPanel,
+            showPhysPanel: this.state.showPhysPanel,
+
+            showTomographyAnnotation: this.state.showTomographyAnnotation,
+            showTomographySlice: this.state.showTomographySlice,
+            tomographySliceType: this.state.tomographySliceType,
+            tomographySliceCoordinate: this.state.tomographySliceCoordinate,
+
+            showTestSlice: this.state.showTestSlice,
+            testSliceType: this.state.testSliceType,
+            testSliceBounds: this.state.testSliceBounds,
 
             onExpand: (side: "l" | "r"): void => {
                 if (side === "l") {
-                    this.setState({showLeft: true});
+                    this.setState({showDataPanel: true});
                 } else if (side === "r") {
-                    this.setState({showRight: true});
+                    this.setState({showPhysPanel: true});
                 }
             },
             onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
@@ -132,16 +164,45 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
 
         const physiologyPanelProps: PhysiologyPanelProps = {
             selectedPenetrations: this.props.selectedPenetrations,
-            busy: this.props.busy,
             compartmentViewTree: this.props.compartmentViewTree,
             constants: this.props.constants,
             settings: this.props.settings,
 
-            onCollapse: () => {this.setState({showRight: false})},
+            busy: this.props.busy,
+
+            showTomographyAnnotation: this.state.showTomographyAnnotation,
+            showTestSlice: this.state.showTestSlice,
+            testSliceBounds: this.state.testSliceBounds,
+            testSliceType: this.state.testSliceType,
+
+            onCollapse: () => {this.setState({showPhysPanel: false})},
             onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
+
+            onCommitSlicing: this.handleCommitSlicing.bind(this),
+            onSelectSliceType: (testSliceType: SliceType, testSliceBounds: [number, number]) => {
+                this.setState({
+                    showTestSlice: true,
+                    testSliceType,
+                    testSliceBounds,
+                });
+            },
+            onUnselectSliceType: () => {
+                this.setState({showTestSlice: false, showTomographySlice: false});
+            },
+            onUpdateTestSliceBounds: (testSliceBounds: [number, number]): void => {
+                this.setState({
+                    showTestSlice: true,
+                    testSliceBounds
+                });
+            },
+            onToggleTemplateDisplay: () => {
+                this.setState({
+                    showTomographyAnnotation: !this.state.showTomographyAnnotation
+                });
+            }
         };
 
-        const xs = 12 - 3 * (Number(this.state.showLeft) + Number(this.state.showRight));
+        const xs = 12 - 3 * (Number(this.state.showDataPanel) + Number(this.state.showPhysPanel));
 
         return (
             <Grid container
@@ -149,11 +210,11 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
                   style={{
                       borderTop: "1px solid black",
                       borderBottom: "1px solid black",
-                      borderRight: this.state.showRight ? "1px solid black" : "none",
-                      borderLeft: this.state.showLeft ? "1px solid black" : "none",
+                      borderRight: this.state.showPhysPanel ? "1px solid black" : "none",
+                      borderLeft: this.state.showDataPanel ? "1px solid black" : "none",
                       margin: 0
                   }}>
-                {this.state.showLeft ?
+                {this.state.showDataPanel ?
                     <Grid item xs={3}>
                         <DataPanel {...dataPanelProps} />
                     </Grid> :
@@ -162,7 +223,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
                 <Grid item xs={xs as 6 | 9 | 12}>
                     <ViewerContainer {...viewerContainerProps} />
                 </Grid>
-                {this.state.showRight ?
+                {this.state.showPhysPanel ?
                     <Grid item xs={3}>
                         <PhysiologyPanel {...physiologyPanelProps} />
                     </Grid> :

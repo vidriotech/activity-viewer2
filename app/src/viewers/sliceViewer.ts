@@ -7,13 +7,13 @@
 // import {Epoch, PenetrationData, SliceData} from "../models/apiModels";
 //
 // // eslint-disable-next-line import/no-unresolved
-// import {BaseViewer} from "./baseViewer";
+// import {BrainViewer} from "./baseViewer";
 // import {SliceType} from "../models/enums";
 //
 // // eslint-disable-next-line @typescript-eslint/no-var-requires
 // const THREE = require("three");
 //
-// export class SliceViewer extends BaseViewer {
+// export class SliceViewer extends BrainViewer {
 //
 //     constructor(constants: AVConstants, epochs: Epoch[], sliceData: SliceData) {
 //         super(constants, epochs);
