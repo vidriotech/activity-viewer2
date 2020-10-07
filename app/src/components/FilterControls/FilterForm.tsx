@@ -29,7 +29,9 @@ export interface FilterFormProps {
     busy: boolean;
     compartmentTree: CompartmentTree;
     compartmentViewTree: CompartmentNodeView;
+
     selectedPenetrations: Map<string, Penetration>;
+    availableStats: Set<string>;
 
     filterPredicate: Predicate;
 
@@ -48,7 +50,6 @@ interface FilterFormState {
 
 export class FilterForm extends React.Component<FilterFormProps, FilterFormState> {
     private availableCompartments: string[];
-    private availableStats: string[];
     private propKeys: Map<string, keyof UnitModel>;
 
     constructor(props: FilterFormProps) {
@@ -65,7 +66,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         }
 
         this.availableCompartments = [];
-        this.availableStats = [];
 
         this.propKeys = new Map<string, keyof UnitModel>();
         this.propKeys.set("compartment-name", "compartmentName");
@@ -276,14 +276,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         }
     }
 
-    private registerStats(): void {
-        this.availableStats = [];
-
-        this.props.selectedPenetrations.forEach((penetrations) => {
-            this.availableStats = _.union(this.availableStats, penetrations.unitStatIds);
-        });
-    }
-
     private resetForm(): void {
         this.setState({
             strEqualsValue: "",
@@ -296,21 +288,16 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
 
     public componentDidMount(): void {
         this.registerCompartments();
-        this.registerStats();
     }
 
     public componentDidUpdate(prevProps: Readonly<FilterFormProps>): void {
         if (prevProps.compartmentViewTree !== this.props.compartmentViewTree) {
             this.registerCompartments();
         }
-
-        if (prevProps.selectedPenetrations !== this.props.selectedPenetrations) {
-            this.registerStats();
-        }
     }
 
     public render(): React.ReactElement {
-        const availableStats = this.availableStats;
+        const availableStats = Array.from(this.props.availableStats);
         const isPropCondition = _.includes([
             "penetration-id",
             "compartment-name"

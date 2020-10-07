@@ -20,7 +20,9 @@ export interface QueryPanelProps {
     busy: boolean;
     compartmentTree: CompartmentTree;
     compartmentViewTree: CompartmentNodeView;
+
     selectedPenetrations: Map<string, Penetration>;
+    availableStats: Set<string>;
 
     filterPredicate: Predicate;
 
@@ -32,7 +34,9 @@ export function QueryPanel(props: QueryPanelProps): React.ReactElement {
         busy: props.busy,
         compartmentTree: props.compartmentTree,
         compartmentViewTree: props.compartmentViewTree,
+
         selectedPenetrations: props.selectedPenetrations,
+        availableStats: props.availableStats,
 
         filterPredicate: props.filterPredicate,
 

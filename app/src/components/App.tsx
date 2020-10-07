@@ -60,6 +60,9 @@ interface AppState {
     loadedPenetrations: Set<string>;
     selectedPenetrations: Set<string>;
 
+    availableStats: Set<string>;
+    availableTimeseries: Set<string>;
+
     filterPredicate: Predicate;
 
     ready: boolean;
@@ -80,6 +83,9 @@ export class App extends React.Component<{}, AppState> {
             availablePenetrations: new Set<string>(),
             loadedPenetrations: new Set<string>(),
             selectedPenetrations: new Set<string>(),
+
+            availableStats: new Set<string>(),
+            availableTimeseries: new Set<string>(),
 
             filterPredicate: null,
 
@@ -108,10 +114,20 @@ export class App extends React.Component<{}, AppState> {
                     Penetration.fromResponse(penetrationData)
                 );
 
+                const availableStats = _.clone(this.state.availableStats);
+                penetrationData.unitStatIds.forEach((statId) => {
+                    availableStats.add(statId);
+                });
+
+                const availableTimeseries = _.clone(this.state.availableTimeseries);
+                penetrationData.timeseriesIds.forEach((timeseriesId) => {
+                    availableTimeseries.add(timeseriesId);
+                })
+
                 const loadedPenetrations = _.clone(this.state.loadedPenetrations);
                 loadedPenetrations.add(pid);
 
-                this.setState({loadedPenetrations});
+                this.setState({loadedPenetrations, availableStats, availableTimeseries});
             }
         }
     }
@@ -220,6 +236,9 @@ export class App extends React.Component<{}, AppState> {
             availablePenetrations: this.state.availablePenetrations,
             loadedPenetrations: this.state.loadedPenetrations,
             selectedPenetrations: this.getSelectedPenetrations(),
+
+            availableStats: this.state.availableStats,
+            availableTimeseries: this.state.availableTimeseries,
 
             filterPredicate: this.state.filterPredicate,
 

@@ -18,8 +18,6 @@ import {UnitModel} from '../models/unitModel';
 import {Predicate} from '../models/predicateModels';
 
 // eslint-disable-next-line import/no-unresolved
-import {AestheticProps} from "../models/aestheticMapping";
-// eslint-disable-next-line import/no-unresolved
 import {CompartmentNodeView} from '../viewmodels/compartmentViewModel';
 
 // eslint-disable-next-line import/no-unresolved
@@ -73,6 +71,9 @@ export interface MainViewProps {
     loadedPenetrations: Set<string>;
     selectedPenetrations: Map<string, Penetration>;
 
+    availableStats: Set<string>;
+    availableTimeseries: Set<string>;
+
     filterPredicate: Predicate;
 
     onRequestUnitExport(): void;
@@ -81,7 +82,7 @@ export interface MainViewProps {
     onUpdateSelectedPenetrations(selectedPenetrationIds: string[]): void;
 }
 
-interface MainViewState extends AestheticProps {
+interface MainViewState {
     availablePenetrations: PenetrationData[];
     compartmentViewTree: CompartmentNodeView;
     filterPredicate: Predicate;
@@ -115,17 +116,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
  
         this.state = {
             availablePenetrations: [],
-
-            colorTimeseries: "nothing",
-            colorBounds: [0, 1],
-            colorGamma: 1,
-            colorMapping: "bwr",
-            opacityTimeseries: "nothing",
-            opacityBounds: [0.01, 1],
-            opacityGamma: 1,
-            radiusTimeseries: "nothing",
-            radiusBounds: [0.01, 1],
-            radiusGamma: 1,
 
             selectedStat: "nothing",
 
@@ -183,10 +173,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         }
     }
 
-    private handleAestheticCommit(aestheticProps: AestheticProps): void {
-        this.setState(aestheticProps);
-    }
-
     private handleStatSelectionChange(event: React.ChangeEvent<{name?: string; value: string}>): void {
         const value = event.target.value;
         this.fetchAndUpdateUnitStats(value);
@@ -206,36 +192,13 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     }
 
     public render(): React.ReactNode {
-        const timeseriesControlsProps: TimeseriesMappersProps = {
-            busy: this.isBusy,
-            constants: this.props.constants,
-            colorTimeseries: this.state.colorTimeseries,
-            colorBounds: this.state.colorBounds,
-            colorGamma: this.state.colorGamma,
-            colorMapping: this.state.colorMapping,
-
-            opacityTimeseries: this.state.opacityTimeseries,
-            opacityBounds: this.state.opacityBounds,
-            opacityGamma: this.state.opacityGamma,
-
-            radiusTimeseries: this.state.radiusTimeseries,
-            radiusBounds: this.state.radiusBounds,
-            radiusGamma: this.state.radiusGamma,
-            timeseriesList: _.sortedUniq(
-                _.flatten(this.state.availablePenetrations.map(
-                    pen => pen.timeseries
-                )).sort()
-            ),
-            onCommit: this.handleAestheticCommit.bind(this),
-        };
-
-        /* ay yo */
-
         const queryPanelProps: QueryPanelProps = {
             busy: this.isBusy,
             compartmentTree: this.props.compartmentTree,
             compartmentViewTree: this.state.compartmentViewTree,
+
             selectedPenetrations: this.props.selectedPenetrations,
+            availableStats: this.props.availableStats,
 
             filterPredicate: this.props.filterPredicate,
 
@@ -243,21 +206,12 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         };
 
         const displayPanelProps: DisplayPanelProps = {
-            selectedPenetrations: this.props.selectedPenetrations,
             compartmentViewTree: this.state.compartmentViewTree,
             constants: this.props.constants,
             settings: this.props.settings,
 
-            colorTimeseries: this.state.colorTimeseries,
-            colorBounds: this.state.colorBounds,
-            colorGamma: this.state.colorGamma,
-            colorMapping: this.state.colorMapping,
-            opacityTimeseries: this.state.opacityTimeseries,
-            opacityBounds: this.state.opacityBounds,
-            opacityGamma: this.state.opacityGamma,
-            radiusTimeseries: this.state.radiusTimeseries,
-            radiusBounds: this.state.radiusBounds,
-            radiusGamma: this.state.radiusGamma,
+            availableTimeseries: this.props.availableTimeseries,
+            selectedPenetrations: this.props.selectedPenetrations,
 
             busy: this.isBusy,
             progress: this.state.progress,

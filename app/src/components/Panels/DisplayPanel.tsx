@@ -27,23 +27,12 @@ import {Penetration} from "../../models/penetration";
 import {SliceType} from "../../models/enums";
 
 export interface DisplayPanelProps {
-    selectedPenetrations: Map<string, Penetration>;
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
     settings: AVSettings;
 
-    colorTimeseries: string;
-    colorBounds: [number, number];
-    colorGamma: number;
-    colorMapping: string;
-
-    opacityTimeseries: string;
-    opacityBounds: [number, number];
-    opacityGamma: number;
-
-    radiusTimeseries: string;
-    radiusBounds: [number, number];
-    radiusGamma: number;
+    availableTimeseries: Set<string>;
+    selectedPenetrations: Map<string, Penetration>;
 
     busy: boolean;
     progress: number;
@@ -121,19 +110,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             constants: this.props.constants,
             settings: this.props.settings,
 
-            colorTimeseries: this.props.colorTimeseries,
-            colorBounds: this.props.colorBounds,
-            colorGamma: this.props.colorGamma,
-            colorMapping: this.props.colorMapping,
-
-            opacityTimeseries: this.props.opacityTimeseries,
-            opacityBounds: this.props.opacityBounds,
-            opacityGamma: this.props.opacityGamma,
-
-            radiusTimeseries: this.props.radiusTimeseries,
-            radiusBounds: this.props.radiusBounds,
-            radiusGamma: this.props.radiusGamma,
-
+            availableTimeseries: this.props.availableTimeseries,
             selectedPenetrations: this.props.selectedPenetrations,
             busy: this.props.busy,
             progress: this.props.progress,

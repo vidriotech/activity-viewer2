@@ -224,7 +224,7 @@ def get_pseudocoronal_annotation_slice(penetration_id: str):
     }
 
 
-@app.route("/unit-stat")
+@app.route("/unitStat")
 def get_penetration_unit_stat():
     penetration_id = request.args.get("penetrationId", type=str, default=None)
     unit_stat_id = request.args.get("unitStatId", type=str, default=None)
@@ -244,6 +244,40 @@ def get_penetration_unit_stat():
         "unitStatId": unit_stat_id,
         "data": unit_stat.tolist()
     }
+
+
+@app.route("/timeseries")
+def get_penetration_timeseries():
+    penetration_id = request.args.get("penetrationId", type=str, default="")
+    timeseries_id = request.args.get("timeseriesId", type=str, default="")
+
+    if timeseries_id is None:
+        return make_response("timeseriesId not specified.", 400)
+
+    # if no particular penetration is specified, return a summary
+    # if no penetration has this timeseries, get back an object filled with null values
+    if penetration_id is None:
+        summary = state.make_timeseries_summary(timeseries_id)
+        return summary.to_dict()
+
+    if not state.has_penetration(penetration_id):
+        return make_response(f"penetrationId '{penetration_id}' not found.", 404)
+
+    response = {
+        "penetrationId": penetration_id,
+        "timeseriesId": timeseries_id,
+        "times": None,
+        "values": None
+    }
+
+    data = state.get_timeseries(penetration_id, timeseries_id)
+    if data is not None:
+        times = data[0, :]
+        values = data[1:, :]
+        response["times"] = times.ravel().tolist()
+        response["values"] = values.ravel().tolist()
+
+    return response
 
 
 @app.route("/settings", methods=["GET", "POST"])
@@ -303,65 +337,6 @@ def get_slices():
         ),
         "coordinate": coordinate,
     }
-
-
-@app.route("/timeseries")
-def get_timeseries_by_id():
-    page = request.args.get("page", type=int, default=1)
-    limit = request.args.get("limit", type=int, default=10)
-    timeseries_ids = request.args.get("timeseriesIds", type=str, default="").split(",")
-    penetration_ids = request.args.get("penetrationIds", type=str, default="").split(",")
-    link = None
-
-    n_pens = len(state.penetrations)
-
-    if len(penetration_ids) == 0:
-        start = (page - 1) * limit
-        stop = page * limit
-        penetration_ids = state.penetrations[start:stop]
-
-        if stop < n_pens - 1:
-            link = f"/timeseries?timeseriesIds={','.join(timeseries_ids)}&page={page + 1}&limit={limit}"
-
-    response = {
-        "timeseries": [],
-        "info": {
-            "totalCount": n_pens
-        },
-        "link": link
-    }
-
-    for timeseries_id in timeseries_ids:
-        if timeseries_id == "nothing":
-            continue
-
-        summary = state.make_timeseries_summary(timeseries_id)
-
-        subresponse = {
-            "summary": summary.to_dict(),
-            "penetrations": []
-        }
-
-        for penetration_id in penetration_ids:
-            entry = {
-                "penetrationId": penetration_id,
-                "timeseriesId": timeseries_id,
-                "times": None,
-                "values": None
-            }
-
-            data = state.get_timeseries(penetration_id, timeseries_id)
-            if data is not None:
-                times = data[0, :]
-                values = data[1:, :]
-                entry["times"] = times.ravel().tolist()
-                entry["values"] = values.ravel().tolist()
-
-            subresponse["penetrations"].append(entry)
-
-        response["timeseries"].append(subresponse)
-
-    return response
 
 
 @app.route("/timeseries/<timeseries_id>/summary")

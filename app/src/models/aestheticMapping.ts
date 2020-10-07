@@ -28,7 +28,7 @@ export interface AestheticParams {
 }
 
 export interface ScalarMapping {
-    timeseriesData: TimeseriesData;
+    timeseriesId: string;
     transformParams: TransformParams;
 }
 
@@ -37,11 +37,9 @@ export interface ColorMapping extends ScalarMapping {
 }
 
 export interface AestheticMapping {
-    penetrationId: string;
     color: ColorMapping;
     opacity: ScalarMapping;
     radius: ScalarMapping;
-    show: number[];
 }
 
 export interface AestheticProps {

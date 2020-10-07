@@ -58,7 +58,7 @@ export function ScalarMapper(props: ScalarMapperProps): React.ReactElement {
 
     return (
         <Grid container
-              spacing={1}>
+              spacing={4}>
             <Grid item xs={3}>
                 <FormControl>
                     <InputLabel id={`aesthetic-mapper-${props.mapperLabel}-label`}>

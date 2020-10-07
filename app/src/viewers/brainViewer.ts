@@ -46,7 +46,6 @@ const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 export class BrainViewer {
     protected constants: AVConstants;
     protected epochs: Epoch[];
-    protected aestheticMappings: Map<string, AestheticMapping>;
 
     // animation
     protected animFrameHandle: number = null;
@@ -133,7 +132,6 @@ export class BrainViewer {
 
         this.loadedPenetrationsMap = new Map<string, Penetration>();
         this.penetrationPointsMap = new Map<string, Points<BufferGeometry>>();
-        this.aestheticMappings = new Map<string, AestheticMapping>();
 
         this.visibleCompartments = new Set<string>();
     }
@@ -339,7 +337,7 @@ export class BrainViewer {
     protected makeShaderMaterial(aestheticMapping: AestheticMapping): ShaderMaterial {
         const colors = [];
         let colorLUT: ColorLUT;
-        if (aestheticMapping.color === null || !aestheticMapping.color.colorLUT) {
+        if (!aestheticMapping.color || !aestheticMapping.color.colorLUT) {
             colorLUT = this.constants.defaultColorLUT;
         } else {
             colorLUT = aestheticMapping.color.colorLUT;
@@ -525,11 +523,9 @@ export class BrainViewer {
     public loadPenetration(penetration: Penetration): void {
         const centerPoint = this.constants.centerPoint.map((t: number) => -t) as [number, number, number];
         const defaultAesthetics: AestheticMapping = {
-            penetrationId: penetration.id,
             color: null,
             opacity: null,
             radius: null,
-            show: null,
         };
 
         // fixed attributes
@@ -560,7 +556,6 @@ export class BrainViewer {
 
         this.loadedPenetrationsMap.set(penetration.id, penetration);
         this.penetrationPointsMap.set(penetration.id, points);
-        this.aestheticMappings.set(penetration.id, defaultAesthetics);
 
         this.scene.add(points);
     }
@@ -569,52 +564,63 @@ export class BrainViewer {
         this.renderer.render(this.scene, this.camera);
     }
 
-    public setAestheticAssignments(mappings: AestheticMapping[]): void {
-        mappings.forEach((mapping) => {
-            const penetrationId = mapping.penetrationId;
+    public clearAestheticAssignments(): void {
+        this.loadedPenetrationsMap.forEach((_pen, penetrationId) => {
+            this.colorData.set(penetrationId, null);
+            this.opacityData.set(penetrationId, null);
+            this.radiusData.set(penetrationId, null);
+        });
+    }
 
-            if (mapping.color !== null && mapping.color.timeseriesData.times !== null) {
-                const times = mapping.color.timeseriesData.times;
-                const values = mapping.color.timeseriesData.values;
-
-                this.colorData.set(
-                    penetrationId,
-                    this.interpExtrapTranspose(times, values)
-                );
-            } else {
-                this.colorData.set(penetrationId, null);
-            }
-
-            if (mapping.opacity !== null && mapping.opacity.timeseriesData.times !== null) {
-                const times = mapping.opacity.timeseriesData.times;
-                const values = mapping.opacity.timeseriesData.values;
-                this.opacityData.set(
-                    penetrationId,
-                    this.interpExtrapTranspose(times, values)
-                );
-            } else {
-                this.opacityData.set(penetrationId, null);
-            }
-
-            if (mapping.radius !== null && mapping.radius.timeseriesData.times !== null) {
-                const times = mapping.radius.timeseriesData.times;
-                const values = mapping.radius.timeseriesData.values;
-                this.radiusData.set(
-                    penetrationId,
-                    this.interpExtrapTranspose(times, values)
-                );
-            } else {
-                this.radiusData.set(penetrationId, null);
-            }
-
-            this.aestheticMappings.set(penetrationId, mapping);
-
+    public setAestheticAssignment(mapping: AestheticMapping): void {
+        this.loadedPenetrationsMap.forEach((penetration, penetrationId) => {
             const pointObj = this.penetrationPointsMap.get(penetrationId);
+            if (!pointObj) {
+                return;
+            }
+
             pointObj.material = this.makeShaderMaterial(mapping);
             pointObj.material.needsUpdate = true;
-        });
 
-        this.updatePenetrationAttributes();
+            if (mapping.color) {
+                penetration.getTimeseries(mapping.color.timeseriesId)
+                    .then((data) => {
+                        if (data.times) {
+                            this.colorData.set(
+                                penetrationId,
+                                this.interpExtrapTranspose(data.times, data.values)
+                            );
+                            this.updatePenetrationAttributes(penetrationId);
+                        }
+                    });
+            }
+
+            if (mapping.opacity) {
+                penetration.getTimeseries(mapping.opacity.timeseriesId)
+                    .then((data) => {
+                        if (data.times) {
+                            this.opacityData.set(
+                                penetrationId,
+                                this.interpExtrapTranspose(data.times, data.values)
+                            );
+                            this.updatePenetrationAttributes(penetrationId);
+                        }
+                    });
+            }
+
+            if (mapping.radius) {
+                penetration.getTimeseries(mapping.radius.timeseriesId)
+                    .then((data) => {
+                        if (data.times) {
+                            this.radiusData.set(
+                                penetrationId,
+                                this.interpExtrapTranspose(data.times, data.values)
+                            );
+                            this.updatePenetrationAttributes(penetrationId);
+                        }
+                    });
+            }
+        });
     }
 
     public setSize(width: number, height: number): void {
@@ -761,56 +767,68 @@ export class BrainViewer {
         this.timeVal = timeVal;
     }
 
-    public updatePenetrationAttributes(): void {
+    public updatePenetrationAttributes(penetrationId: string): void {
+        const penetration = this.loadedPenetrationsMap.get(penetrationId);
+        const pointObj = this.penetrationPointsMap.get(penetrationId);
+        if (!penetration || !pointObj) {
+            return;
+        }
+
         const t = this._timeVal;
         const timeIdx = Math.floor((t - this.timeMin) / this.timeStep);
 
-        this.penetrationPointsMap.forEach((pointObj, penetrationId) => {
-            const nPoints = pointObj.geometry.attributes.position.array.length / 3;
+        const nPoints = pointObj.geometry.attributes.position.array.length / 3;
 
-            const colorData = this.colorData.get(penetrationId);
-            let kolor: Float32Array;
-            if (colorData) {
-                kolor = new Float32Array(colorData.slice(nPoints * timeIdx, nPoints * (timeIdx + 1)));
-                // colorData = new Float32Array(colorData)
-            } else {
-                kolor = new Float32Array(nPoints);
-                kolor.fill(0);
-            }
+        const colorData = this.colorData.get(penetrationId);
+        let kolor: Float32Array;
+        if (colorData) {
+            kolor = new Float32Array(colorData.slice(nPoints * timeIdx, nPoints * (timeIdx + 1)));
+            // colorData = new Float32Array(colorData)
+        } else {
+            kolor = new Float32Array(nPoints);
+            kolor.fill(0);
+        }
 
-            const opacityData = this.opacityData.get(penetrationId);
-            let opacities: Float32Array;
-            if (opacityData) {
-                opacities = new Float32Array(opacityData.slice(nPoints * timeIdx, nPoints * (timeIdx + 1)));
-            } else {
-                opacities = new Float32Array(nPoints);
-                opacities.fill(this.constants.defaultOpacity);
-            }
+        const opacityData = this.opacityData.get(penetrationId);
+        let opacities: Float32Array;
+        if (opacityData) {
+            opacities = new Float32Array(opacityData.slice(nPoints * timeIdx, nPoints * (timeIdx + 1)));
+        } else {
+            opacities = new Float32Array(nPoints);
+            opacities.fill(this.constants.defaultOpacity);
+        }
 
-            const radiusData = this.radiusData.get(penetrationId);
-            let sizes: Float32Array;
-            if (radiusData) {
-                sizes = new Float32Array(radiusData.slice(nPoints * timeIdx, nPoints * (timeIdx + 1)));
-            } else {
-                sizes = new Float32Array(nPoints);
-                sizes.fill(this.constants.defaultRadius);
-            }
+        const radiusData = this.radiusData.get(penetrationId);
+        let sizes: Float32Array;
+        if (radiusData) {
+            sizes = new Float32Array(radiusData.slice(nPoints * timeIdx, nPoints * (timeIdx + 1)));
+        } else {
+            sizes = new Float32Array(nPoints);
+            sizes.fill(this.constants.defaultRadius);
+        }
 
-            const mapping = this.aestheticMappings.get(penetrationId);
-            const visible = new Float32Array(mapping.show);
+        const visible = penetration.visible;
 
-            const geom = pointObj.geometry;
-            geom.attributes.kolor = new Float32BufferAttribute(kolor, 1);
-            geom.attributes.kolor.needsUpdate = true;
+        const geom = pointObj.geometry;
+        geom.attributes.kolor = new Float32BufferAttribute(kolor, 1);
+        geom.attributes.kolor.needsUpdate = true;
 
-            geom.attributes.opacity = new Float32BufferAttribute(opacities, 1);
-            geom.attributes.opacity.needsUpdate = true;
+        geom.attributes.opacity = new Float32BufferAttribute(opacities, 1);
+        geom.attributes.opacity.needsUpdate = true;
 
-            geom.attributes.size = new Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage);
-            geom.attributes.size.needsUpdate = true;
+        geom.attributes.size = new Float32BufferAttribute(sizes, 1).setUsage(THREE.DynamicDrawUsage);
+        geom.attributes.size.needsUpdate = true;
 
-            geom.attributes.show = new Float32BufferAttribute(visible, 1);
-            geom.attributes.show.needsUpdate = true;
+        geom.attributes.show = new Float32BufferAttribute(visible, 1);
+        geom.attributes.show.needsUpdate = true;
+
+        this.render();
+    }
+
+    public updateAllPenetrationAttributes(): void {
+
+        this.penetrationPointsMap.forEach((_obj, penetrationId) => {
+            this.updatePenetrationAttributes(penetrationId);
         });
 
         this.render();
@@ -822,7 +840,7 @@ export class BrainViewer {
 
     public set timeVal(t: number) {
         this._timeVal = t;
-        this.updatePenetrationAttributes();
+        this.updateAllPenetrationAttributes();
         this.updateTimeSlider();
     }
 

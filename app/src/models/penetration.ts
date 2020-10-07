@@ -2,12 +2,14 @@ import axios, {AxiosResponse} from "axios";
 import * as _ from "lodash";
 
 // eslint-disable-next-line import/no-unresolved
-import {AVConstants} from "../constants";
-// eslint-disable-next-line import/no-unresolved
 import {Compartment} from "./apiModels";
 // eslint-disable-next-line import/no-unresolved
-import {TimeseriesData} from "./timeseries";
+import {AVConstants} from "../constants";
+// eslint-disable-next-line import/no-unresolved
 import {Predicate} from "./predicateModels";
+// eslint-disable-next-line import/no-unresolved
+import {TimeseriesData} from "./timeseries";
+// eslint-disable-next-line import/no-unresolved
 import {UnitModel} from "./unitModel";
 
 export interface PenetrationInterface {
@@ -61,10 +63,10 @@ export class Penetration implements PenetrationInterface {
         this.unitModels = [];
     }
 
-    private constructUri(dataType: "unit-stat" | "timeseries", dataId: string): string {
+    private constructUri(dataType: "unitStat" | "timeseries", dataId: string): string {
         const endpoint = this.constants.apiEndpoint;
 
-        return `${endpoint}/${dataType}?penetrationId=${this.id}&unitStatId=${dataId}`;
+        return `${endpoint}/${dataType}?penetrationId=${this.id}&${dataType}Id=${dataId}`;
     }
 
     private getSelectedSubset(data: any[]): any[] {
@@ -154,12 +156,28 @@ export class Penetration implements PenetrationInterface {
         return selectedOnly ? this.getSelectedSubset(unitIds) : unitIds;
     }
 
+    public async getTimeseries(timeseriesId: string): Promise<TimeseriesData> {
+        if (this.hasTimeseriesLoaded(timeseriesId)) {
+            return this._timeseries.get(timeseriesId);
+        } else if (this.hasTimeseries(timeseriesId)) {
+            const uri = this.constructUri("timeseries", timeseriesId);
+
+            return axios.get(uri)
+                .then((res) => res.data)
+                .then((data: TimeseriesData) => {
+                    this._timeseries.set(timeseriesId, data);
+
+                    return data;
+                });
+        }
+    }
+
     public async getUnitStat(unitStatId: string, selectedOnly = true): Promise<number[]> {
-        if (this.hasUnitStat(unitStatId) && this.hasUnitStatLoaded(unitStatId)) {
+        if (this.hasUnitStatLoaded(unitStatId)) {
             const stat = this._unitStats.get(unitStatId);
             return selectedOnly ? this.getSelectedSubset(stat) : stat;
         } else if (this.hasUnitStat(unitStatId)) {
-            const uri = this.constructUri("unit-stat", unitStatId);
+            const uri = this.constructUri("unitStat", unitStatId);
 
             return axios.get(uri)
                 .then((res) => res.data)
