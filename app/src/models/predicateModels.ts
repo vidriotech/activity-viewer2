@@ -75,7 +75,7 @@ export class StatPredicate extends Predicate {
     }
 
     public eval(points: UnitModel[]): boolean[] {
-        let result: boolean[] = new Array(points.length);
+        const result: boolean[] = new Array(points.length);
         points.forEach((point: UnitModel, idx: number) => {
             const stat = point.getUnitStat(this._statName);
             result[idx] = (this._lowerBound <= stat) && (stat <= this._upperBound);
@@ -88,15 +88,15 @@ export class StatPredicate extends Predicate {
         return `${this._lowerBound} ≤ ${this._statName} ≤ ${this._upperBound}`;
     }
 
-    public get statName() {
+    public get statName(): string {
         return this._statName;
     }
 
-    public get lowerBound() {
+    public get lowerBound(): number {
         return this._lowerBound;
     }
 
-    public get upperBound() {
+    public get upperBound(): number {
         return this._upperBound;
     }
 }
@@ -208,7 +208,7 @@ export class SubcompartmentPredicate extends Predicate {
     }
 
     public eval(points: UnitModel[]): boolean[] {
-        let result: boolean[] = new Array(points.length);
+        const result: boolean[] = new Array(points.length);
         points.forEach((point: UnitModel, idx: number) => {
             result[idx] = point.compartmentIdPath === null ?
                 false : point.compartmentIdPath.includes(this.parentCompartment.id);

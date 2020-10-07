@@ -5,6 +5,9 @@ export const SagittalMax = 11400;
 export const HorizontalMax = 8000;
 export const CoronalMax = 13200;
 
+export const defaultColorHex = 0x0080ff;
+export const defaultColorFadedHex = 0x77b4ff;
+
 export class AVConstants {
     private endpoint = 'http://localhost:3030';
     private _rootId = 997;

@@ -24,6 +24,9 @@ import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Container from "@material-ui/core/Container";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Grid from "@material-ui/core/Grid";
+import {StatsHistogramProps} from "./StatsHistogram";
 
 export interface FilterFormProps {
     busy: boolean;
@@ -46,6 +49,8 @@ interface FilterFormState {
     statUpperBound: number;
 
     currentCondition: string;
+
+    loadProgress: number;
 }
 
 export class FilterForm extends React.Component<FilterFormProps, FilterFormState> {
@@ -63,6 +68,8 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
             statUpperBound: Infinity,
 
             currentCondition: "penetration-id",
+
+            loadProgress: 1,
         }
 
         this.availableCompartments = [];
@@ -70,6 +77,21 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         this.propKeys = new Map<string, keyof UnitModel>();
         this.propKeys.set("compartment-name", "compartmentName");
         this.propKeys.set("penetration-id", "penetrationId");
+    }
+
+    private fetchAndUpdateStat(unitStatId: string): void {
+        let c = 0;
+
+        this.props.selectedPenetrations.forEach((penetration) => {
+            penetration.getUnitStat(unitStatId)
+                .then(() => {
+                    if (unitStatId === this.state.currentCondition) {
+
+                        c += 1;
+                        this.setState({loadProgress: c / this.props.selectedPenetrations.size});
+                    }
+                });
+        });
     }
 
     private handleClickFilter(op?: "AND" | "OR"): void {
@@ -193,7 +215,7 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
 
     private renderFilterButton(): React.ReactElement {
         const disabled = (
-            this.props.busy || (
+            this.props.busy || this.state.loadProgress < 1 || (
                 this.state.strEqualsValue === "" &&
                 this.state.strNotEqualsValue === "" &&
                 this.state.strSubsetEqualsValue === "" && (
@@ -203,14 +225,19 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
             )
         );
 
-        return (
-            this.props.filterPredicate === null ? (
+        let button: React.ReactElement;
+        if (this.state.loadProgress < 1) {
+            button = <CircularProgress variant="indeterminate" size={25} />;
+        } else if (!this.props.filterPredicate) {
+            button = (
                 <Button color="primary"
                         disabled={disabled}
                         onClick={() => this.handleClickFilter()}>
                     FILTER
                 </Button>
-            ) : (
+            );
+        } else {
+            button = (
                 <ButtonGroup>
                     <Button color="primary"
                             disabled={disabled}
@@ -223,8 +250,10 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
                         OR
                     </Button>
                 </ButtonGroup>
-            )
-        );
+            );
+        }
+
+        return button;
     }
 
     private renderNumericInput(
@@ -290,9 +319,17 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         this.registerCompartments();
     }
 
-    public componentDidUpdate(prevProps: Readonly<FilterFormProps>): void {
+    public componentDidUpdate(prevProps: Readonly<FilterFormProps>, prevState: Readonly<FilterFormState>): void {
         if (prevProps.compartmentViewTree !== this.props.compartmentViewTree) {
             this.registerCompartments();
+        }
+
+        if (prevState.currentCondition !== this.state.currentCondition &&
+            this.props.availableStats.has(this.state.currentCondition)
+        ) {
+            this.fetchAndUpdateStat(this.state.currentCondition);
+        } else if (this.state.loadProgress < 1 && !this.props.availableStats.has(this.state.currentCondition)) {
+            this.setState({loadProgress: 1});
         }
     }
 
@@ -372,7 +409,9 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         }
 
         formChildren.push(
-            <FormControl>{this.renderFilterButton()}</FormControl>
+            <Grid item xs>
+                <FormControl>{this.renderFilterButton()}</FormControl>
+            </Grid>
         );
 
         return (

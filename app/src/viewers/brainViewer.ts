@@ -44,6 +44,11 @@ require("three-obj-loader")(THREE);
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
 export class BrainViewer {
+    public HEIGHT: number;
+    public WIDTH: number;
+    public container = "container";
+    public flip = true; // flip y axis
+
     protected constants: AVConstants;
     protected epochs: Epoch[];
 
@@ -53,10 +58,6 @@ export class BrainViewer {
     protected timeMin = 0;
     protected _timeStep = 0.01;
     protected _timeVal = 0;
-
-    public HEIGHT: number;
-    public WIDTH: number;
-    public container = "container";
 
     protected backgroundColor = 0xffffff;
     protected cameraStartPosition: [number, number, number];
@@ -69,7 +70,6 @@ export class BrainViewer {
 
     protected lastTimestamp: number = null;
 
-    protected pointsMaterial: PointsMaterial;
     protected epochLabels: Object3D = null;
     protected epochSlider: Line = null;
 
@@ -77,21 +77,8 @@ export class BrainViewer {
     protected penetrationPointsMap: Map<string, Points<BufferGeometry>>;
 
     protected colorData: Map<string, number[]>;
-    protected colorDomain: Vector2;
-    protected colorTarget: Vector2;
-    protected colorGamma: number;
-
     protected opacityData: Map<string, number[]>;
-    protected opacityDomain: Vector2;
-    protected opacityTarget: Vector2;
-    protected opacityGamma: number;
-
     protected radiusData: Map<string, number[]>;
-    protected radiusDomain: Vector2;
-    protected radiusTarget: Vector2;
-    protected radiusGamma: number;
-
-    public flip = true; // flip y axis
 
     private tomographySlice: TomographySlice = null;
     private slicingPlanes: SlicingPlanes = null;
@@ -104,31 +91,9 @@ export class BrainViewer {
         this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
         this.cameraStartPosition = [0, 0, -20000];
 
-        this.pointsMaterial = new THREE.ShaderMaterial({
-            uniforms: {
-                pointTexture: { value: new THREE.TextureLoader().load(this.constants.ballTexture) }
-            },
-            vertexShader: this.constants.pointVertexShader,
-            fragmentShader: this.constants.pointFragmentShader,
-            depthTest: false,
-            transparent: true,
-            vertexColors: true
-        });
-
         this.colorData = new Map<string, number[]>();
-        this.colorDomain = new Vector2(0, 1);
-        this.colorTarget = new Vector2(0, 1);
-        this.colorGamma = 1;
-
         this.opacityData = new Map<string, number[]>();
-        this.opacityDomain = new Vector2(0.01, 1);
-        this.opacityTarget = new Vector2(0.01, 1);
-        this.opacityGamma = 1;
-
         this.radiusData = new Map<string, number[]>();
-        this.radiusDomain = new Vector2(0.01, 1);
-        this.radiusTarget = new Vector2(0.01, 1);
-        this.radiusGamma = 1;
 
         this.loadedPenetrationsMap = new Map<string, Penetration>();
         this.penetrationPointsMap = new Map<string, Points<BufferGeometry>>();
@@ -590,7 +555,7 @@ export class BrainViewer {
                                 penetrationId,
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
-                            this.updatePenetrationAttributes(penetrationId);
+                            this.updatePenetrationAttributes(penetrationId, true);
                         }
                     });
             }
@@ -603,7 +568,7 @@ export class BrainViewer {
                                 penetrationId,
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
-                            this.updatePenetrationAttributes(penetrationId);
+                            this.updatePenetrationAttributes(penetrationId, true);
                         }
                     });
             }
@@ -616,7 +581,7 @@ export class BrainViewer {
                                 penetrationId,
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
-                            this.updatePenetrationAttributes(penetrationId);
+                            this.updatePenetrationAttributes(penetrationId, true);
                         }
                     });
             }

@@ -6,36 +6,28 @@ import Container from '@material-ui/core/Container';
 import FormControl from '@material-ui/core/FormControl';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Grid from '@material-ui/core/Grid';
-import InputLabel from '@material-ui/core/InputLabel';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
 import Slider from '@material-ui/core/Slider';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 
-import { AVConstants } from '../../constants';
+import {AVConstants, defaultColorFadedHex, defaultColorHex} from '../../constants';
 
-import { PenetrationData } from '../../models/apiModels';
 import { Predicate, StatPredicate } from '../../models/predicateModels';
 
 export interface StatsHistogramProps {
-    availablePenetrations: PenetrationData[],
-    constants: AVConstants
-    data: number[],
-    height: number,
-    selectedStat: string,
-    statName: string,
-    width: number,
-    onUpdateFilterPredicate(predicate: Predicate, newStat: string): void,
-    onStatSelectionChange(event: any): void,
+    data: number[];
+    height: number;
+    unitStatId: string;
+    width: number;
+    onUpdateFilterPredicate(predicate: Predicate): void;
 }
 
-interface IStatsHistogramState {
-    histBounds: [number, number],
-    logScale: boolean,
+interface StatsHistogramState {
+    histBounds: [number, number];
+    logScale: boolean;
 }
 
-export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsHistogramState> {
+export class StatsHistogram extends React.Component<StatsHistogramProps, StatsHistogramState> {
     private histId = 'stats-histogram';
 
     constructor(props: StatsHistogramProps) {
@@ -47,14 +39,14 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
         }
     }
 
-    private clearHistogram() {
+    private clearHistogram(): void {
         const svgElem = document.getElementById(this.histId);
         while (svgElem.lastChild) {
             svgElem.removeChild(svgElem.lastChild);
         }
     }
 
-    private computeDomain() {
+    private computeDomain(): [number, number] {
         const data = this.transformData();
 
         const x = this.state.logScale? (
@@ -69,7 +61,7 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
         return x.domain().map(x => this.state.logScale ? Math.log10(x) : x) as [number, number];
     }
 
-    private computeStep() {
+    private computeStep(): number {
         const data = this.transformData();
         const x = this.state.logScale? (
             d3.scaleLog()
@@ -88,7 +80,7 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
         return _.min(bins.map(b => b.x1 - b.x0).filter(x => x > 0));
     }
 
-    private handleBoundsChange(_event: any, newData: [number, number], commit: boolean = false) {
+    private handleBoundsChange(_event: any, newData: [number, number], commit = false): void {
         this.setState({ histBounds: newData }, () => {
             if (commit) {
                 this.updateStatFilter();
@@ -96,7 +88,7 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
         });
     }
 
-    private handleLogScaleToggle() {
+    private handleLogScaleToggle(): void {
         const logScale = !this.state.logScale;
 
         let histBounds = this.state.histBounds;
@@ -111,7 +103,7 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
         this.setState({ logScale, histBounds });
     }
 
-    private renderHistogram() {
+    private renderHistogram(): void {
         const data = this.transformData();
 
         if (data.length === 0) {
@@ -148,7 +140,7 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
                 .attr('fill', 'currentColor')
                 .attr('font-weight', 'bold')
                 .attr('text-anchor', 'end')
-                .text(this.props.statName))
+                .text(this.props.unitStatId))
 
         const yAxis = (g: any) => g
             .attr('transform', `translate(${margin.left},0)`)
@@ -172,8 +164,8 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
             .attr('height', d => y(0) - y(d.length))
             .attr('fill',
                 d => inBounds(this.state.logScale ? Math.log10(d.x0) : d.x0, this.state.histBounds) ?
-                `#${this.props.constants.defaultColor.toString(16).padStart(6, '0')}` :
-                `#${this.props.constants.defaultColorFaded.toString(16).padStart(6, '0')}`);
+                `#${defaultColorHex.toString(16).padStart(6, "0")}` :
+                `#${defaultColorFadedHex.toString(16).padStart(6, "0")}`);
       
         svg.append('g')
             .call(xAxis);
@@ -182,22 +174,22 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
             .call(yAxis);
     }
 
-    private transformData() {
+    private transformData(): number[] {
         return this.state.logScale ?
             this.props.data.filter(x => x >= 0).map(x => x + 0.001) :
             this.props.data;
     }
 
-    private updateStatFilter() {
+    private updateStatFilter(): void {
         const lowerBound = this.state.logScale ? Math.pow(10, this.state.histBounds[0]) : this.state.histBounds[0];
         const upperBound = this.state.logScale ? Math.pow(10, this.state.histBounds[1]) : this.state.histBounds[1];
-        let predicate = new StatPredicate(this.props.statName, lowerBound, upperBound);
+        const predicate = new StatPredicate(this.props.unitStatId, lowerBound, upperBound);
 
-        this.props.onUpdateFilterPredicate(predicate, this.props.statName);
+        this.props.onUpdateFilterPredicate(predicate);
     }
 
-    public componentDidUpdate(prevProps: Readonly<StatsHistogramProps>) {
-        if (prevProps.statName !== this.props.statName) {
+    public componentDidUpdate(prevProps: Readonly<StatsHistogramProps>): void {
+        if (prevProps.unitStatId !== this.props.unitStatId) {
             this.setState({ histBounds: this.computeDomain()}, () => {
                 this.clearHistogram();
                 this.renderHistogram();
@@ -208,33 +200,19 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
         }
     }
 
-    public render() {
+    public render(): React.ReactElement {
         const [ min, max ] = this.computeDomain();
         const step = this.computeStep();
-        const disabled = this.props.statName === 'nothing';
+        const disabled = this.props.unitStatId === 'nothing';
 
-        const toStr = (x: number) => (
+        const toStr = (x: number): string => (
             this.state.logScale ?
                 `1e${x > 0 ? '+' : ''}${x.toFixed(1)}` :
                 x.toFixed(2)
         )
 
-        const availableStats = _.union(...this.props.availablePenetrations.map(pen => pen.unitStats));
-        const menuItems = _.union(
-            [<MenuItem key='nothing' value='nothing'>No selection</MenuItem>],
-            availableStats.map((stat) => (
-                <MenuItem value={stat}
-                    key={stat}>
-                    {stat}
-                </MenuItem>)
-            ),
-        );
-
         return (
             <Container id='stats-histogram-container'>
-                <Typography variant='h5' gutterBottom>
-                    Filter by statistic
-                </Typography>
                 <Grid container
                     spacing={2}>
                     <Grid item xs={12}>
@@ -242,20 +220,6 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
                             id={this.histId}
                             width={this.props.width}
                             height={this.props.height} />
-                    </Grid>
-                    <Grid item xs={3}>
-                        <FormControl>
-                            <InputLabel id={`stats-mapper-label`}>
-                                Statistic
-                            </InputLabel>
-                            <Select labelId='stats-mapper-select-label'
-                                    id='stats-mapper-select'
-                                    defaultValue='nothing'
-                                    value={this.props.selectedStat}
-                                    onChange={this.props.onStatSelectionChange}>
-                                {menuItems}
-                            </Select>
-                        </FormControl>
                     </Grid>
                     <Grid item xs={1}>
                         <Typography variant='caption'>
