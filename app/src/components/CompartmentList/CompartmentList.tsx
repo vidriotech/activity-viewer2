@@ -163,7 +163,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
                               )}
                 />
                 <List dense
-                      style={{ width: '100%', maxHeight: 300, overflow: 'auto', position: 'relative' }} >
+                      style={{ width: "100%", maxHeight: 250, overflow: "auto", position: "relative" }} >
                     {listChildren}
                 </List>
             </Container>

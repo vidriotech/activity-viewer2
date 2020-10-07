@@ -1,15 +1,16 @@
 import * as _ from "lodash";
 
 import {
+    BufferAttribute,
     BufferGeometry,
     Color,
     Float32BufferAttribute,
-    Line, Material,
+    Line,
     Mesh,
     Object3D,
     PerspectiveCamera,
     Points,
-    PointsMaterial, Raycaster,
+    PointsMaterial,
     Scene,
     ShaderMaterial,
     Vector2,
@@ -17,7 +18,7 @@ import {
 } from "three";
 
 // eslint-disable-next-line import/no-unresolved
-import {AVConstants, CoronalMax} from "../constants";
+import {AVConstants, CoronalMax, SagittalMax} from "../constants";
 
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping} from "../models/aestheticMapping";
@@ -59,7 +60,7 @@ export class BrainViewer {
     public container = "container";
 
     protected backgroundColor = 0xffffff;
-    protected cameraPosition: [number, number, number];
+    protected cameraStartPosition: [number, number, number];
     protected fov = 45;
 
     protected renderer: WebGLRenderer = null;
@@ -73,6 +74,7 @@ export class BrainViewer {
     protected epochLabels: Object3D = null;
     protected epochSlider: Line = null;
 
+    protected loadedPenetrationsMap: Map<string, Penetration>;
     protected penetrationPointsMap: Map<string, Points<BufferGeometry>>;
 
     protected colorData: Map<string, number[]>;
@@ -92,16 +94,16 @@ export class BrainViewer {
 
     public flip = true; // flip y axis
 
-    private slice: TomographySlice = null;
+    private tomographySlice: TomographySlice = null;
     private slicingPlanes: SlicingPlanes = null;
 
     private loadedCompartments: string[] = [];
-    private _visibleCompartments: string[] = [];
+    private visibleCompartments: Set<string>;
 
     constructor(constants: AVConstants, epochs: Epoch[]) {
         this.constants = constants;
         this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
-        this.cameraPosition = [0, 0, -20000];
+        this.cameraStartPosition = [0, 0, -20000];
 
         this.pointsMaterial = new THREE.ShaderMaterial({
             uniforms: {
@@ -129,15 +131,18 @@ export class BrainViewer {
         this.radiusTarget = new Vector2(0.01, 1);
         this.radiusGamma = 1;
 
+        this.loadedPenetrationsMap = new Map<string, Penetration>();
         this.penetrationPointsMap = new Map<string, Points<BufferGeometry>>();
         this.aestheticMappings = new Map<string, AestheticMapping>();
+
+        this.visibleCompartments = new Set<string>();
     }
 
     protected initCamera(): void {
-        const cameraPosition = this.cameraPosition[2];
+        const cameraPosition = this.cameraStartPosition[2];
         this.camera = new THREE.PerspectiveCamera(this.fov, this.WIDTH / this.HEIGHT, 1, cameraPosition * 5);
         this.scene.add(this.camera);
-        this.camera.position.set(...this.cameraPosition);
+        this.camera.position.set(...this.cameraStartPosition);
 
         if (this.flip) {
             this.camera.up.setY(-1);
@@ -219,11 +224,11 @@ export class BrainViewer {
 
     protected initLights(): void {
         let light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(0, 0, this.cameraPosition[2] / 2);
+        light.position.set(0, 0, this.cameraStartPosition[2] / 2);
         this.scene.add(light);
 
         light = new THREE.DirectionalLight(0xffffff);
-        light.position.set(0, 0, -this.cameraPosition[2] / 2);
+        light.position.set(0, 0, -this.cameraStartPosition[2] / 2);
         this.scene.add(light);
     }
 
@@ -553,6 +558,7 @@ export class BrainViewer {
         const points: Points<BufferGeometry> = new Points(geometry, material);
         points.position.set(...centerPoint);
 
+        this.loadedPenetrationsMap.set(penetration.id, penetration);
         this.penetrationPointsMap.set(penetration.id, points);
         this.aestheticMappings.set(penetration.id, defaultAesthetics);
 
@@ -645,29 +651,104 @@ export class BrainViewer {
             return;
         }
 
-        if (this.slice !== null && this.slice.mesh) {
-            this.scene.remove(this.slice.mesh);
+        if (this.tomographySlice !== null && this.tomographySlice.mesh) {
+            this.scene.remove(this.tomographySlice.mesh);
         }
 
-        this.slice = slice;
+        this.tomographySlice = slice;
         if (slice.mesh) {
             this.scene.add(slice.mesh);
         }
     }
 
     public removeTomographySlice(): void {
-        if (this.slice) {
-            this.scene.remove(this.slice.mesh);
-            this.slice = null;
+        if (this.tomographySlice) {
+            this.scene.remove(this.tomographySlice.mesh);
+            this.tomographySlice = null;
         }
     }
 
     public updateSliceTexture(displayTemplate: boolean): void {
-        if (this.slice) {
-            this.slice.imageType = displayTemplate ?
+        if (this.tomographySlice) {
+            this.tomographySlice.imageType = displayTemplate ?
                 SliceImageType.TEMPLATE :
                 SliceImageType.ANNOTATION;
         }
+    }
+
+    public lockToPlane(): void {
+        if (!this.tomographySlice) {
+            return;
+        }
+
+        let cameraCoords: [number, number, number];
+        const coordinate = this.tomographySlice.coordinate;
+
+        switch (this.sliceType) {
+            case SliceType.CORONAL:
+                cameraCoords = [coordinate - CoronalMax / 2 - 10000, 0, 0];
+                break;
+            case SliceType.SAGITTAL:
+                cameraCoords = [0, 0, coordinate - SagittalMax / 2 - 15000];
+                break;
+        }
+
+        if (cameraCoords) {
+            this.camera.position.set(...cameraCoords);
+            this.camera.lookAt(0, 0, 0);
+            this.orbitControls.enableRotate = false;
+            this.render();
+        }
+    }
+
+    public unlockFromPlane(): void {
+        this.orbitControls.enableRotate = true;
+        this.render();
+    }
+
+    public projectToPlane(): void {
+        this.penetrationPointsMap.forEach((points, penetrationId) => {
+            const penetration = this.loadedPenetrationsMap.get(penetrationId);
+            if (!penetration || !this.tomographySlice) {
+                return;
+            }
+
+            const geometry = points.geometry
+            const position3 = penetration.getXYZ();
+            const position2 = new Float32Array(position3.length);
+            switch (this.sliceType) {
+                case SliceType.CORONAL:
+                    for (let i = 0; i < position3.length; i += 3) {
+                        position2[i] = this.tomographySlice.coordinate;
+                        position2[i + 1] = position3[i + 1];
+                        position2[i + 2] = position3[i + 2];
+                    }
+                    break;
+                case SliceType.SAGITTAL:
+                    for (let i = 0; i < position3.length; i += 3) {
+                        position2[i] = position3[i];
+                        position2[i + 1] = position3[i + 1];
+                        position2[i + 2] = this.tomographySlice.coordinate;
+                    }
+                    break;
+            }
+            geometry.attributes.position = new Float32BufferAttribute(position2, 3);
+            (geometry.attributes.position as BufferAttribute).needsUpdate = true;
+        });
+    }
+
+    public undoProjectToPlane(): void {
+        this.penetrationPointsMap.forEach((points, penetrationId) => {
+            const penetration = this.loadedPenetrationsMap.get(penetrationId);
+            if (!penetration) {
+                return;
+            }
+
+            const geometry = points.geometry;
+            const position3 = new Float32Array(penetration.getXYZ());
+            geometry.setAttribute("position", new Float32BufferAttribute(position3, 3));
+            (geometry.attributes.position as BufferAttribute).needsUpdate = true;
+        });
     }
 
     public setTime(timeMin: number, timeMax: number, timeStep: number, timeVal: number): void {
@@ -746,14 +827,14 @@ export class BrainViewer {
     }
 
     public get sliceType(): SliceType {
-        return this.slice ?
-            this.slice.sliceType :
+        return this.tomographySlice ?
+            this.tomographySlice.sliceType :
             null;
     }
 
     public set imageType(imageType: SliceImageType) {
-        if (this.slice) {
-            this.slice.imageType = imageType;
+        if (this.tomographySlice) {
+            this.tomographySlice.imageType = imageType;
         }
     }
 
@@ -791,9 +872,18 @@ export class BrainViewer {
             obj.position.set(x, y, z);
 
             this.loadedCompartments.push(name);
-            this._visibleCompartments.push(name);
+            this.visibleCompartments.add(name);
             this.scene.add(obj);
         });
+    }
+
+    public hideAllCompartments(): void {
+        this.visibleCompartments.forEach((name) => {
+            const compartment = this.scene.getObjectByName(name);
+            compartment.visible = false;
+        });
+
+        this.visibleCompartments.clear();
     }
 
     public setCompartmentVisible(compartmentNodeView: CompartmentNodeView): void {
@@ -810,15 +900,11 @@ export class BrainViewer {
                 compartmentObj.visible = compartmentNodeView.isVisible;
 
                 if (compartmentNodeView.isVisible) {
-                    this._visibleCompartments.push(name);
+                    this.visibleCompartments.add(name);
                 } else {
-                    this._visibleCompartments = _.without(this._visibleCompartments, name);
+                    this.visibleCompartments.delete(name);
                 }
             }
         }
-    }
-
-    public get visibleCompartments(): string[] {
-        return this._visibleCompartments;
     }
 }

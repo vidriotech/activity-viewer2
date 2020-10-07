@@ -31,7 +31,7 @@ export class TomographySlice {
     protected pixelAnnotations: number[];
 
     protected stride: number;
-    protected coordinate: number;
+    protected _coordinate: number;
 
     public _imageType: SliceImageType;
 
@@ -90,7 +90,7 @@ export class TomographySlice {
             switch(this._sliceType) {
                 case SliceType.CORONAL:
                     this._mesh.position.set(
-                        this.coordinate - CoronalMax / 2,
+                        this._coordinate - CoronalMax / 2,
                         0,
                         0
                     );
@@ -99,7 +99,7 @@ export class TomographySlice {
                     this._mesh.position.set(
                         0,
                         0,
-                        this.coordinate - SagittalMax / 2
+                        this._coordinate - SagittalMax / 2
                     );
                     break;
             }
@@ -118,7 +118,7 @@ export class TomographySlice {
         s.templateImage = sliceData.templateImage;
         s.pixelAnnotations = sliceData.annotationSlice;
         s.stride = sliceData.stride;
-        s.coordinate = sliceData.coordinate;
+        s._coordinate = sliceData.coordinate;
         s._imageType = SliceImageType.ANNOTATION;
 
         return s.makeMesh()
@@ -134,6 +134,10 @@ export class TomographySlice {
             transparent: false,
             depthTest: true,
         });
+    }
+
+    public get coordinate(): number {
+        return this._coordinate;
     }
 
     public get mesh(): Mesh {

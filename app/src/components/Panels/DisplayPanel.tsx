@@ -89,13 +89,13 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
     }
 
     private handleCommitSlicing(): void {
-        const tomographySliceCoordinate = (this.state.testSliceBounds[0] + this.state.testSliceBounds[1]) / 2
+        const sliceCoordinate = (this.state.testSliceBounds[0] + this.state.testSliceBounds[1]) / 2
 
         this.setState({
             showTestSlice: false,
             showTomographySlice: true,
             tomographySliceType: this.state.testSliceType,
-            tomographySliceCoordinate,
+            tomographySliceCoordinate: sliceCoordinate,
         }, () => {
             const coordName = this.state.tomographySliceType === SliceType.CORONAL ?
                 "x" : "z";

@@ -29,7 +29,7 @@ import {BrainViewer} from "../../viewers/brainViewer";
 import Typography from "@material-ui/core/Typography";
 // eslint-disable-next-line import/no-unresolved
 import {tab10Blue} from "../../styles";
-import {ChevronLeft, ChevronRight} from "@material-ui/icons";
+import {ChevronLeft, ChevronRight, LockOpen, LockOpenOutlined, LockOutlined} from "@material-ui/icons";
 import IconButton from "@material-ui/core/IconButton";
 import CircularProgress from "@material-ui/core/CircularProgress";
 // eslint-disable-next-line import/no-unresolved
@@ -89,6 +89,8 @@ interface ViewerContainerState {
     timeMax: number;
     timeStep: number;
     timeVal: number;
+
+    rotateLocked: boolean;
 }
 
 interface CanvasElement extends HTMLCanvasElement {
@@ -100,8 +102,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     private canvasContainerId = "viewer-container";
     private mediaRecorder: MediaRecorder = null;
     private recordedBlobs: Blob[];
-    private sliceBounds: number[];
-    private sliceType: SliceType;
     private viewer: BrainViewer = null;
 
     private tsSummaries: Map<string, TimeseriesSummary>;
@@ -130,6 +130,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             timeMax: NaN,
             timeStep: NaN,
             timeVal: 0,
+            rotateLocked: false,
         };
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -186,6 +187,25 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         this.initViewer(v);
     }
 
+    private lockToPlane(): void {
+        this.setState({rotateLocked: true}, () => {
+            if (this.viewer) {
+                this.viewer.lockToPlane();
+                this.viewer.hideAllCompartments();
+                this.viewer.projectToPlane();
+            }
+        });
+    }
+
+    private unlockFromPlane(): void {
+        this.setState({rotateLocked: false}, () => {
+            if (this.viewer) {
+                this.viewer.unlockFromPlane();
+                this.viewer.undoProjectToPlane();
+            }
+        });
+    }
+
     private setTestSlice(): void {
         if (!this.viewer) {
             return;
@@ -220,6 +240,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                     SliceImageType.TEMPLATE;
 
                 this.viewer.setTomographySlice(slice);
+                this.lockToPlane();
             })
             .catch((err) => {
                 console.error(err);
@@ -432,7 +453,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     private renderCompartments(): void {
-        if (this.viewer === null) {
+        if (!this.viewer || this.state.rotateLocked) {
             return;
         }
 
@@ -451,7 +472,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const dataPanelHeader = (
             this.props.showDataPanel ?
                 null :
-                <Grid container item
+                <Grid item
                       justify="flex-start"
                       xs={1}>
                     <IconButton color="inherit"
@@ -465,7 +486,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const physiologyPanelHeader = (
             this.props.showPhysPanel ?
                 null :
-                <Grid container item
+                <Grid item
                       justify="flex-end"
                       xs={1}>
                     <IconButton color="inherit"
@@ -476,7 +497,27 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 </Grid>
         );
 
-        const xs = 12 - (Number(this.props.showDataPanel) + Number(this.props.showPhysPanel));
+        const lockButton = (
+            <Grid item
+                  justify="flex-end"
+                  xs={1}>
+                {
+                    this.state.rotateLocked ?
+                        <IconButton disabled={this.props.busy}
+                                    color="inherit"
+                                    size="small"
+                                    onClick={() => this.unlockFromPlane()}>
+                            <LockOutlined />
+                        </IconButton> :
+                        <IconButton disabled={this.props.busy || !this.props.showTomographySlice}
+                                    color="inherit"
+                                    size="small"
+                                    onClick={() => this.lockToPlane()}>
+                            <LockOpenOutlined />
+                        </IconButton>
+                }
+            </Grid>
+        );
 
         return (
             <Grid container
@@ -494,7 +535,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                       padding: "10px",
                   }}>
                 {dataPanelHeader}
-                <Grid container item xs={xs as 10 | 11 | 12}
+                <Grid container item xs
                       justify="flex-start">
                     {this.props.progress < 1 ?
                         <Grid item xs={1}>
@@ -513,6 +554,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                         </Grid> : null
                     }
                 </Grid>
+                {lockButton}
                 {physiologyPanelHeader}
             </Grid>
         );
@@ -728,11 +770,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             });
     }
 
-    public componentDidUpdate(
-        prevProps: Readonly<ViewerContainerProps>,
-        prevState: Readonly<ViewerContainerState>
-    ): void {
-        // slice needs updating
+    public componentDidUpdate(prevProps: Readonly<ViewerContainerProps>): void {
         if (this.props.showTestSlice && (
             !prevProps.showTestSlice ||
             (prevProps.testSliceType !== this.props.testSliceType) ||
