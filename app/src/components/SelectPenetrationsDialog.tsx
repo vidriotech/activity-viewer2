@@ -20,7 +20,7 @@ export interface SelectPenetrationsDialogProps {
     loadedPenetrationIds: string[];
     selectedPenetrations: Map<string, Penetration>;
 
-    onCommitSelection(selectedPenetrationIds?: string[]): void;
+    onCommitSelection(selectedPenetrationIds: string[]): void;
 }
 
 interface SelectPenetrationsDialogState {

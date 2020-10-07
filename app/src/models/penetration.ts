@@ -157,9 +157,7 @@ export class Penetration implements PenetrationInterface {
     }
 
     public async getTimeseries(timeseriesId: string): Promise<TimeseriesData> {
-        if (this.hasTimeseriesLoaded(timeseriesId)) {
-            return this._timeseries.get(timeseriesId);
-        } else if (this.hasTimeseries(timeseriesId)) {
+        if (this.hasTimeseries(timeseriesId)) {
             const uri = this.constructUri("timeseries", timeseriesId);
 
             return axios.get(uri)

@@ -767,7 +767,7 @@ export class BrainViewer {
         this.timeVal = timeVal;
     }
 
-    public updatePenetrationAttributes(penetrationId: string): void {
+    public updatePenetrationAttributes(penetrationId: string, render?: boolean): void {
         const penetration = this.loadedPenetrationsMap.get(penetrationId);
         const pointObj = this.penetrationPointsMap.get(penetrationId);
         if (!penetration || !pointObj) {
@@ -822,13 +822,15 @@ export class BrainViewer {
         geom.attributes.show = new Float32BufferAttribute(visible, 1);
         geom.attributes.show.needsUpdate = true;
 
-        this.render();
+        if (render) {
+            this.render();
+        }
     }
 
     public updateAllPenetrationAttributes(): void {
 
         this.penetrationPointsMap.forEach((_obj, penetrationId) => {
-            this.updatePenetrationAttributes(penetrationId);
+            this.updatePenetrationAttributes(penetrationId, false);
         });
 
         this.render();

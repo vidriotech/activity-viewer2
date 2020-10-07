@@ -27,7 +27,7 @@ export class UnitTable2 extends React.Component<UnitTable2Props, UnitTable2State
         super(props);
 
         this.state = {
-            unitStatData: this.populateUnitStatsStub(),
+            unitStatData: new Map<string, UnitStatData[]>(),
         };
 
         this.availableStats = new Set<string>();
@@ -75,15 +75,12 @@ export class UnitTable2 extends React.Component<UnitTable2Props, UnitTable2State
     }
 
     public componentDidMount(): void {
-        this.fetchAndUpdateStats();
+        this.setState({unitStatData: this.populateUnitStatsStub()});
     }
 
     public componentDidUpdate(prevProps: Readonly<UnitTable2Props>): void {
         if (prevProps.selectedPenetrations !== this.props.selectedPenetrations) {
-            const unitStats = this.populateUnitStatsStub();
-            this.setState({unitStatData: unitStats}, () => {
-                this.fetchAndUpdateStats();
-            });
+            this.setState({unitStatData: this.populateUnitStatsStub()});
         }
     }
 
