@@ -174,6 +174,13 @@ class APIState:
             for child in node["children"]:
                 populate_children(tr, child)
 
+            # make corrections to field names
+            node["rgbTriplet"] = node.pop("rgb_triplet")
+            node["graphId"] = node.pop("graph_id")
+            node["graphOrder"] = node.pop("graph_order")
+            node["structureIdPath"] = node.pop("structure_id_path")
+            node["structureSetIds"] = node.pop("structure_set_ids")
+
         tree = StructureTree(self.cache.load_structure_graph())
         root = tree.get_structures_by_id([997])[0]
         root["rgb_triplet"] = 3*[135]

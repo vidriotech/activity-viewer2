@@ -1,5 +1,5 @@
 import React from 'react';
-import * as _ from 'underscore';
+import * as _ from "lodash";
 import * as d3 from 'd3';
 
 import Container from '@material-ui/core/Container';

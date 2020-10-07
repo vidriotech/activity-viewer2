@@ -56,6 +56,8 @@ import ListItemIcon from "@material-ui/core/ListItemIcon";
 import ListItemText from "@material-ui/core/ListItemText";
 // eslint-disable-next-line import/no-unresolved
 import {SelectPenetrationsDialog} from "./SelectPenetrationsDialog";
+// eslint-disable-next-line import/no-unresolved
+import {CompartmentTree2} from "../models/compartmentTree";
 
 interface UnitStatsData {
     penetrationId: string;
@@ -63,7 +65,7 @@ interface UnitStatsData {
 }
 
 export interface MainViewProps {
-    compartmentTree: CompartmentTree;
+    compartmentTree: CompartmentTree2;
     constants: AVConstants;
     settings: AVSettings;
 
@@ -84,7 +86,6 @@ export interface MainViewProps {
 
 interface MainViewState {
     availablePenetrations: PenetrationData[];
-    compartmentViewTree: CompartmentNodeView;
     filterPredicate: Predicate;
     progress: number;
     progressMessage: string;
@@ -110,9 +111,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
     constructor(props: MainViewProps) {
         super(props);
-
-        const compartmentViewTree = this.props.compartmentTree.getCompartmentNodeViewTree(true);
-        compartmentViewTree.isVisible = true;
  
         this.state = {
             availablePenetrations: [],
@@ -120,8 +118,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             selectedStat: "nothing",
 
             filterPredicate: null,
-
-            compartmentViewTree: compartmentViewTree,
 
             progress: 1,
             progressMessage: "Ready.",
@@ -195,7 +191,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         const queryPanelProps: QueryPanelProps = {
             busy: this.isBusy,
             compartmentTree: this.props.compartmentTree,
-            compartmentViewTree: this.state.compartmentViewTree,
 
             selectedPenetrations: this.props.selectedPenetrations,
             availableStats: this.props.availableStats,
@@ -206,7 +201,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         };
 
         const displayPanelProps: DisplayPanelProps = {
-            compartmentViewTree: this.state.compartmentViewTree,
+            compartmentTree: this.props.compartmentTree,
             constants: this.props.constants,
             settings: this.props.settings,
 
@@ -217,9 +212,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             progress: this.state.progress,
             progressMessage: this.state.progressMessage,
 
-            onToggleCompartmentVisible: (rootNode: CompartmentNodeView): void => {
-                this.setState({ compartmentViewTree: rootNode })
-            },
             onRequestUnitExport: this.props.onRequestUnitExport,
             onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
             onUpdateProgress: (progress: number, progressMessage: string): void => {

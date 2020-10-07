@@ -26,12 +26,14 @@ import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Container from "@material-ui/core/Container";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import Grid from "@material-ui/core/Grid";
+// eslint-disable-next-line import/no-unresolved
 import {StatsHistogramProps} from "./StatsHistogram";
+// eslint-disable-next-line import/no-unresolved
+import {CompartmentTree2} from "../../models/compartmentTree";
 
 export interface FilterFormProps {
     busy: boolean;
-    compartmentTree: CompartmentTree;
-    compartmentViewTree: CompartmentNodeView;
+    compartmentTree: CompartmentTree2;
 
     selectedPenetrations: Map<string, Penetration>;
     availableStats: Set<string>;
@@ -54,7 +56,6 @@ interface FilterFormState {
 }
 
 export class FilterForm extends React.Component<FilterFormProps, FilterFormState> {
-    private availableCompartments: string[];
     private propKeys: Map<string, keyof UnitModel>;
 
     constructor(props: FilterFormProps) {
@@ -72,8 +73,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
             loadProgress: 1,
         }
 
-        this.availableCompartments = [];
-
         this.propKeys = new Map<string, keyof UnitModel>();
         this.propKeys.set("compartment-name", "compartmentName");
         this.propKeys.set("penetration-id", "penetrationId");
@@ -86,7 +85,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
             penetration.getUnitStat(unitStatId)
                 .then(() => {
                     if (unitStatId === this.state.currentCondition) {
-
                         c += 1;
                         this.setState({loadProgress: c / this.props.selectedPenetrations.size});
                     }
@@ -185,7 +183,7 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         if (this.state.currentCondition === "penetration-id") {
             options = Array.from(this.props.selectedPenetrations.keys());
         } else if (this.state.currentCondition === "compartment-name") {
-            options = this.availableCompartments;
+            options = this.props.compartmentTree.getAllCompartmentNames();
         } else {
             return null;
         }
@@ -293,18 +291,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         );
     }
 
-    private registerCompartments(): void {
-        let queue = [this.props.compartmentViewTree];
-        this.availableCompartments = [];
-
-        while (queue.length > 0) {
-            const node = queue.splice(0, 1)[0];
-            queue = queue.concat(node.children);
-
-            this.availableCompartments.push(node.name);
-        }
-    }
-
     private resetForm(): void {
         this.setState({
             strEqualsValue: "",
@@ -315,15 +301,7 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         });
     }
 
-    public componentDidMount(): void {
-        this.registerCompartments();
-    }
-
     public componentDidUpdate(prevProps: Readonly<FilterFormProps>, prevState: Readonly<FilterFormState>): void {
-        if (prevProps.compartmentViewTree !== this.props.compartmentViewTree) {
-            this.registerCompartments();
-        }
-
         if (prevState.currentCondition !== this.state.currentCondition &&
             this.props.availableStats.has(this.state.currentCondition)
         ) {

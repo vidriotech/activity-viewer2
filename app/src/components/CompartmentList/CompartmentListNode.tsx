@@ -25,7 +25,7 @@ export interface CompartmentListNodeProps {
     busy: boolean;
     compartmentNodeView: CompartmentNodeView;
     showChildren: boolean;
-    onToggleDescendantVisible(descendentNode: CompartmentNodeView): void;
+    onToggleDescendentVisible(descendentNode: CompartmentNodeView): void;
 }
 
 interface CompartmentListNodeState {
@@ -45,17 +45,17 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
         const copyOfSelf: CompartmentNodeView = _.cloneDeep(this.props.compartmentNodeView);
         copyOfSelf.isVisible = !copyOfSelf.isVisible;
 
-        this.props.onToggleDescendantVisible(copyOfSelf);
+        this.props.onToggleDescendentVisible(copyOfSelf);
     }
 
-    private handleToggleDescendantVisible(descendentNode: CompartmentNodeView): void {
+    private handleToggleDescendentVisible(descendentNode: CompartmentNodeView): void {
         const children = this.props.compartmentNodeView.children.slice();
         const idx = children.map((child) => child.name).indexOf(descendentNode.name);
         children[idx] = descendentNode;
 
         const copyOfSelf = _.clone(this.props.compartmentNodeView);
         copyOfSelf.children = children;
-        this.props.onToggleDescendantVisible(copyOfSelf);
+        this.props.onToggleDescendentVisible(copyOfSelf);
     }
 
     public render(): React.ReactElement {
@@ -91,7 +91,7 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
                                              busy={this.props.busy}
                                              compartmentNodeView={child}
                                              showChildren={true}
-                                             onToggleDescendantVisible={this.handleToggleDescendantVisible.bind(this)} />
+                                             onToggleDescendentVisible={this.handleToggleDescendentVisible.bind(this)} />
                     ))}
                 </List>
             </Collapse>

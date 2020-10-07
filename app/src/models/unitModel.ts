@@ -30,7 +30,7 @@ export class UnitModel {
     }
 
     public get compartmentIdPath(): number[] {
-        return this.summary.compartment ? this.summary.compartment.structure_id_path : [];
+        return this.summary.compartment ? this.summary.compartment.structureIdPath : [];
     }
 
     public get compartmentName(): string {

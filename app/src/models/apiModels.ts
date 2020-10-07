@@ -5,8 +5,8 @@
 // eslint-disable-next-line import/no-unresolved
 import {SliceType} from "./enums";
 
-export interface CompartmentNode extends Compartment {
-    children: CompartmentNode[];
+export interface CompartmentNodeInterface extends Compartment {
+    children: CompartmentNodeInterface[];
 }
 
 export interface ExportingUnit {
@@ -50,13 +50,13 @@ export interface PenetrationResponse {
  */
 export interface Compartment {
     acronym: string;
-    rgb_triplet: [number, number, number];
-    graph_id: number;
-    graph_order: number;
+    rgbTriplet: [number, number, number];
+    graphId: number;
+    graphOrder: number;
     id: number;
     name: string;
-    structure_id_path: number[];
-    structure_set_ids: number[];
+    structureIdPath: number[];
+    structureSetIds: number[];
 }
 
 /*

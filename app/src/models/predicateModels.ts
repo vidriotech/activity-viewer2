@@ -1,9 +1,10 @@
 import * as _ from 'lodash';
 
 // eslint-disable-next-line import/no-unresolved
-import { CompartmentNode } from './apiModels';
+import { CompartmentNodeInterface } from './apiModels';
 // eslint-disable-next-line import/no-unresolved
 import { UnitModel } from './unitModel';
+import {CompartmentNode} from "./compartmentTree";
 
 
 export type PredicateType = "string" | "number" | "stat" | "mixed";
@@ -201,17 +202,19 @@ export class PropIneqPredicate extends Predicate {
 export class SubcompartmentPredicate extends Predicate {
     private parentCompartment: CompartmentNode;
 
-    constructor(parentCompartment: CompartmentNode, ) {
-        super('string');
+    constructor(parentCompartment: CompartmentNode) {
+        super("string");
 
         this.parentCompartment = parentCompartment;
     }
 
     public eval(points: UnitModel[]): boolean[] {
         const result: boolean[] = new Array(points.length);
-        points.forEach((point: UnitModel, idx: number) => {
-            result[idx] = point.compartmentIdPath === null ?
-                false : point.compartmentIdPath.includes(this.parentCompartment.id);
+
+        points.forEach((point, idx) => {
+            result[idx] = point.compartmentIdPath ?
+                point.compartmentIdPath.includes(this.parentCompartment.id) :
+                false;
         });
 
         return result;

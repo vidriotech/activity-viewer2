@@ -13,13 +13,12 @@ import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
 
 // eslint-disable-next-line import/no-unresolved
 import {FilterForm, FilterFormProps} from "../FilterControls/FilterForm";
-import {CompartmentTree} from "../../compartmentTree";
 import {PredicateList, PredicateListProps} from "../FilterControls/PredicateList";
+import {CompartmentTree2} from "../../models/compartmentTree";
 
 export interface QueryPanelProps {
     busy: boolean;
-    compartmentTree: CompartmentTree;
-    compartmentViewTree: CompartmentNodeView;
+    compartmentTree: CompartmentTree2;
 
     selectedPenetrations: Map<string, Penetration>;
     availableStats: Set<string>;
@@ -32,14 +31,12 @@ export interface QueryPanelProps {
 export function QueryPanel(props: QueryPanelProps): React.ReactElement {
     const filterFormProps: FilterFormProps = {
         busy: props.busy,
-        compartmentTree: props.compartmentTree,
-        compartmentViewTree: props.compartmentViewTree,
 
+        compartmentTree: props.compartmentTree,
         selectedPenetrations: props.selectedPenetrations,
         availableStats: props.availableStats,
 
         filterPredicate: props.filterPredicate,
-
         onUpdateFilterPredicate: props.onUpdateFilterPredicate,
     };
 
@@ -47,7 +44,6 @@ export function QueryPanel(props: QueryPanelProps): React.ReactElement {
         busy: props.busy,
 
         filterPredicate: props.filterPredicate,
-
         onUpdateFilterPredicate: props.onUpdateFilterPredicate,
     };
 

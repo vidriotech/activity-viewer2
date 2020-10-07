@@ -17,13 +17,8 @@ import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
 
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentListNode, CompartmentListNodeProps } from './CompartmentListNode';
-import IconButton from "@material-ui/core/IconButton";
-import {ChevronLeft, ChevronRight} from "@material-ui/icons";
-import Grid from "@material-ui/core/Grid";
-import CircularProgress from "@material-ui/core/CircularProgress";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
-
 
 export interface CompartmentListProps {
     selectedPenetrations: Map<string, Penetration>;
@@ -127,7 +122,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
                                          busy={this.props.busy}
                                          compartmentNodeView={nodeView}
                                          showChildren={false}
-                                         onToggleDescendantVisible={this.toggleCompartmentVisible.bind(this)} />
+                                         onToggleDescendentVisible={this.toggleCompartmentVisible.bind(this)} />
                     )
                 )
             );
@@ -137,7 +132,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
                 busy: this.props.busy,
                 compartmentNodeView: this.props.compartmentViewTree,
                 showChildren: true,
-                onToggleDescendantVisible: this.props.onToggleCompartmentVisible,
+                onToggleDescendentVisible: this.props.onToggleCompartmentVisible,
             };
 
             listChildren = <CompartmentListNode {...rootNodeProps} />;

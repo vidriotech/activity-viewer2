@@ -1,5 +1,5 @@
 import React from "react";
-import * as _ from "underscore";
+import * as _ from "lodash";
 import Grid from "@material-ui/core/Grid";
 
 // eslint-disable-next-line import/no-unresolved
@@ -46,14 +46,16 @@ import Button from "@material-ui/core/Button";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesMappers, TimeseriesMappersProps} from "../TimeseriesControls/TimeseriesMappers";
 import Drawer from "@material-ui/core/Drawer";
+import {CompartmentNode, CompartmentTree2} from "../../models/compartmentTree";
 
 export interface ViewerContainerProps {
-    compartmentViewTree: CompartmentNodeView;
+    compartmentTree: CompartmentTree2;
     constants: AVConstants;
     settings: AVSettings;
 
     availableTimeseries: Set<string>;
     selectedPenetrations: Map<string, Penetration>;
+    visibleCompartmentIds: Set<number>;
 
     busy: boolean;
     progress: number;
@@ -558,11 +560,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const viewer = this.viewer;
 
         // traverse the compartment tree and set visible or invisible
-        let queue: CompartmentNodeView[] = [this.props.compartmentViewTree];
-        while (queue.length > 0) {
-            const compartmentNodeView: CompartmentNodeView = queue.splice(0, 1)[0];
-            viewer.setCompartmentVisible(compartmentNodeView);
-            queue = queue.concat(compartmentNodeView.children);
+        for (const compartmentNode of this.props.compartmentTree.getAllCompartmentNodes()) {
+            viewer.setCompartmentVisible(compartmentNode, this.props.visibleCompartmentIds.has(compartmentNode.id));
         }
     }
 

@@ -1,21 +1,33 @@
 import * as _ from 'underscore';
 
 // eslint-disable-next-line import/no-unresolved
-import { Compartment, CompartmentNode, AVSettings } from "./models/apiModels";
+import { Compartment, CompartmentNodeInterface, AVSettings } from "./models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentNodeView } from "./viewmodels/compartmentViewModel";
 
 export class CompartmentTree {
-    private readonly root: CompartmentNode;
+    private readonly root: CompartmentNodeInterface;
     private settings: AVSettings;
 
-    constructor(root: CompartmentNode, settings: AVSettings) {
+    private descendentPointCount: Map<number, number>;
+    private descendentPenetrations: Map<number, Set<string>>;
+
+    private childPointCount: Map<number, number>;
+    private childPenetrations: Map<number, Set<string>>;
+
+    constructor(root: CompartmentNodeInterface, settings: AVSettings) {
         this.root = root;
         this.settings = settings;
+
+        this.descendentPointCount = new Map<number, number>();
+        this.descendentPenetrations = new Map<number, Set<string>>();
+
+        this.childPointCount = new Map<number, number>();
+        this.childPenetrations = new Map<number, Set<string>>();
     }
 
-    private getCompartmentNodesByAttr(attr: keyof(CompartmentNode), vals: any[]): CompartmentNode[] {
-        const nodes: CompartmentNode[] = [];
+    private getCompartmentNodesByAttr(attr: keyof(CompartmentNodeInterface), vals: any[]): CompartmentNodeInterface[] {
+        const nodes: CompartmentNodeInterface[] = [];
         let queue = [this.root];
 
         while (queue.length > 0) {
@@ -34,27 +46,27 @@ export class CompartmentTree {
         return nodes;
     }
 
-    private getCompartmentNodeByAttr(attr: keyof(CompartmentNode), val: number | string): CompartmentNode {
+    private getCompartmentNodeByAttr(attr: keyof(CompartmentNodeInterface), val: number | string): CompartmentNodeInterface {
         const nodes = this.getCompartmentNodesByAttr(attr, [val]);
         return nodes.length === 0 ? null : nodes[0];
     }
 
-    private getCompartmentsByAttr(attr: keyof(CompartmentNode), vals: any[]): Compartment[] {
+    private getCompartmentsByAttr(attr: keyof(CompartmentNodeInterface), vals: any[]): Compartment[] {
         const nodes = this.getCompartmentNodesByAttr(attr, vals);
-        return nodes.map((node: CompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as Compartment);
+        return nodes.map((node: CompartmentNodeInterface) => _.pick(node, _.without(_.keys(node), 'children')) as Compartment);
     }
 
-    private getCompartmentByAttr(attr: keyof(CompartmentNode), val: number | string): Compartment {
+    private getCompartmentByAttr(attr: keyof(CompartmentNodeInterface), val: number | string): Compartment {
         const nodes = this.getCompartmentsByAttr(attr, [val]);
         return nodes.length === 0 ? null : nodes[0];
     }
 
-    public getCompartmentNodesByDepth(maxDepth: number): CompartmentNode[] {
-        const compartments: CompartmentNode[] = [];
+    public getCompartmentNodesByDepth(maxDepth: number): CompartmentNodeInterface[] {
+        const compartments: CompartmentNodeInterface[] = [];
 
         let node;
         let currentLevel = [this.root];
-        let nextLevel: CompartmentNode[] = [];
+        let nextLevel: CompartmentNodeInterface[] = [];
 
         for (let depth = 0; depth < maxDepth + 1; depth++) {
             while (currentLevel.length > 0) {
@@ -70,18 +82,18 @@ export class CompartmentTree {
     }
 
     public getCompartmentNodeViewTree(subset: boolean): CompartmentNodeView {
-        const root: CompartmentNode = subset ?
+        const root: CompartmentNodeInterface = subset ?
             this.getCompartmentSubsetTree() :
             this.root;
 
-        const node2NodeView = (node: CompartmentNode): CompartmentNodeView => {
+        const node2NodeView = (node: CompartmentNodeInterface): CompartmentNodeView => {
             return {
                 acronym: node.acronym,
                 id: node.id,
                 name: node.name,
                 isVisible: false,
-                rgbTriplet: node.rgb_triplet,
-                structureIdPath: node.structure_id_path,
+                rgbTriplet: node.rgbTriplet,
+                structureIdPath: node.structureIdPath,
                 children: node.children.map(node2NodeView),
             }
         };
@@ -91,10 +103,10 @@ export class CompartmentTree {
 
     public getCompartmentsByDepth(maxDepth: number): Compartment[] {
         const compartments = this.getCompartmentNodesByDepth(maxDepth);
-        return compartments.map((node: CompartmentNode) => _.pick(node, _.without(_.keys(node), 'children')) as Compartment);
+        return compartments.map((node: CompartmentNodeInterface) => _.pick(node, _.without(_.keys(node), 'children')) as Compartment);
     }
 
-    public getCompartmentSubset(): CompartmentNode[] {
+    public getCompartmentSubset(): CompartmentNodeInterface[] {
         const cSettings = this.settings.compartment;
 
         const compartmentNodes = this.getCompartmentNodesByDepth(cSettings.maxDepth);
@@ -133,7 +145,7 @@ export class CompartmentTree {
         return compartmentNodes;
     }
 
-    public getCompartmentSubsetTree(): CompartmentNode {
+    public getCompartmentSubsetTree(): CompartmentNodeInterface {
         /* 
          * Note depths of all compartments in subset.
          * Sort by depth, ascending.
@@ -145,29 +157,29 @@ export class CompartmentTree {
             return this.root;
         }
 
-        subset.sort((left, right) => left.structure_id_path.length - right.structure_id_path.length);
+        subset.sort((left, right) => left.structureIdPath.length - right.structureIdPath.length);
 
         // root node is always required in the tree
-        let refRoot: CompartmentNode;
+        let refRoot: CompartmentNodeInterface;
         if (subset[0].name !== 'root') {
             refRoot = this.getCompartmentNodeByName('root');
         } else {
             refRoot = subset.splice(0, 1)[0];
         }
 
-        const rootNode: CompartmentNode = _.extend(
+        const rootNode: CompartmentNodeInterface = _.extend(
             _.pick(refRoot, _.without(_.keys(refRoot), 'children')),
             {'children': []}
         )
 
-        let node: CompartmentNode;
+        let node: CompartmentNodeInterface;
         while (subset.length > 0) {
             node = subset.splice(0, 1)[0];
             let levelNode = rootNode;
 
-            for (let i = 1; i < node.structure_id_path.length; i++) {
+            for (let i = 1; i < node.structureIdPath.length; i++) {
                 const childIds = levelNode.children.map(child => child.id);
-                const pathId = node.structure_id_path[i];
+                const pathId = node.structureIdPath[i];
 
                 let idx = childIds.indexOf(pathId);
                 if (idx === -1) {
@@ -190,11 +202,11 @@ export class CompartmentTree {
         return this.getCompartmentByAttr('name', name);
     }
 
-    public getCompartmentNodesByName(names: string[]): CompartmentNode[] {
+    public getCompartmentNodesByName(names: string[]): CompartmentNodeInterface[] {
         return this.getCompartmentNodesByAttr('name', names);
     }
 
-    public getCompartmentNodeByName(name: string): CompartmentNode {
+    public getCompartmentNodeByName(name: string): CompartmentNodeInterface {
         return this.getCompartmentNodeByAttr('name', name);
     }
 
@@ -206,11 +218,11 @@ export class CompartmentTree {
         return this.getCompartmentByAttr('acronym', acronym);
     }
 
-    public getCompartmentNodesByAcronym(acronyms: string[]): CompartmentNode[] {
+    public getCompartmentNodesByAcronym(acronyms: string[]): CompartmentNodeInterface[] {
         return this.getCompartmentNodesByAttr('acronym', acronyms);
     }
 
-    public getCompartmentNodeByAcronym(acronym: string): CompartmentNode {
+    public getCompartmentNodeByAcronym(acronym: string): CompartmentNodeInterface {
         return this.getCompartmentNodeByAttr('acronym', acronym);
     }
 
@@ -222,11 +234,11 @@ export class CompartmentTree {
         return this.getCompartmentByAttr('id', id);
     }
 
-    public getCompartmentNodesById(ids: number[]): CompartmentNode[] {
+    public getCompartmentNodesById(ids: number[]): CompartmentNodeInterface[] {
         return this.getCompartmentNodesByAttr('id', ids);
     }
 
-    public getCompartmentNodeById(id: number): CompartmentNode {
+    public getCompartmentNodeById(id: number): CompartmentNodeInterface {
         return this.getCompartmentNodeByAttr('id', id);
     }
 }

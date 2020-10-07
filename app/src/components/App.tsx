@@ -25,6 +25,7 @@ import {UnitModel} from "../models/unitModel";
 
 // eslint-disable-next-line import/no-unresolved
 import { MainView, MainViewProps } from "./MainView";
+import {CompartmentTree2} from "../models/compartmentTree";
 
 const theme = createMuiTheme({
     palette: {
@@ -52,7 +53,7 @@ const theme = createMuiTheme({
 });
 
 interface AppState {
-    compartmentTree: CompartmentTree;
+    compartmentTree: CompartmentTree2;
     constants: AVConstants;
     settings: AVSettings;
 
@@ -122,7 +123,15 @@ export class App extends React.Component<{}, AppState> {
                 const availableTimeseries = _.clone(this.state.availableTimeseries);
                 penetrationData.timeseriesIds.forEach((timeseriesId) => {
                     availableTimeseries.add(timeseriesId);
-                })
+                });
+
+                // register all units in their respective compartment nodes
+                penetrationData.compartments.forEach((compartment, idx) => {
+                    if (compartment.name) {
+                        const node = this.state.compartmentTree.getCompartmentNodeByName(compartment.name);
+                        node.registerUnit(penetrationData.id, penetrationData.unitIds[idx]);
+                    }
+                });
 
                 const loadedPenetrations = _.clone(this.state.loadedPenetrations);
                 loadedPenetrations.add(pid);
@@ -199,7 +208,7 @@ export class App extends React.Component<{}, AppState> {
     public componentDidMount(): void {
         let availablePenetrations: Set<string>;
         let settings: AVSettings = null;
-        let compartmentTree: CompartmentTree = null;
+        let compartmentTree: CompartmentTree2 = null;
 
         this.apiClient.fetchSettings()
             .then((res) => res.data)
@@ -208,19 +217,18 @@ export class App extends React.Component<{}, AppState> {
 
                 return this.apiClient.fetchCompartmentTree();
             })
-            .then((res) => res.data)
-            .then((root) => {
-                compartmentTree = new CompartmentTree(root, settings);
+            .then((rootNode) => {
+                compartmentTree = CompartmentTree2.fromCompartmentNode(rootNode);
 
                 return this.apiClient.fetchPenetrationIds();
             })
             .then((res) => res.data)
             .then((data) => {
                 availablePenetrations = new Set<string>(data.penetrationIds);
-                this.setState({availablePenetrations, compartmentTree, settings});
-
-                this.fetchPenetrationVitals()
-                    .then(() => this.setState({ready: true}));
+                this.setState({availablePenetrations, compartmentTree, settings}, () => {
+                    this.fetchPenetrationVitals()
+                        .then(() => this.setState({ready: true}));
+                });
             })
             .catch((err) => {
                 console.error(err);

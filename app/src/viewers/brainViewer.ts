@@ -18,7 +18,7 @@ import {
 } from "three";
 
 // eslint-disable-next-line import/no-unresolved
-import {AVConstants, CoronalMax, SagittalMax} from "../constants";
+import {AVConstants, ballTexture, CoronalMax, SagittalMax} from "../constants";
 
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping} from "../models/aestheticMapping";
@@ -31,8 +31,9 @@ import {ColorLUT} from "../models/colorMap";
 import {SliceImageType, SliceType} from "../models/enums";
 import {Penetration} from "../models/penetration";
 import {TomographySlice} from "../models/tomographySlice";
-import {CompartmentNodeView} from "../viewmodels/compartmentViewModel";
+// eslint-disable-next-line import/no-unresolved
 import {SlicingPlanes} from "../models/slicingPlanes";
+import {CompartmentNode} from "../models/compartmentTree";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const THREE = require("three");
@@ -83,7 +84,7 @@ export class BrainViewer {
     private tomographySlice: TomographySlice = null;
     private slicingPlanes: SlicingPlanes = null;
 
-    private loadedCompartments: string[] = [];
+    private loadedCompartments: Set<string>;
     private visibleCompartments: Set<string>;
 
     constructor(constants: AVConstants, epochs: Epoch[]) {
@@ -98,6 +99,7 @@ export class BrainViewer {
         this.loadedPenetrationsMap = new Map<string, Penetration>();
         this.penetrationPointsMap = new Map<string, Points<BufferGeometry>>();
 
+        this.loadedCompartments = new Set<string>();
         this.visibleCompartments = new Set<string>();
     }
 
@@ -355,7 +357,7 @@ export class BrainViewer {
 
         const material = new ShaderMaterial({
             uniforms: {
-                pointTexture: { value: new THREE.TextureLoader().load(this.constants.ballTexture) },
+                pointTexture: { value: new THREE.TextureLoader().load(ballTexture) },
                 colorLUT: { value: colors },
                 colorData: { value: [] },
                 colorDomain: { value: colorDomain },
@@ -823,14 +825,14 @@ export class BrainViewer {
         }
     }
 
-    private loadCompartment(compartmentNodeView: CompartmentNodeView): void {
-        const name = compartmentNodeView.name;
-        if (this.loadedCompartments.includes(name)) {
+    private loadCompartment(compartmentNode: CompartmentNode): void {
+        const name = compartmentNode.name;
+        if (this.loadedCompartments.has(name)) {
             return;
         }
 
-        const compartmentId = compartmentNodeView.id;
-        const compartmentColor = '#' + this.rgb2Hex(compartmentNodeView.rgbTriplet);
+        const compartmentId = compartmentNode.id;
+        const compartmentColor = '#' + this.rgb2Hex(compartmentNode.rgbTriplet);
 
         const loader = new THREE.OBJLoader();
         const path = `${this.constants.apiEndpoint}/mesh/${compartmentId}`;
@@ -856,7 +858,7 @@ export class BrainViewer {
             const [x, y, z] = this.constants.centerPoint.map((t: number) => -t);
             obj.position.set(x, y, z);
 
-            this.loadedCompartments.push(name);
+            this.loadedCompartments.add(name);
             this.visibleCompartments.add(name);
             this.scene.add(obj);
         });
@@ -871,20 +873,19 @@ export class BrainViewer {
         this.visibleCompartments.clear();
     }
 
-    public setCompartmentVisible(compartmentNodeView: CompartmentNodeView): void {
+    public setCompartmentVisible(compartmentNode: CompartmentNode, visible: boolean): void {
         // loading sets visible as a side effect
-        const name = compartmentNodeView.name;
-        const visible = compartmentNodeView.isVisible;
+        const name = compartmentNode.name;
 
-        if (visible && !this.loadedCompartments.includes(name)) {
-            this.loadCompartment(compartmentNodeView);
+        if (visible && !this.loadedCompartments.has(name)) {
+            this.loadCompartment(compartmentNode);
         } else { // if not visible, don't bother loading, otherwise update an already-loaded compartment
             const compartmentObj = this.scene.getObjectByName(name);
 
             if (compartmentObj) {
-                compartmentObj.visible = compartmentNodeView.isVisible;
+                compartmentObj.visible = visible;
 
-                if (compartmentNodeView.isVisible) {
+                if (visible) {
                     this.visibleCompartments.add(name);
                 } else {
                     this.visibleCompartments.delete(name);

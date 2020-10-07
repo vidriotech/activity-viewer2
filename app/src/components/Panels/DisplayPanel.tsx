@@ -1,4 +1,6 @@
 import React from "react";
+import * as _ from "lodash";
+
 import Grid from "@material-ui/core/Grid";
 
 // eslint-disable-next-line import/no-unresolved
@@ -25,9 +27,10 @@ import {DataPanel, DataPanelProps} from "./DataPanel";
 import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved
 import {SliceType} from "../../models/enums";
+import {CompartmentTree2} from "../../models/compartmentTree";
 
 export interface DisplayPanelProps {
-    compartmentViewTree: CompartmentNodeView;
+    compartmentTree: CompartmentTree2;
     constants: AVConstants;
     settings: AVSettings;
 
@@ -38,7 +41,6 @@ export interface DisplayPanelProps {
     progress: number;
     progressMessage: string;
 
-    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
     onRequestUnitExport(): void;
     onUpdateFilterPredicate(predicate: Predicate, newStat?: string): void;
     onUpdateProgress(progress: number, progressMessage: string): void;
@@ -47,6 +49,8 @@ export interface DisplayPanelProps {
 interface DisplayPanelState {
     showDataPanel: boolean;
     showPhysPanel: boolean;
+
+    visibleCompartmentIds: Set<number>;
 
     showTomographyAnnotation: boolean;
     showTomographySlice: boolean;
@@ -65,6 +69,8 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         this.state = {
             showDataPanel: true,
             showPhysPanel: true,
+
+            visibleCompartmentIds: new Set<number>(),
 
             showTomographyAnnotation: true,
             showTomographySlice: false,
@@ -93,6 +99,17 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         });
     }
 
+    private handleToggleCompartmentVisible(compartmentId: number): void {
+        const visibleCompartmentIds = _.clone(this.state.visibleCompartmentIds);
+        if (visibleCompartmentIds.has(compartmentId)) {
+            visibleCompartmentIds.delete(compartmentId);
+        } else {
+            visibleCompartmentIds.add(compartmentId);
+        }
+
+        this.setState({visibleCompartmentIds});
+    }
+
     public render(): React.ReactElement {
         const dataPanelProps: DataPanelProps = {
             selectedPenetrations: this.props.selectedPenetrations,
@@ -106,12 +123,14 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         }
 
         const viewerContainerProps: ViewerContainerProps = {
-            compartmentViewTree: this.props.compartmentViewTree,
+            compartmentTree: this.props.compartmentTree,
             constants: this.props.constants,
             settings: this.props.settings,
 
             availableTimeseries: this.props.availableTimeseries,
             selectedPenetrations: this.props.selectedPenetrations,
+            visibleCompartmentIds: this.state.visibleCompartmentIds,
+
             busy: this.props.busy,
             progress: this.props.progress,
             progressMessage: this.props.progressMessage,
@@ -140,12 +159,13 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         };
 
         const physiologyPanelProps: PhysiologyPanelProps = {
-            selectedPenetrations: this.props.selectedPenetrations,
-            compartmentViewTree: this.props.compartmentViewTree,
+            compartmentTree: this.props.compartmentTree,
             constants: this.props.constants,
             settings: this.props.settings,
 
             busy: this.props.busy,
+
+            selectedPenetrations: this.props.selectedPenetrations,
 
             showTomographyAnnotation: this.state.showTomographyAnnotation,
             showTestSlice: this.state.showTestSlice,
@@ -153,7 +173,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             testSliceType: this.state.testSliceType,
 
             onCollapse: () => {this.setState({showPhysPanel: false})},
-            onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
+            onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
 
             onCommitSlicing: this.handleCommitSlicing.bind(this),
             onSelectSliceType: (testSliceType: SliceType, testSliceBounds: [number, number]) => {

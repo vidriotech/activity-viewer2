@@ -41,7 +41,7 @@ import { AVConstants } from "./constants";
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentTree } from "./compartmentTree";
 // eslint-disable-next-line import/no-unresolved
-import { CompartmentNode, AVSettings } from "./models/apiModels";
+import { CompartmentNodeInterface, AVSettings } from "./models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
 import { App } from "./components/App";

@@ -1,7 +1,7 @@
 import axios, {AxiosResponse} from "axios";
 
 import {
-    AVSettings, CompartmentNode,
+    AVSettings, CompartmentNodeInterface,
     ExportingUnit,
     PenetrationData,
     PenetrationResponse,
@@ -69,8 +69,9 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/color-map/${mapping}`);
     }
 
-    async fetchCompartmentTree(): Promise<AxiosResponse<CompartmentNode>> {
-        return await axios.get(`${this.endpoint}/compartments`);
+    async fetchCompartmentTree(): Promise<CompartmentNodeInterface> {
+        return axios.get(`${this.endpoint}/compartments`)
+            .then((res) => res.data);
     }
 
     async fetchExportedData(exportData: ExportingUnit[]): Promise<AxiosResponse<Blob>> {
