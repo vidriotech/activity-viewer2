@@ -1,19 +1,21 @@
 import * as _ from 'lodash';
 
+// eslint-disable-next-line import/no-unresolved
 import { CompartmentNode } from './apiModels';
-import { PointModel } from './pointModel';
+// eslint-disable-next-line import/no-unresolved
+import { UnitModel } from './unitModel';
 
 
-export type PredicateType = 'string' | 'stat' | 'mixed';
+export type PredicateType = "string" | "number" | "stat" | "mixed";
 
 export abstract class Predicate {
-    private type: PredicateType;
+    private readonly type: PredicateType;
 
-    constructor(type: PredicateType) {
+    protected constructor(type: PredicateType) {
         this.type = type;
     }
 
-    abstract eval(points: PointModel[]): boolean[];
+    abstract eval(points: UnitModel[]): boolean[];
     abstract toString(): string;
     
     public depth(): number {
@@ -72,10 +74,10 @@ export class StatPredicate extends Predicate {
         }
     }
 
-    public eval(points: PointModel[]): boolean[] {
+    public eval(points: UnitModel[]): boolean[] {
         let result: boolean[] = new Array(points.length);
-        points.forEach((point: PointModel, idx: number) => {
-            const stat = point.getStat(this._statName);
+        points.forEach((point: UnitModel, idx: number) => {
+            const stat = point.getUnitStat(this._statName);
             result[idx] = (this._lowerBound <= stat) && (stat <= this._upperBound);
         });
 
@@ -101,11 +103,11 @@ export class StatPredicate extends Predicate {
 
 // StringPropPredicate are (IN)EQUALITIES
 export class PropEqPredicate extends Predicate {
-    private propName: keyof(PointModel);
+    private propName: keyof(UnitModel);
     private propValue: string | number;
     private negate: boolean;
 
-    constructor(propName: keyof(PointModel), propValue: string | number, negate: boolean) {
+    constructor(propName: keyof(UnitModel), propValue: string | number, negate: boolean) {
         super('string');
 
         this.propName = propName;
@@ -113,9 +115,9 @@ export class PropEqPredicate extends Predicate {
         this.negate = negate;
     }
 
-    public eval(points: PointModel[]): boolean[] {
+    public eval(points: UnitModel[]): boolean[] {
         const result: boolean[] = new Array(points.length);
-        points.forEach((point: PointModel, idx: number) => {
+        points.forEach((point: UnitModel, idx: number) => {
             const val = point[this.propName];
             result[idx] = (val === this.propValue);
             if (this.negate) {
@@ -133,12 +135,12 @@ export class PropEqPredicate extends Predicate {
 }
 
 export class PropIneqPredicate extends Predicate {
-    private readonly _propName: keyof(PointModel);
+    private readonly _propName: keyof(UnitModel);
     protected _lowerBound: number;
     protected _upperBound: number;
     
-    constructor(propName: keyof(PointModel), lowerBound: number, upperBound: number) {
-        super('string');
+    constructor(propName: keyof(UnitModel), lowerBound: number, upperBound: number) {
+        super("number");
 
         this._propName = propName;
         this._lowerBound = lowerBound;
@@ -169,9 +171,9 @@ export class PropIneqPredicate extends Predicate {
         }
     }
 
-    public eval(points: PointModel[]): boolean[] {
+    public eval(points: UnitModel[]): boolean[] {
         const result: boolean[] = new Array(points.length);
-        points.forEach((point: PointModel, idx: number) => {
+        points.forEach((point: UnitModel, idx: number) => {
             const val = point[this.propName];
             result[idx] = (this._lowerBound <= val) && (val <= this._upperBound);
         });
@@ -183,7 +185,7 @@ export class PropIneqPredicate extends Predicate {
         return `${this.lowerBound} ≤ ${this.propName} ≤ ${this.upperBound}`;
     }
 
-    public get propName(): keyof(PointModel) {
+    public get propName(): keyof(UnitModel) {
         return this._propName;
     }
 
@@ -205,9 +207,9 @@ export class SubcompartmentPredicate extends Predicate {
         this.parentCompartment = parentCompartment;
     }
 
-    public eval(points: PointModel[]): boolean[] {
+    public eval(points: UnitModel[]): boolean[] {
         let result: boolean[] = new Array(points.length);
-        points.forEach((point: PointModel, idx: number) => {
+        points.forEach((point: UnitModel, idx: number) => {
             result[idx] = point.compartmentIdPath === null ?
                 false : point.compartmentIdPath.includes(this.parentCompartment.id);
         });
@@ -236,7 +238,7 @@ export abstract class PredicateChain extends Predicate {
         return _.max(this.predicates.map((p) => p.depth())) + 1;
     }
 
-    abstract eval(points: PointModel[]): boolean[];
+    abstract eval(points: UnitModel[]): boolean[];
 
     public split(): Predicate[] {
         return this.predicates.sort((a, b) => a.depth() - b.depth());
@@ -246,7 +248,7 @@ export abstract class PredicateChain extends Predicate {
 }
 
 export class ANDPredicateChain extends PredicateChain {
-    public eval(points: PointModel[]): boolean[] {
+    public eval(points: UnitModel[]): boolean[] {
         let result: boolean[] = new Array(points.length);
         result.fill(true);
 
@@ -301,7 +303,7 @@ export class ANDPredicateChain extends PredicateChain {
 }
 
 export class ORPredicateChain extends PredicateChain {
-    public eval(points: PointModel[]): boolean[] {
+    public eval(points: UnitModel[]): boolean[] {
         let result: boolean[] = new Array(points.length);
         result.fill(false);
 

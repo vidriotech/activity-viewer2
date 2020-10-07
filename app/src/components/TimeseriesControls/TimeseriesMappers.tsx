@@ -40,18 +40,18 @@ export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, T
         super(props);
 
         this.state = {
-            colorTimeseries: "nothing",
-            colorBounds: [0, 1],
-            colorGamma: 1,
-            colorMapping: "bwr",
+            colorTimeseries: this.props.colorTimeseries,
+            colorBounds: this.props.colorBounds,
+            colorGamma: this.props.colorGamma,
+            colorMapping: this.props.colorMapping,
 
-            opacityTimeseries: "nothing",
-            opacityBounds: [0.01, 1],
-            opacityGamma: 1,
+            opacityTimeseries: this.props.opacityTimeseries,
+            opacityBounds: this.props.opacityBounds,
+            opacityGamma: this.props.opacityGamma,
 
-            radiusTimeseries: "nothing",
-            radiusBounds: [0.01, 1],
-            radiusGamma: 1,
+            radiusTimeseries: this.props.radiusTimeseries,
+            radiusBounds: this.props.radiusBounds,
+            radiusGamma: this.props.radiusGamma,
         }
     }
 
@@ -189,17 +189,23 @@ export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, T
 
         return (
             <Grid container
-                  spacing={3} >
-                <Grid item xs>
+                  spacing={3}
+                  style={{padding: "40px"}} >
+                <Grid item xs={2} />
+                <Grid item xs={8}>
                     <ScalarMapper {...radiusMapperProps} />
                 </Grid>
-                <Grid item xs>
+                <Grid item xs={2} />
+                <Grid item xs={2} />
+                <Grid item xs={8}>
                     <ScalarMapper {...opacityMapperProps} />
                 </Grid>
-                <Grid item xs>
+                <Grid item xs={2} />
+                <Grid item xs={2} />
+                <Grid item xs={8}>
                     <ColorMapper {...colorMapperProps} />
                 </Grid>
-                <Grid item xs={2}>
+                <Grid item xs>
                     <Button disabled={commitDisabled}
                             color="primary"
                             variant="contained"

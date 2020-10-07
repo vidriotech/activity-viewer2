@@ -103,7 +103,7 @@ export function PlayerSlider(props: PlayerSliderProps): React.ReactElement {
         <Grid container
               spacing={2}
               justify='flex-start'>
-            <Grid item xs={8}>
+            <Grid item xs={9}>
                 <Slider min={props.timeMin}
                         max={props.timeMax}
                         step={props.timeStep}
@@ -113,17 +113,17 @@ export function PlayerSlider(props: PlayerSliderProps): React.ReactElement {
                         onChange={props.onSliderChange}
                 />
             </Grid>
-            <Grid item xs={4}>
+            <Grid item xs={3}>
                 <Typography>
                     {disabled ? '' : `${props.timeVal.toFixed(2)} s`}
                 </Typography>
             </Grid>
             <Grid item xs>
-                <IconButton size='small'
+                <IconButton size="small"
                             className={classes.margin}
                             disabled={disabled}
                             onClick={props.onRecordToggle}>
-                    <FiberManualRecordIcon titleAccess='record playback'
+                    <FiberManualRecordIcon titleAccess="record playback"
                                            color={props.isRecording ? 'error' : 'inherit'}
                                            fontSize='large' />
                 </IconButton>

@@ -1,12 +1,13 @@
 import axios, {AxiosResponse} from "axios";
 
 import {
+    AVSettings, CompartmentNode,
     ExportingUnit,
     PenetrationData,
     PenetrationResponse,
     SettingsRequest,
     SliceData,
-    SliceType, UnitStatsListResponse,
+    UnitStatsListResponse,
 // eslint-disable-next-line import/no-unresolved
 } from "./models/apiModels";
 // eslint-disable-next-line import/no-unresolved
@@ -15,11 +16,19 @@ import {ColorLUT} from "./models/colorMap";
 import {TimeseriesData, TimeseriesSummary} from "./models/timeseries";
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping, AestheticParams} from "./models/aestheticMapping";
+// eslint-disable-next-line import/no-unresolved
+import {SliceType} from "./models/enums";
+// eslint-disable-next-line import/no-unresolved
+import {PenetrationInterface} from "./models/penetration";
 
 
 export interface AestheticRequest {
     penetrationIds: string[];
     params: AestheticParams;
+}
+
+export interface PenetrationIdsResponse {
+    penetrationIds: string[];
 }
 
 export interface PenetrationTimeseriesResponse {
@@ -60,37 +69,42 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/color-map/${mapping}`);
     }
 
-    async fetchCompartmentTree() {
+    async fetchCompartmentTree(): Promise<AxiosResponse<CompartmentNode>> {
         return await axios.get(`${this.endpoint}/compartments`);
     }
 
-    async fetchExportedData(exportData: ExportingUnit[]) {
+    async fetchExportedData(exportData: ExportingUnit[]): Promise<AxiosResponse<Blob>> {
         const data = {
             data: exportData,
         };
 
         return axios({
-            "method": "post",
-            "url": `${this.endpoint}/data-file`,
-            "data": data,
-            "timeout": 5000
+            method: "POST",
+            url: `${this.endpoint}/data-file`,
+            data: data,
+            timeout: 5000,
+            responseType: "blob",
         });
+    }
+
+    async fetchPenetrationIds(): Promise<AxiosResponse<PenetrationIdsResponse>> {
+        return await axios.get(`${this.endpoint}/penetration-names`);
     }
 
     async fetchPenetrations(limit: number, page: number): Promise<AxiosResponse<PenetrationResponse>> {
         return await axios.get(`${this.endpoint}/penetrations?page=${page}&limit=${limit}`);
     }
 
-    async fetchPenetrationVitals(penetrationId: string): Promise<AxiosResponse<PenetrationData>> {
+    async fetchPenetrationVitals(penetrationId: string): Promise<AxiosResponse<PenetrationInterface>> {
         return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
     }
 
-    async fetchSettings() {
+    async fetchSettings(): Promise<AxiosResponse<AVSettings>> {
         return await axios.get(`${this.endpoint}/settings`);
     }
 
     async fetchSliceData(sliceType: SliceType, coordinate: number): Promise<AxiosResponse<SliceData>> {
-        return await axios.get(`${this.endpoint}/slices/${sliceType}/${coordinate}`);
+        return await axios.get(`${this.endpoint}/slices?sliceType=${sliceType}&coordinate=${coordinate}`);
     }
 
     async fetchTimeseries(penetrationId: string, timeseriesId: string): Promise<AxiosResponse<TimeseriesData>> {

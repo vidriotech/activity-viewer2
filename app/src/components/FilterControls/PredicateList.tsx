@@ -1,112 +1,27 @@
-import React from 'react';
-import * as _ from 'lodash';
+import React from "react";
+import * as _ from "lodash";
 
-import Button from '@material-ui/core/Button';
-import ButtonGroup from '@material-ui/core/ButtonGroup';
 import Container from '@material-ui/core/Container';
-import Grid from '@material-ui/core/Grid';
 import List from '@material-ui/core/List';
-import MenuItem from '@material-ui/core/MenuItem';
-import Select from '@material-ui/core/Select';
-import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 
-import { CompartmentTree } from '../../compartmentTree';
-import { PenetrationData } from '../../models/apiModels';
-import { PointModel } from '../../models/pointModel';
-import { Predicate, PropEqPredicate, StatPredicate, PredicateChain, ANDPredicateChain, ORPredicateChain, SubcompartmentPredicate } from '../../models/predicateModels';
+// eslint-disable-next-line import/no-unresolved
+import { Predicate, PredicateChain, ANDPredicateChain, ORPredicateChain } from "../../models/predicateModels";
 
+// eslint-disable-next-line import/no-unresolved
 import { PredicateListNode } from './PredicateListNode';
 
 export interface PredicateListProps {
-    availablePenetrations: PenetrationData[];
     busy: boolean;
-    compartmentTree: CompartmentTree;
     filterPredicate: Predicate;
-    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void;
+
+    onUpdateFilterPredicate(predicate: Predicate): void;
 }
 
-interface PredicateListState {
-    buttonOpen: boolean;
-    currentCondition: string;
-    eValue: string;
-    lowerBound: number;
-    neValue: string;
-    selectedIndex: number;
-    ssValue: string;
-    upperBound: number;
-}
-
-export class PredicateList extends React.Component<PredicateListProps, PredicateListState> {
-    private propKeys: Map<string, keyof(PointModel)>;
-
-    constructor(props: PredicateListProps) {
-        super(props);
-
-        this.state = {
-            buttonOpen: false,
-            currentCondition: 'compartment-name',
-            eValue: '',
-            lowerBound: -Infinity,
-            neValue: '',
-            selectedIndex: 0,
-            ssValue: '',
-            upperBound: Infinity,
-        };
-
-        this.propKeys = new Map<string, keyof(PointModel)>();
-        this.propKeys.set('compartment-name', 'compartmentName');
-        this.propKeys.set('penetration-id', 'penetrationId');
-    }
-
-    private handleButtonClick(op: string) {
-        const isPropPredicate = _.includes(
-            Array.from(this.propKeys.keys()),
-            this.state.currentCondition
-        );
-
-        let predicate: Predicate;
-        if (isPropPredicate) {
-            if (this.state.ssValue !== "") {
-                const compartmentNode = this.props.compartmentTree.getCompartmentNodeByName(this.state.ssValue);
-                predicate = new SubcompartmentPredicate(compartmentNode);
-            } else {
-                const propValue = this.state.neValue === '' ?
-                this.state.eValue :
-                this.state.neValue;
-
-                const negate = this.state.neValue !== '';
-                predicate = new PropEqPredicate(this.propKeys.get(this.state.currentCondition), propValue, negate);
-            }
-        } else { // stat predicate
-            const lowerBound = Number.isNaN(this.state.lowerBound) ? -Infinity : this.state.lowerBound;
-            const upperBound = Number.isNaN(this.state.upperBound) ? Infinity : this.state.upperBound;
-
-            predicate = new StatPredicate(this.state.currentCondition, lowerBound, upperBound);
-        }
-
-        if ((this.props.filterPredicate !== null) && (op === 'AND')) {
-            predicate = this.props.filterPredicate.and(predicate);
-        } else if (this.props.filterPredicate !== null) { // op === 'OR'
-            predicate = this.props.filterPredicate.or(predicate);
-        }
-
-        this.resetForm();
-        this.props.onFilterPredicateUpdate(
-            predicate,
-            isPropPredicate ? 'nothing' : this.state.currentCondition,
-        );
-    }
-
-    private handleDropdownSelectionChange(newValue: string): void {
-        this.setState({ currentCondition: newValue }, () => {
-            this.resetForm();
-        });
-    }
-
-    private handleDeleteSubpredicate(indexChain: number[]) {
+export class PredicateList extends React.Component<PredicateListProps, {}> {
+    private handleDeleteSubpredicate(indexChain: number[]): void {
         if (indexChain.length === 0) { // delete entire filter
-            this.props.onFilterPredicateUpdate(null, 'nothing');
+            this.props.onUpdateFilterPredicate(null);
         } else {
             const deleteSubpredicate = (predicate: PredicateChain, indexChain: number[]): Predicate => {
                 const idx = indexChain[0];
@@ -147,169 +62,21 @@ export class PredicateList extends React.Component<PredicateListProps, Predicate
                 _.clone(indexChain)
             );
 
-            this.props.onFilterPredicateUpdate(predicate, 'nothing');
+            this.props.onUpdateFilterPredicate(predicate);
         }
     }
 
-    private renderNewFilterForm() {
-        const availableStats = _.union(...this.props.availablePenetrations.map(pen => pen.unitStats));
-        const isPropPredicate = _.includes(
-            Array.from(this.propKeys.keys()),
-            this.state.currentCondition
-        );
-
-        let entryFields = [
-            <Grid item>
-                <Select autoWidth
-                        disabled={this.props.busy}
-                        variant='outlined'
-                        labelId='new-filter-form-select-label'
-                        id='new-filter-form-select'
-                        value={this.state.currentCondition}
-                        onChange={(evt) => this.handleDropdownSelectionChange(evt.target.value as string)}>
-                    {_.union(
-                        [
-                            <MenuItem key='compartment-name' value='compartment-name'>
-                                Compartment name
-                            </MenuItem>,
-                            <MenuItem key='penetration-id' value='penetration-id'>
-                                Penetration ID
-                            </MenuItem>,
-                        ],
-                        availableStats.map((stat) => (
-                            <MenuItem key={stat}
-                                    value={stat}>
-                                {`Statistic: ${stat}`}
-                            </MenuItem>)
-                        ),
-                    )}
-                </Select>
-            </Grid>,
-        ];
-
-        if (isPropPredicate) {
-            const label = this.state.currentCondition === 'compartment-name' ? 'compartment name' : 'penetration ID';
-
-            entryFields = entryFields.concat([
-                <Grid item>
-                    <TextField id='new-filter-form-eq-input'
-                               variant='outlined'
-                               placeholder='='
-                               helperText={`Exact ${label}`}
-                               value={this.state.eValue}
-                               disabled={this.props.busy || this.state.neValue !== '' || this.state.ssValue !== ''}
-                               onChange={(evt) => this.setState({ eValue: evt.target.value as string })} />
-                </Grid>,
-                <Grid item>
-                    <TextField id='new-filter-form-ne-input'
-                               variant='outlined'
-                               placeholder='≠'
-                               helperText={`Exact ${label}`}
-                               value={this.state.neValue}
-                               disabled={this.props.busy || this.state.eValue !== '' || this.state.ssValue !== ''}
-                               onChange={(evt) => this.setState({ neValue: evt.target.value as string })} />
-                </Grid>
-            ]);
-        } else {
-            entryFields = entryFields.concat([
-                <Grid item>
-                    <TextField id='new-filter-form-ge-input'
-                               variant='outlined'
-                               placeholder='≥'
-                               helperText='Lower bound'
-                               type='number'
-                               value={this.state.lowerBound}
-                               disabled={this.props.busy || isPropPredicate}
-                               onChange={(evt) => this.setState({ lowerBound: Number.parseFloat(evt.target.value) })} />
-                </Grid>,
-                <Grid item>
-                    <TextField id='new-filter-form-ge-input'
-                               variant='outlined'
-                               placeholder='≤'
-                               helperText='Upper bound'
-                               type='number'
-                               value={this.state.upperBound}
-                               disabled={this.props.busy || isPropPredicate}
-                               onChange={(evt) => this.setState({ upperBound: Number.parseFloat(evt.target.value) })} />
-                </Grid>
-            ]);
-        }
-
-        if (this.state.currentCondition === "compartment-name") {
-            entryFields.push(
-                <Grid item>
-                    <TextField id='new-filter-form-ss-input'
-                               variant='outlined'
-                               placeholder='⊆'
-                               helperText='Compartment is a child of'
-                               value={this.state.ssValue}
-                               disabled={this.props.busy || this.state.eValue !== '' || this.state.neValue !== ''}
-                               onChange={(evt) => this.setState({ ssValue: evt.target.value as string })} />
-                </Grid>
-            );
-        }
-
-        const buttonDisabled = this.props.busy ||
-            (this.state.eValue === '' &&
-            this.state.neValue === '' &&
-            this.state.ssValue === '' &&
-            (
-                (Number.isNaN(this.state.lowerBound) && Number.isNaN(this.state.upperBound)) ||
-                !(Number.isFinite(this.state.lowerBound) || Number.isFinite(this.state.upperBound))
-            )
-        );
-
-        return (
-            <Grid container spacing={1}>
-                {entryFields}
-                <Grid item>
-                    {this.props.filterPredicate === null ? (
-                            <Button color='primary'
-                                    disabled={buttonDisabled}
-                                    onClick={() => this.handleButtonClick('')}>
-                                FILTER
-                            </Button>
-                        ) : (
-                            <ButtonGroup>
-                                <Button color='primary'
-                                        disabled={buttonDisabled}
-                                        onClick={() => this.handleButtonClick('AND')}>
-                                    AND
-                                </Button>
-                                <Button color='secondary'
-                                        disabled={buttonDisabled}
-                                        onClick={() => this.handleButtonClick('OR')}>
-                                    OR
-                                </Button>
-                            </ButtonGroup>
-                        )}
-                </Grid>
-            </Grid>
-        );
-    }
-
-    private resetForm() {
-        this.setState({
-            eValue: '',
-            neValue: '',
-            ssValue: '',
-            lowerBound: -Infinity,
-            upperBound: Infinity
-        });
-    }
-
-    public render() {
+    public render(): React.ReactElement {
         const predicateString = this.props.filterPredicate === null ?
             '' : this.props.filterPredicate.toString();
 
         return (
-            <Container>
-                {this.renderNewFilterForm()}
+            <Container disableGutters>
                 <Typography>
                     {`SQL: ${predicateString}`}
                 </Typography>
                 <List dense
-                      style={{ width: '100%', maxHeight: 300, overflow: 'auto', position: 'relative' }} >
+                      style={{ width: "100%", maxHeight: 100, overflow: "auto", position: "relative" }} >
                     <PredicateListNode level={0}
                                        predicate={this.props.filterPredicate}
                                        indexChain={[]}

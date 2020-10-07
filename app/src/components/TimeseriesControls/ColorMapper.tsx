@@ -72,7 +72,7 @@ export function ColorMapper(props: ColorMapperProps): React.ReactElement {
 
     return (
         <Grid container
-              spacing={1}>
+              spacing={4}>
             <Grid container
                   item
                   direction="column"

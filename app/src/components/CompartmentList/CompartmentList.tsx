@@ -20,16 +20,18 @@ import { CompartmentListNode, CompartmentListNodeProps } from './CompartmentList
 import IconButton from "@material-ui/core/IconButton";
 import {ChevronLeft, ChevronRight} from "@material-ui/icons";
 import Grid from "@material-ui/core/Grid";
+import CircularProgress from "@material-ui/core/CircularProgress";
+// eslint-disable-next-line import/no-unresolved
+import {Penetration} from "../../models/penetration";
 
 
 export interface CompartmentListProps {
-    availablePenetrations: PenetrationData[];
+    selectedPenetrations: Map<string, Penetration>;
     busy: boolean;
-    compartmentSubsetOnly: boolean;
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
-    hidden: boolean;
     settings: AVSettings;
+
     onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
 }
 
@@ -38,26 +40,28 @@ interface CompartmentListState {
 }
 
 export class CompartmentList extends React.Component<CompartmentListProps, CompartmentListState> {
+    private availableCompartments: CompartmentNodeView[];
+
     constructor(props: CompartmentListProps) {
         super(props);
 
         this.state = {
             filteredCompartments: [],
         };
+
+        this.availableCompartments = [];
     }
 
-    private makeCompartmentIndex(): CompartmentNodeView[] {
+    private registerCompartments(): void {
         let queue = [this.props.compartmentViewTree];
-        const flattenedList = [];
+        this.availableCompartments = [];
 
         while (queue.length > 0) {
             const node = queue.splice(0, 1)[0];
             queue = queue.concat(node.children);
 
-            flattenedList.push(node);
+            this.availableCompartments.push(node);
         }
-
-        return flattenedList;
     }
 
     private toggleCompartmentVisible(compartmentNodeView: CompartmentNodeView): void {
@@ -79,39 +83,47 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
         this.props.onToggleCompartmentVisible(root);
     }
 
+    public componentDidMount(): void {
+        this.registerCompartments();
+    }
+
     public componentDidUpdate(prevProps: Readonly<CompartmentListProps>): void {
-        if (prevProps.compartmentViewTree !== this.props.compartmentViewTree && this.state.filteredCompartments.length > 0) {
-            const filteredCompartmentNames = this.state.filteredCompartments.map((c) => c.name);
-            const filteredCompartments: CompartmentNodeView[] = [];
-            let queue = [this.props.compartmentViewTree]
+        if (prevProps.compartmentViewTree !== this.props.compartmentViewTree) {
+            this.registerCompartments();
 
-            let node;
-            while (queue.length > 0) {
-                node = queue.splice(0, 1)[0];
-                queue = queue.concat(node.children);
+            if (this.state.filteredCompartments.length > 0) {
+                const filteredCompartmentNames = this.state.filteredCompartments.map((c) => c.name);
+                const filteredCompartments: CompartmentNodeView[] = [];
+                let queue = [this.props.compartmentViewTree]
 
-                if (filteredCompartmentNames.includes(node.name)) {
-                    filteredCompartments.push(node);
+                let node;
+                while (queue.length > 0) {
+                    node = queue.splice(0, 1)[0];
+                    queue = queue.concat(node.children);
+
+                    if (filteredCompartmentNames.includes(node.name)) {
+                        filteredCompartments.push(node);
+                    }
+
+                    if (filteredCompartments.length === this.state.filteredCompartments.length) {
+                        break;
+                    }
                 }
 
-                if (filteredCompartments.length === this.state.filteredCompartments.length) {
-                    break;
-                }
+                this.setState({ filteredCompartments });
             }
-
-            this.setState({ filteredCompartments });
         }
     }
 
     public render(): React.ReactElement {
-        const compartmentList = this.makeCompartmentIndex();
+        const availableCompartments = this.availableCompartments;
 
         // fill children of list depending on state of filter text
         let listChildren;
         if (this.state.filteredCompartments.length > 0) {
             listChildren = (
                 this.state.filteredCompartments.map((nodeView) => (
-                    <CompartmentListNode availablePenetrations={this.props.availablePenetrations}
+                    <CompartmentListNode selectedPenetrations={this.props.selectedPenetrations}
                                          busy={this.props.busy}
                                          compartmentNodeView={nodeView}
                                          showChildren={false}
@@ -121,7 +133,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
             );
         } else {
             const rootNodeProps: CompartmentListNodeProps = {
-                availablePenetrations: this.props.availablePenetrations,
+                selectedPenetrations: this.props.selectedPenetrations,
                 busy: this.props.busy,
                 compartmentNodeView: this.props.compartmentViewTree,
                 showChildren: true,
@@ -133,25 +145,25 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
 
         return (
             <Container>
-                <Typography variant='h5' gutterBottom>
-                    Selected compartments
-                </Typography>
                 <Autocomplete multiple
+                              size="small"
                               disabled={this.props.busy}
-                              id='tags-outlined'
-                              options={compartmentList}
+                              id="ac-compartment-search"
+                              options={availableCompartments}
                               getOptionLabel={(option): string => option.name}
                               filterSelectedOptions
-                              onChange={(_evt, newValue: CompartmentNodeView[] ) => this.setState({ filteredCompartments: newValue})}
-                              renderInput={(params) => (
+                              onChange={(_evt, newValue: CompartmentNodeView[] ) => {
+                                  this.setState({filteredCompartments: newValue})
+                              }}
+                              renderInput={(params): React.ReactElement => (
                                   <TextField {...params}
-                                             variant='outlined'
-                                             placeholder='Search compartments'
+                                             variant="outlined"
+                                             placeholder="Search compartments"
                                   />
                               )}
                 />
                 <List dense
-                      style={{ width: '100%', maxHeight: 500, overflow: 'auto', position: 'relative' }} >
+                      style={{ width: "100%", maxHeight: 250, overflow: "auto", position: "relative" }} >
                     {listChildren}
                 </List>
             </Container>

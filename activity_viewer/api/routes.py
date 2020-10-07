@@ -1,7 +1,5 @@
 import json
-from math import nan
 from pathlib import Path
-import shutil
 from tempfile import mkdtemp
 
 from flask import Flask, make_response, request, send_file
@@ -11,6 +9,7 @@ import numpy as np
 from activity_viewer.api.state import APIState
 from activity_viewer.api.compute import slice_to_data_uri
 from activity_viewer.compute.mappings import color_map
+from activity_viewer.constants import SliceType, AP_MAX
 from activity_viewer.settings import AVSettings, make_default_settings
 
 app = Flask(__name__)
@@ -79,7 +78,6 @@ def get_export_data_file():
             export_data[penetration_id] = unit_ids
 
         np.savez(tmpfile, **export_data)
-        shutil.copy2(tmpfile, Path(state.settings.filename.parent, "export.npz"))
         return send_file(tmpfile)
 
 
@@ -98,6 +96,11 @@ def get_penetration_data_file(penetration_id: str):
 @app.route("/mesh/<int:structure_id>")
 def get_mesh(structure_id: int):
     return state.cache.load_structure_mesh(structure_id)
+
+
+@app.route("/penetration-names")
+def get_penetration_names():
+    return {"penetrationIds": state.penetrations}
 
 
 @app.route("/penetrations", methods=["GET", "POST", "PUT", "DELETE"])
@@ -161,12 +164,12 @@ def get_penetration_vitals(penetration_id: str):
     unit_stats = unit_stats.tolist() if unit_stats is not None else []
 
     return {
-        "penetrationId": penetration_id,
-        "ids": ids.ravel().tolist(),
+        "id": penetration_id,
+        "unitIds": ids.ravel().tolist(),
         "compartments": compartments,
         "coordinates": coords.ravel().tolist(),
-        "timeseries": timeseries,
-        "unitStats": unit_stats,
+        "timeseriesIds": timeseries,
+        "unitStatIds": unit_stats,
     }
 
 
@@ -221,6 +224,62 @@ def get_pseudocoronal_annotation_slice(penetration_id: str):
     }
 
 
+@app.route("/unitStat")
+def get_penetration_unit_stat():
+    penetration_id = request.args.get("penetrationId", type=str, default=None)
+    unit_stat_id = request.args.get("unitStatId", type=str, default=None)
+
+    if penetration_id is None or unit_stat_id is None:
+        return make_response("penetrationId or unitStatId not specified.", 400)
+
+    if not state.has_penetration(penetration_id):
+        return make_response(f"penetrationId '{penetration_id}' not found.", 404)
+
+    unit_stat = state.get_unit_stat(penetration_id, unit_stat_id)
+    if unit_stat is None:
+        return make_response(f"unitStatId '{unit_stat_id}' not found for penetration '{penetration_id}'.", 404)
+
+    return {
+        "penetrationId": penetration_id,
+        "unitStatId": unit_stat_id,
+        "data": unit_stat.tolist()
+    }
+
+
+@app.route("/timeseries")
+def get_penetration_timeseries():
+    penetration_id = request.args.get("penetrationId", type=str, default="")
+    timeseries_id = request.args.get("timeseriesId", type=str, default="")
+
+    if timeseries_id is None:
+        return make_response("timeseriesId not specified.", 400)
+
+    # if no particular penetration is specified, return a summary
+    # if no penetration has this timeseries, get back an object filled with null values
+    if penetration_id is None:
+        summary = state.make_timeseries_summary(timeseries_id)
+        return summary.to_dict()
+
+    if not state.has_penetration(penetration_id):
+        return make_response(f"penetrationId '{penetration_id}' not found.", 404)
+
+    response = {
+        "penetrationId": penetration_id,
+        "timeseriesId": timeseries_id,
+        "times": None,
+        "values": None
+    }
+
+    data = state.get_timeseries(penetration_id, timeseries_id)
+    if data is not None:
+        times = data[0, :]
+        values = data[1:, :]
+        response["times"] = times.ravel().tolist()
+        response["values"] = values.ravel().tolist()
+
+    return response
+
+
 @app.route("/settings", methods=["GET", "POST"])
 def get_settings():
     """Update or fetch settings in use."""
@@ -237,25 +296,30 @@ def get_settings():
     return state.settings.to_dict()
 
 
-@app.route("/slices/<slice_type>/<coordinate>")
-def get_slices(slice_type: str, coordinate: float):
-    coordinate = float(coordinate)
+@app.route("/slices")
+def get_slices():
     rotate = 0
 
-    if slice_type == "coronal":
+    slice_type = request.args.get("sliceType", type=int, default=SliceType.CORONAL)
+    coordinate = request.args.get("coordinate", type=float, default=AP_MAX / 2)
+
+    if slice_type == SliceType.CORONAL.value:
+        print("coronal")
         template_slice = state.get_coronal_template_slice(coordinate)
         annotation_rgb = state.get_coronal_annotation_rgb(coordinate)
         annotation_slice = state.get_coronal_annotation_slice(coordinate)
-    elif slice_type == "sagittal":
+    elif slice_type == SliceType.SAGITTAL.value:
+        print("sagittal")
         template_slice = state.get_sagittal_template_slice(coordinate)
         annotation_rgb = state.get_sagittal_annotation_rgb(coordinate)
         annotation_slice = state.get_sagittal_annotation_slice(coordinate)
         rotate = 1
+        slice_type = 1
     else:
         template_slice = annotation_rgb = annotation_slice = None
 
     if template_slice is None or annotation_rgb is None or annotation_slice is None:
-        return make_response(f"No slices found for slice type '{slice_type}' and coordinate '{coordinate}'.")
+        return make_response(f"No slices found for slice type '{slice_type}' and coordinate '{coordinate}'.", 404)
 
     return {
         "annotationImage": slice_to_data_uri(
@@ -271,72 +335,8 @@ def get_slices(slice_type: str, coordinate: float):
             annotation_slice,
             rotate
         ),
+        "coordinate": coordinate,
     }
-
-
-@app.route("/timeseries")
-def get_timeseries_by_id():
-    """
-
-    Returns
-    -------
-
-    """
-    page = request.args.get("page", type=int, default=1)
-    limit = request.args.get("limit", type=int, default=10)
-    timeseries_ids = request.args.get("timeseriesIds", type=str, default="").split(",")
-    penetration_ids = request.args.get("penetrationIds", type=str, default="").split(",")
-    link = None
-
-    n_pens = len(state.penetrations)
-
-    if len(penetration_ids) == 0:
-        start = (page - 1) * limit
-        stop = page * limit
-        penetration_ids = state.penetrations[start:stop]
-
-        if stop < n_pens - 1:
-            link = f"/timeseries?timeseriesIds={','.join(timeseries_ids)}&page={page + 1}&limit={limit}"
-
-    response = {
-        "timeseries": [],
-        "info": {
-            "totalCount": n_pens
-        },
-        "link": link
-    }
-
-    for timeseries_id in timeseries_ids:
-        if timeseries_id == "nothing":
-            continue
-
-        summary = state.make_timeseries_summary(timeseries_id)
-
-        subresponse = {
-            "summary": summary.to_dict(),
-            "penetrations": []
-        }
-
-        for penetration_id in penetration_ids:
-            entry = {
-                "penetrationId": penetration_id,
-                "timeseriesId": timeseries_id,
-                "times": None,
-                "values": None
-            }
-
-            data = state.get_timeseries(penetration_id, timeseries_id)
-            if data is not None:
-                times = data[0, :]
-                values = data[1:, :]
-                entry["times"] = times.ravel().tolist()
-                entry["values"] = values.ravel().tolist()
-
-            subresponse["penetrations"].append(entry)
-
-        response["timeseries"].append(subresponse)
-
-    return response
 
 
 @app.route("/timeseries/<timeseries_id>/summary")

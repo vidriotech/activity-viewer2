@@ -1,85 +1,100 @@
 import React from "react";
 import * as _ from "underscore";
-
-import Button from '@material-ui/core/Button';
-import Dialog from "@material-ui/core/Dialog";
-import DialogContent from "@material-ui/core/DialogContent";
-import DialogTitle from "@material-ui/core/DialogTitle"
-import FormControl from "@material-ui/core/FormControl";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormLabel from "@material-ui/core/FormLabel";
 import Grid from "@material-ui/core/Grid";
-import LinearProgress from "@material-ui/core/LinearProgress";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import Radio from "@material-ui/core/Radio";
 
 // eslint-disable-next-line import/no-unresolved
 import {APIClient} from "../../apiClient";
 // eslint-disable-next-line import/no-unresolved
-import { AVConstants } from "../../constants";
+import {AVConstants} from "../../constants";
 
 // eslint-disable-next-line import/no-unresolved
-import {AestheticMapping, ColorMapping, ScalarMapping, TransformParams} from "../../models/aestheticMapping";
+import {
+    AestheticMapping,
+    AestheticProps,
+    ColorMapping,
+    ScalarMapping,
+    TransformParams
+} from "../../models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
-import {AVSettings, PenetrationData, SliceType} from "../../models/apiModels";
+import {AVSettings} from "../../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "../../models/colorMap";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate, PropEqPredicate, PropIneqPredicate} from "../../models/predicateModels";
+import {SliceImageType, SliceType} from "../../models/enums";
+// eslint-disable-next-line import/no-unresolved
+import {Predicate, PropIneqPredicate} from "../../models/predicateModels";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesData, TimeseriesSummary} from "../../models/timeseries";
 // eslint-disable-next-line import/no-unresolved
-import { CompartmentNodeView } from "../../viewmodels/compartmentViewModel";
-// eslint-disable-next-line import/no-unresolved
-import {PenetrationViewModel} from "../../viewmodels/penetrationViewModel";
-
-// eslint-disable-next-line import/no-unresolved
-import {BaseViewer} from "../../viewers/baseViewer";
+import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
 // eslint-disable-next-line import/no-unresolved
 import {BrainViewer} from "../../viewers/brainViewer";
-// eslint-disable-next-line import/no-unresolved
-import {ImageType, SliceViewer} from "../../viewers/sliceViewer";
 
-// eslint-disable-next-line import/no-unresolved
-import { PlayerSlider, PlayerSliderProps } from "./PlayerSlider";
-// eslint-disable-next-line import/no-unresolved
-import {SliceControl} from "./SliceControl";
 import Typography from "@material-ui/core/Typography";
-
-type ViewerType = "3D" | "slice" | "penetration";
+// eslint-disable-next-line import/no-unresolved
+import {tab10Blue} from "../../styles";
+import {ChevronLeft, ChevronRight, LockOpenOutlined, LockOutlined} from "@material-ui/icons";
+import IconButton from "@material-ui/core/IconButton";
+import CircularProgress from "@material-ui/core/CircularProgress";
+// eslint-disable-next-line import/no-unresolved
+import {Penetration} from "../../models/penetration";
+// eslint-disable-next-line import/no-unresolved
+import {TomographySlice} from "../../models/tomographySlice";
+// eslint-disable-next-line import/no-unresolved
+import {PlayerSlider, PlayerSliderProps} from "./PlayerSlider";
+import Button from "@material-ui/core/Button";
+// eslint-disable-next-line import/no-unresolved
+import {TimeseriesMappers, TimeseriesMappersProps} from "../TimeseriesControls/TimeseriesMappers";
+import Drawer from "@material-ui/core/Drawer";
 
 export interface ViewerContainerProps {
     compartmentViewTree: CompartmentNodeView;
     constants: AVConstants;
     settings: AVSettings;
 
-    colorTimeseries: string;
-    colorBounds: [number, number];
-    colorGamma: number;
-    colorMapping: string;
-    opacityTimeseries: string;
-    opacityBounds: [number, number];
-    opacityGamma: number;
-    radiusTimeseries: string;
-    radiusBounds: [number, number];
-    radiusGamma: number;
+    availableTimeseries: Set<string>;
+    selectedPenetrations: Map<string, Penetration>;
 
-    availablePenetrations: PenetrationData[];
     busy: boolean;
     progress: number;
     progressMessage: string;
 
-    onFilterPredicateUpdate(predicate: Predicate, newStat?: string): void;
-    onProgressUpdate(progress: number, progressMessage: string): void;
+    showDataPanel: boolean;
+    showPhysPanel: boolean;
+
+    showTomographyAnnotation: boolean;
+    showTomographySlice: boolean;
+    tomographySliceType: SliceType;
+    tomographySliceCoordinate: number;
+
+    showTestSlice: boolean;
+    testSliceType: SliceType;
+    testSliceBounds: [number, number];
+
+    onExpand(side: "l" | "r"): void;
+    onUpdateFilterPredicate(predicate: Predicate, newStat?: string): void;
+    onUpdateProgress(progress: number, progressMessage: string): void;
 }
 
-interface ViewerContainerState {
+interface ViewerContainerState extends AestheticProps {
     dialogOpen: boolean;
     frameRate: number;
-    imageType: ImageType;
+    imageType: SliceImageType;
     renderHeight: number;
     renderWidth: number;
-    viewerType: ViewerType;
+
+    colorTimeseries: string;
+    colorBounds: [number, number];
+    colorGamma: number;
+    colorMapping: string;
+
+    opacityTimeseries: string;
+    opacityBounds: [number, number];
+    opacityGamma: number;
+
+    radiusTimeseries: string;
+    radiusBounds: [number, number];
+    radiusGamma: number;
 
     isPlaying: boolean;
     isRecording: boolean;
@@ -88,6 +103,9 @@ interface ViewerContainerState {
     timeMax: number;
     timeStep: number;
     timeVal: number;
+
+    rotateLocked: boolean;
+    showMappers: boolean;
 }
 
 interface CanvasElement extends HTMLCanvasElement {
@@ -99,9 +117,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     private canvasContainerId = "viewer-container";
     private mediaRecorder: MediaRecorder = null;
     private recordedBlobs: Blob[];
-    private sliceBounds: number[];
-    private sliceType: SliceType;
-    private viewer: BaseViewer = null;
+    private viewer: BrainViewer = null;
 
     private tsSummaries: Map<string, TimeseriesSummary>;
     private tsData: Map<string, TimeseriesData[]>;
@@ -115,21 +131,45 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     constructor(props: ViewerContainerProps) {
         super(props);
 
+        // min time, max time, time step
+        let timeMin = NaN;
+        let timeMax = NaN;
+        let timeStep = NaN;
+        if (this.props.settings.epochs.length > 0) {
+            const epochs = this.props.settings.epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0])
+            timeMin = epochs[0].bounds[0];
+            timeMax = epochs[epochs.length - 1].bounds[1];
+            timeStep = (timeMax - timeMin) / 100
+        }
+
         this.state = {
             dialogOpen: false,
             frameRate: 30,
-            imageType: "annotation",
+            imageType: SliceImageType.ANNOTATION,
             renderHeight: 0,
             renderWidth: 0,
-            viewerType: "3D",
+
+            colorTimeseries: "nothing",
+            colorBounds: [0, 1],
+            colorGamma: 1,
+            colorMapping: "bwr",
+            opacityTimeseries: "nothing",
+            opacityBounds: [0.01, 1],
+            opacityGamma: 1,
+            radiusTimeseries: "nothing",
+            radiusBounds: [0.01, 1],
+            radiusGamma: 1,
 
             isPlaying: false,
             isRecording: false,
             loopAnimation: "once",
-            timeMin: NaN,
-            timeMax: NaN,
-            timeStep: NaN,
-            timeVal: 0,
+            timeMin: timeMin,
+            timeMax: timeMax,
+            timeStep: timeStep,
+            timeVal: isNaN(timeMin) ? 0 : timeMin,
+
+            rotateLocked: false,
+            showMappers: false,
         };
 
         this.apiClient = new APIClient(this.props.constants.apiEndpoint);
@@ -176,34 +216,91 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
 
         const width = container.clientWidth;
-        const height = width / 1.85; // 1.85:1 aspect ratio
+        const height = 600;
 
         return { width, height };
     }
 
-    private async createAndRender(): Promise<void> {
-        return this.createViewer()
-            .then(() => {
-                this.renderCompartments();
-                this.renderPenetrations();
+    private async createViewer(): Promise<void> {
+        const v = new BrainViewer(this.props.constants, this.props.settings.epochs);
+        this.initViewer(v);
+    }
+
+    private lockToPlane(): void {
+        this.setState({rotateLocked: true}, () => {
+            if (this.viewer) {
+                this.viewer.lockToPlane();
+                this.viewer.hideAllCompartments();
+                this.viewer.projectToPlane();
+            }
+        });
+    }
+
+    private unlockFromPlane(): void {
+        this.setState({rotateLocked: false}, () => {
+            if (this.viewer) {
+                this.viewer.unlockFromPlane();
+                this.viewer.undoProjectToPlane();
+            }
+        });
+    }
+
+    private setTestSlice(): void {
+        if (!this.viewer) {
+            return;
+        }
+
+        const center = (this.props.testSliceBounds[0] + this.props.testSliceBounds[1]) / 2;
+        const offset = Math.abs(this.props.testSliceBounds[0] - center);
+
+        this.viewer.setSlicingPlanes(this.props.testSliceType, {center, offset});
+    }
+
+    private removeTestSlice(): void {
+        if (!this.viewer) {
+            return;
+        }
+
+        this.viewer.removeSlicingPlanes();
+    }
+
+    private setTomographySlice(): void {
+        if (!this.viewer) {
+            return;
+        }
+
+        const coordinate = this.props.tomographySliceCoordinate;
+        this.apiClient.fetchSliceData(this.props.tomographySliceType, coordinate)
+            .then((res) => res.data)
+            .then((sliceData) =>  TomographySlice.fromResponse(sliceData))
+            .then((slice) => {
+                slice.imageType = this.props.showTomographyAnnotation ?
+                    SliceImageType.ANNOTATION :
+                    SliceImageType.TEMPLATE;
+
+                this.viewer.setTomographySlice(slice);
+                this.lockToPlane();
+            })
+            .catch((err) => {
+                console.error(err);
             });
     }
 
-    private async createViewer(): Promise<void> {
-        let v: BaseViewer;
-
-        if (this.state.viewerType === "3D") {
-            v = new BrainViewer(this.props.constants, this.props.settings.epochs);
-            this.initViewer(v);
-        } else if (this.state.viewerType === "slice") {
-            return this.apiClient.fetchSliceData(this.sliceType, this.sliceBounds[1])
-                .then((res) => res.data)
-                .then((sliceData) => {
-                    v = new SliceViewer(this.props.constants, this.props.settings.epochs, sliceData);
-                    (v as SliceViewer).imageType = this.state.imageType;
-                    this.initViewer(v);
-                });
+    private removeTomographySlice(): void {
+        if (!this.viewer) {
+            return;
         }
+
+        this.viewer.removeTomographySlice();
+    }
+
+    private updateTomographySliceTexture(): void {
+        if (!this.viewer) {
+            return;
+        }
+
+        const displayTemplate = !this.props.showTomographyAnnotation;
+        this.viewer.updateSliceTexture(displayTemplate);
     }
 
     private downloadRecording(): void {
@@ -242,66 +339,126 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             });
     }
 
-    private fetchAndUpdateTimeseriesData(timeseriesId: string): void {
-        if (timeseriesId === "nothing") {
-            return;
-        } else if (!this.tsSummaries.has(timeseriesId)) {
-            this.fetchTimeseriesSummary(timeseriesId)
-                .then(() => {
-                    this.fetchAndUpdateTimeseriesData(timeseriesId);
-                })
-                .catch((err) => console.error(err));
-        } else {
-            const nPenetrations = this.props.availablePenetrations.length;
+    private propagateAestheticCommit(): void {
+        this.fetchTimeseriesSummary(this.state.colorTimeseries)
+            .then(() => this.fetchTimeseriesSummary(this.state.opacityTimeseries))
+            .then(() => this.fetchTimeseriesSummary(this.state.radiusTimeseries))
+            .then(() => {
+                const mapping: AestheticMapping = {
+                    color: null,
+                    opacity: null,
+                    radius: null,
+                };
 
-            const data = this.tsData.has(timeseriesId) ?
-                this.tsData.get(timeseriesId).slice() :
-                [];
+                let timeMin = NaN;
+                let timeMax = NaN;
+                let timeStep = NaN;
 
-            const availablePenetrations = this.props.availablePenetrations.map((p) => p.penetrationId);
-            const savedPenetrations = data.map((d) => d.penetrationId);
-            const diff = _.difference(availablePenetrations, savedPenetrations).slice(0, 10);
-
-            if (diff.length === 0) {
-                if (this.props.colorTimeseries === timeseriesId) {
-                    this.updateColorMappings();
-                } else if (this.props.opacityTimeseries === timeseriesId) {
-                    this.updateScalarMappings("opacity");
-                } else if (this.props.radiusTimeseries === timeseriesId) {
-                    this.updateScalarMappings("radius");
+                const summaries: TimeseriesSummary[] = [];
+                if (this.state.colorTimeseries !== "nothing") {
+                    summaries.push(this.tsSummaries.get(this.state.colorTimeseries));
                 }
-            } else {
-                this.apiClient.fetchPenetationTimeseries([timeseriesId], diff)
-                    .then((res) => res.data)
-                    .then((res) => {
-                        const newData = data.concat(res.timeseries[0].penetrations);
-                        this.tsData.set(timeseriesId, newData);
+                if (this.state.opacityTimeseries !== "nothing") {
+                    summaries.push(this.tsSummaries.get(this.state.opacityTimeseries));
+                }
+                if (this.state.radiusTimeseries !== "nothing") {
+                    summaries.push(this.tsSummaries.get(this.state.radiusTimeseries));
+                }
 
-                        let progress = newData.length;
-                        const otherTs = _.difference([
-                            this.props.colorTimeseries,
-                            this.props.opacityTimeseries,
-                            this.props.radiusTimeseries,
-                        ], [timeseriesId, "nothing"]);
+                summaries.forEach((summary) => {
+                    if (isNaN(timeMin)) {
+                        timeMin = summary.timeMin;
+                    }
 
-                        const coef = 1 + otherTs.length;
-                        otherTs.forEach((t) => {
-                            if (this.tsData.has(t)) {
-                                progress += this.tsData.get(t).length;
+                    if (isNaN(timeMax)) {
+                        timeMax = summary.timeMax;
+                    }
+
+                    if (isNaN(timeStep)) {
+                        timeStep = summary.timeStep;
+                    }
+
+                    timeMin = Math.min(timeMin, summary.timeMin);
+                    timeMax = Math.max(timeMax, summary.timeMax);
+                    timeStep = Math.min(timeStep, summary.timeStep);
+                });
+
+                this.setState({
+                    timeMin,
+                    timeMax,
+                    timeStep: timeStep,
+                    timeVal: timeMin
+                }, () => {
+                    if (this.viewer) {
+                        this.viewer.setTime(this.state.timeMin, this.state.timeMax, this.state.timeStep, this.state.timeVal);
+                        this.viewer.clearAestheticAssignments();
+
+                        if (this.state.colorTimeseries !== "nothing") {
+                            const summary = this.tsSummaries.get(this.state.colorTimeseries);
+
+                            if (this.state.colorMapping !== "nothing") {
+                                this.apiClient.fetchColorMapping(this.state.colorMapping)
+                                    .then((res) => res.data)
+                                    .then((colorLUT) => {
+                                        mapping.color = {
+                                            timeseriesId: this.state.colorTimeseries,
+                                            transformParams: {
+                                                domainBounds: [summary.minVal, summary.maxVal],
+                                                targetBounds: this.state.colorBounds,
+                                                gamma: this.state.colorGamma,
+                                            },
+                                            colorLUT: colorLUT
+                                        };
+
+                                        this.viewer.setAestheticAssignment(mapping);
+                                    })
+                                    .catch((err) => console.error(err));
+                            } else {
+                                mapping.color = {
+                                    timeseriesId: this.state.colorTimeseries,
+                                    transformParams: {
+                                        domainBounds: [summary.minVal, summary.maxVal],
+                                        targetBounds: this.state.colorBounds,
+                                        gamma: this.state.colorGamma,
+                                    },
+                                    colorLUT: null
+                                };
+
+                                this.viewer.setAestheticAssignment(mapping);
                             }
-                        });
+                        }
 
-                        const nTimeseriesToFetch = coef * nPenetrations;
-                        const progressMessage = progress === coef * nPenetrations ?
-                            "Ready." :
-                            `Fetched ${progress}/${nTimeseriesToFetch} timeseries.`;
+                        if (this.state.opacityTimeseries !== "nothing") {
+                            const summary = this.tsSummaries.get(this.state.opacityTimeseries)
+                            mapping.opacity = {
+                                timeseriesId: this.state.opacityTimeseries,
+                                transformParams: {
+                                    domainBounds: [summary.minVal, summary.maxVal],
+                                    targetBounds: this.state.opacityBounds,
+                                    gamma: this.state.opacityGamma,
+                                }
+                            };
 
-                        this.props.onProgressUpdate(progress / (coef * nPenetrations), progressMessage);
-                        this.fetchAndUpdateTimeseriesData(timeseriesId);
-                    })
-                    .catch((err) => console.error(err));
-            }
-        }
+                            this.viewer.setAestheticAssignment(mapping);
+                        }
+
+                        if (this.state.radiusTimeseries !== "nothing") {
+                            const summary = this.tsSummaries.get(this.state.radiusTimeseries);
+                            mapping.radius = {
+                                timeseriesId: this.state.radiusTimeseries,
+                                transformParams: {
+                                    domainBounds: [summary.minVal, summary.maxVal],
+                                    targetBounds: this.state.radiusBounds,
+                                    gamma: this.state.radiusGamma,
+                                }
+                            };
+
+                            this.viewer.setAestheticAssignment(mapping);
+                        }
+                    }
+                });
+            })
+            .catch((err) => console.error(err));
     }
 
     private handleLoopToggle(): void {
@@ -334,25 +491,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         });
     }
 
-    private handleSliceCommit(sliceType: SliceType, sliceBounds: number[]): void {
-        let boundsPredicate: PropIneqPredicate;
-        switch (sliceType) {
-            case "coronal":
-                boundsPredicate = new PropIneqPredicate("x", sliceBounds[0], sliceBounds[2]);
-                break;
-            case "sagittal":
-                boundsPredicate = new PropIneqPredicate("z", sliceBounds[0], sliceBounds[2]);
-                break;
-        }
-
-        this.sliceType = sliceType;
-        this.sliceBounds = sliceBounds;
-
-        this.setState({dialogOpen: false, viewerType: "slice"}, () => {
-            this.props.onFilterPredicateUpdate(boundsPredicate);
-        });
-    }
-
     private handleSliderChange(_event: any, timeVal: number): void {
         this.setState({ timeVal }, () => {
             this.viewer.timeVal = this.state.timeVal;
@@ -382,15 +520,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    private handleViewerChange(): void {
-        if (this.state.viewerType === "3D") {
-            this.setState({dialogOpen: true});
-        } else {
-            this.setState({viewerType: "3D"});
-        }
-    }
-
-    private initViewer(v: BaseViewer): void {
+    private initViewer(v: BrainViewer): void {
         const { width, height } = this.computeDims();
 
         v.container = this.canvasContainerId; // div is created in render()
@@ -420,19 +550,12 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    private reinitViewer(): void {
-        this.viewer.destroy();
-        this.viewer = null;
-        this.createAndRender()
-            .then(() => this.setAestheticAssignments());
-    }
-
     private renderCompartments(): void {
-        if (this.viewer === null || !(this.viewer instanceof BrainViewer)) {
+        if (!this.viewer || this.state.rotateLocked) {
             return;
         }
 
-        const viewer = this.viewer as BrainViewer;
+        const viewer = this.viewer;
 
         // traverse the compartment tree and set visible or invisible
         let queue: CompartmentNodeView[] = [this.props.compartmentViewTree];
@@ -443,147 +566,136 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
+    private renderHeader(): React.ReactElement {
+        const dataPanelHeader = (
+            this.props.showDataPanel ?
+                null :
+                <Grid item
+                      justify="flex-start"
+                      xs={1}>
+                    <IconButton color="inherit"
+                                size="small"
+                                onClick={(): void => this.props.onExpand("l")}>
+                        <ChevronRight />
+                    </IconButton>
+                </Grid>
+        );
+
+        const physiologyPanelHeader = (
+            this.props.showPhysPanel ?
+                null :
+                <Grid item
+                      justify="flex-end"
+                      xs={1}>
+                    <IconButton color="inherit"
+                                size="small"
+                                onClick={(): void => this.props.onExpand("r")}>
+                        <ChevronLeft />
+                    </IconButton>
+                </Grid>
+        );
+
+        const lockButton = (
+            <Grid item
+                  justify="flex-end"
+                  xs={1}>
+                {
+                    this.state.rotateLocked ?
+                        <IconButton disabled={this.props.busy}
+                                    color="inherit"
+                                    size="small"
+                                    onClick={() => this.unlockFromPlane()}>
+                            <LockOutlined />
+                        </IconButton> :
+                        <IconButton disabled={this.props.busy || !this.props.showTomographySlice}
+                                    color="inherit"
+                                    size="small"
+                                    onClick={() => this.lockToPlane()}>
+                            <LockOpenOutlined />
+                        </IconButton>
+                }
+            </Grid>
+        );
+
+        return (
+            <Grid container
+                  spacing={0}
+                  style={{
+                      backgroundColor: tab10Blue,
+                      "borderLeft": "1px solid black",
+                      "borderRight": "1px solid black",
+                      "borderBottom": "1px solid black",
+                      color: "white",
+                      height: "50px",
+                      width: "100%",
+                      margin: 0,
+                      padding: "10px",
+                  }}>
+                {dataPanelHeader}
+                <Grid container item xs
+                      justify="flex-start">
+                    {this.props.progress < 1 ?
+                        <Grid item xs={1}>
+                            <CircularProgress color="secondary"
+                                              variant="indeterminate"
+                                              value={100 * this.props.progress}
+                                              size={20} />
+
+                        </Grid> : null
+                    }
+                    {this.props.progress < 1 ?
+                        <Grid item xs>
+                            <Typography align="left" gutterBottom>
+                                {this.props.progressMessage}
+                            </Typography>
+                        </Grid> : null
+                    }
+                </Grid>
+                {lockButton}
+                {physiologyPanelHeader}
+            </Grid>
+        );
+    }
+
+    private renderFooter(): React.ReactElement {
+        return (
+            <Grid container
+                  spacing={0}
+                  style={{
+                      backgroundColor: tab10Blue,
+                      "borderLeft": "1px solid black",
+                      "borderRight": "1px solid black",
+                      "borderTop": "1px solid black",
+                      color: "white",
+                      height: "50px",
+                      width: "100%",
+                      margin: 0,
+                      padding: "10px",
+                  }}>
+                <Grid item xs={10} />
+                <Grid item xs>
+                    <Button color="inherit"
+                            disabled={this.props.busy}
+                            onClick={() => this.setState({showMappers: !this.state.showMappers})} >
+                        {`${this.state.showMappers ? "Hide" : "Show"} mappers`}
+                    </Button>
+                </Grid>
+            </Grid>
+        );
+    }
+
     private renderPenetrations(): void {
         if (this.viewer === null) {
             return;
         }
 
-        this.props.availablePenetrations.forEach((penetrationData) => {
-            const penetrationId = penetrationData.penetrationId;
+        this.props.selectedPenetrations.forEach((penetration, penetrationId) => {
             if (!this.viewer.hasPenetration(penetrationId)) {
-                this.viewer.loadPenetration(penetrationData);
+                this.viewer.loadPenetration(penetration);
             }
         });
 
-        this.viewer.updatePenetrationAttributes();
-    }
-
-    private setAestheticAssignments(): void {
-        const mappings: AestheticMapping[] = [];
-
-        this.props.availablePenetrations.forEach((penetrationData) => {
-            if (penetrationData.ids.length == 0) {
-                return;
-            }
-
-            const penetrationId = penetrationData.penetrationId;
-            if (!this.viewer.hasPenetration(penetrationId)) {
-                this.viewer.loadPenetration(penetrationData);
-            }
-
-            // set aesthetics
-            if (!this.colorMappings.has(penetrationId)) {
-                this.colorMappings.set(penetrationId, null);
-            }
-            if (!this.opacityMappings.has(penetrationId)) {
-                this.opacityMappings.set(penetrationId, null);
-            }
-            if (!this.radiusMappings.has(penetrationId)) {
-                this.radiusMappings.set(penetrationId, null);
-            }
-
-            mappings.push({
-                penetrationId,
-                color: this.colorMappings.get(penetrationId),
-                opacity: this.opacityMappings.get(penetrationId),
-                radius: this.radiusMappings.get(penetrationId),
-                show: penetrationData.selected.map((p) => Number(p))
-            });
-        });
-
-        this.viewer.setAestheticAssignments(mappings);
-    }
-
-    private updateColorMappings(): void {
-        if (!this.colorLUTs.has(this.props.colorMapping)) {
-            this.apiClient.fetchColorMapping(this.props.colorMapping)
-                .then((res) => res.data)
-                .then((lut) => {
-                    this.colorLUTs.set(this.props.colorMapping, lut);
-                    this.updateColorMappings();
-                });
-        } else {
-            const colorTimeseries = this.props.colorTimeseries;
-            this.props.availablePenetrations.forEach((penetrationData) => {
-                const penetrationId = penetrationData.penetrationId;
-                let colorMapping: ColorMapping = null;
-
-                if (colorTimeseries !== "nothing" && this.tsData.has(colorTimeseries)) {
-                    const timeseriesData = this.tsData.get(colorTimeseries)
-                        .filter((d) => d.penetrationId === penetrationId)[0];
-
-                    if (timeseriesData !== undefined) {
-                        const summary = this.tsSummaries.get(colorTimeseries);
-                        const transformParams: TransformParams = {
-                            domainBounds: [summary.minVal, summary.maxVal],
-                            targetBounds: this.props.colorBounds,
-                            gamma: this.props.colorGamma
-                        };
-
-                        colorMapping = {
-                            timeseriesData,
-                            transformParams,
-                            colorLUT: this.colorLUTs.get(this.props.colorMapping)
-                        };
-                    }
-                }
-
-                this.colorMappings.set(penetrationId, colorMapping);
-            });
-
-            this.setAestheticAssignments();
-            this.renderPenetrations();
-        }
-    }
-
-    private updateScalarMappings(aesthetic: "opacity" | "radius"): void {
-        let timeseries: string;
-        let bounds: [number, number];
-        let gamma: number;
-        let mappings: Map<string, ScalarMapping>;
-
-        if (aesthetic === "opacity") {
-            timeseries = this.props.opacityTimeseries;
-            bounds = this.props.opacityBounds;
-            gamma = this.props.opacityGamma;
-            mappings = this.opacityMappings;
-        } else if (aesthetic === "radius") {
-            timeseries = this.props.radiusTimeseries;
-            bounds = this.props.radiusBounds;
-            gamma = this.props.radiusGamma;
-            mappings = this.radiusMappings;
-        } else {
-            return;
-        }
-
-        this.props.availablePenetrations.forEach((penetrationData) => {
-            const penetrationId = penetrationData.penetrationId;
-            let mapping: ScalarMapping = null;
-
-            if (timeseries !== "nothing" && this.tsData.has(timeseries)) {
-                const timeseriesData = this.tsData.get(timeseries)
-                    .filter((d) => d.penetrationId === penetrationId)[0];
-
-                if (timeseriesData !== undefined) {
-                    const summary = this.tsSummaries.get(timeseries);
-                    const transformParams: TransformParams = {
-                        domainBounds: [summary.minVal, summary.maxVal],
-                        targetBounds: bounds,
-                        gamma: gamma
-                    };
-
-                    mapping = {
-                        timeseriesData,
-                        transformParams,
-                    };
-                }
-            }
-
-            mappings.set(penetrationId, mapping);
-        });
-
-        this.setAestheticAssignments();
-        this.renderPenetrations();
+        this.viewer.updateAllPenetrationAttributes();
     }
 
     private updateDims(): void {
@@ -595,122 +707,37 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
     }
 
-    private updatePlayerTimes(): void {
-        this.fetchTimeseriesSummary(this.props.colorTimeseries)
-            .then(() => this.fetchTimeseriesSummary(this.props.opacityTimeseries))
-            .then(() => this.fetchTimeseriesSummary(this.props.radiusTimeseries))
-            .then(() => {
-                let timeMin = NaN;
-                let timeMax = NaN;
-                let timeStep = NaN;
-
-                const summaries: TimeseriesSummary[] = [];
-                if (this.props.colorTimeseries !== "nothing") {
-                    summaries.push(this.tsSummaries.get(this.props.colorTimeseries));
-                }
-                if (this.props.opacityTimeseries !== "nothing") {
-                    summaries.push(this.tsSummaries.get(this.props.opacityTimeseries));
-                }
-                if (this.props.radiusTimeseries !== "nothing") {
-                    summaries.push(this.tsSummaries.get(this.props.radiusTimeseries));
-                }
-
-                summaries.forEach((summary) => {
-                    if (isNaN(timeMin)) {
-                        timeMin = summary.timeMin;
-                    }
-
-                    if (isNaN(timeMax)) {
-                        timeMax = summary.timeMax;
-                    }
-
-                    if (isNaN(timeStep)) {
-                        timeStep = summary.timeStep;
-                    }
-
-                    timeMin = Math.min(timeMin, summary.timeMin);
-                    timeMax = Math.max(timeMax, summary.timeMax);
-                    timeStep = Math.min(timeStep, summary.timeStep);
-                });
-
-                this.setState({
-                    timeMin,
-                    timeMax,
-                    timeStep: timeStep,
-                    timeVal: timeMin
-                }, () => {
-                    if (this.viewer) {
-                        this.viewer.setTime(this.state.timeMin, this.state.timeMax, this.state.timeStep, this.state.timeVal);
-                        this.setAestheticAssignments();
-                    }
-                });
-            });
-    }
-
     public componentDidMount(): void {
         window.addEventListener("resize", () => this.updateDims());
 
-        this.createAndRender();
+        this.createViewer()
+            .then(() => {
+                this.renderCompartments();
+                this.renderPenetrations();
+            });
     }
 
-    public componentDidUpdate(
-        prevProps: Readonly<ViewerContainerProps>,
-        prevState: Readonly<ViewerContainerState>
-    ): void {
-        // viewer type changes
-        // image type changes
-        // any aesthetics changed:
-            // times need updating
-            // timeseries needs fetching
-            // color map needs fetching
-
-        if (prevState.viewerType !== this.state.viewerType) {
-            this.reinitViewer();
-        } else if (prevState.imageType !== this.state.imageType) {
-            (this.viewer as SliceViewer).imageType = this.state.imageType;
-        }
-
-        const timeseriesDidUpdate = (
-            prevProps.colorTimeseries !== this.props.colorTimeseries ||
-                prevProps.opacityTimeseries !== this.props.opacityTimeseries ||
-                prevProps.radiusTimeseries !== this.props.radiusTimeseries ||
-                prevProps.availablePenetrations !== this.props.availablePenetrations
-        );
-
-        let aestheticsDidUpdate = timeseriesDidUpdate;
-
-        if (prevProps.colorTimeseries !== this.props.colorTimeseries ||
-            prevProps.colorBounds !== this.props.colorBounds ||
-            prevProps.colorGamma !== this.props.colorGamma ||
-            prevProps.colorMapping !== this.props.colorMapping
+    public componentDidUpdate(prevProps: Readonly<ViewerContainerProps>): void {
+        if (this.props.showTestSlice && (
+            !prevProps.showTestSlice ||
+            (prevProps.testSliceType !== this.props.testSliceType) ||
+            (prevProps.testSliceBounds !== this.props.testSliceBounds))
         ) {
-            aestheticsDidUpdate = true;
-            this.fetchAndUpdateTimeseriesData(this.props.colorTimeseries);
-            this.updateColorMappings();
+            this.setTestSlice();
+        } else if (!this.props.showTestSlice) {
+            this.removeTestSlice();
         }
 
-        if (prevProps.opacityTimeseries !== this.props.opacityTimeseries ||
-            prevProps.opacityBounds !== this.props.opacityBounds ||
-            prevProps.opacityGamma !== this.props.opacityGamma
+        if (this.props.showTomographySlice && (
+            !prevProps.showTomographySlice ||
+            (prevProps.tomographySliceType !== this.props.tomographySliceType) ||
+            (prevProps.tomographySliceCoordinate !== this.props.tomographySliceCoordinate))
         ) {
-            aestheticsDidUpdate = true;
-            this.fetchAndUpdateTimeseriesData(this.props.opacityTimeseries);
-            this.updateScalarMappings("opacity");
-        }
-
-        if (prevProps.radiusTimeseries !== this.props.radiusTimeseries ||
-            prevProps.radiusBounds !== this.props.radiusBounds ||
-            prevProps.radiusGamma !== this.props.radiusGamma
-        ) {
-            aestheticsDidUpdate = true;
-            this.fetchAndUpdateTimeseriesData(this.props.radiusTimeseries);
-            this.updateScalarMappings("radius");
-        }
-
-        if (timeseriesDidUpdate) {
-            this.updatePlayerTimes();
-        } else if (aestheticsDidUpdate) {
-            this.setAestheticAssignments();
+            this.setTomographySlice();
+        } else if (!this.props.showTomographySlice) {
+            this.removeTomographySlice();
+        } else if (prevProps.showTomographyAnnotation !== this.props.showTomographyAnnotation) {
+            this.updateTomographySliceTexture();
         }
 
         const { width, height } = this.computeDims();
@@ -742,81 +769,58 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             onStopClick: this.handleStopClick.bind(this),
         };
 
-        const dialog = (
-            <Dialog fullWidth
-                    open={this.state.dialogOpen}
-                    onClose={(): void => this.setState({dialogOpen: false})}>
-                <DialogTitle id={"form-dialog-title"}>Slice and dice</DialogTitle>
-                <DialogContent>
-                    <SliceControl constants={this.props.constants}
-                                  onCommit={this.handleSliceCommit.bind(this)} />
-                </DialogContent>
-            </Dialog>
-        );
 
-        const buttonText = this.state.viewerType === "3D" ?
-            "Slice and dice" :
-            "Return to 3D";
+        const timeseriesMappersProps: TimeseriesMappersProps = {
+            busy: this.props.busy,
+            constants: this.props.constants,
+            colorTimeseries: this.state.colorTimeseries,
+            colorBounds: this.state.colorBounds,
+            colorGamma: this.state.colorGamma,
+            colorMapping: this.state.colorMapping,
 
-        const imageTypeSwitch = (
-            <FormControl component="fieldset">
-                <FormLabel component="legend">Image type</FormLabel>
-                <RadioGroup row
-                            aria-label="image type"
-                            name="imgType"
-                            value={this.state.imageType}
-                            onChange={(evt): void => {
-                                this.setState({imageType: evt.target.value as ImageType})
-                            }}>
-                    <FormControlLabel value="annotation"
-                                      disabled={this.props.busy}
-                                      control={<Radio />}
-                                      label="A" />
-                    <FormControlLabel value="template"
-                                      disabled={this.props.busy}
-                                      control={<Radio />}
-                                      label="T" />
-                </RadioGroup>
-            </FormControl>
-        );
+            opacityTimeseries: this.state.opacityTimeseries,
+            opacityBounds: this.state.opacityBounds,
+            opacityGamma: this.state.opacityGamma,
 
-        const switchButton = (
-            <div>
-                <Button disabled={this.props.busy}
-                        color={"primary"}
-                        variant={"contained"}
-                        onClick={this.handleViewerChange.bind(this)}>
-                    {buttonText}
-                </Button>
-                {this.state.viewerType === "slice" ? imageTypeSwitch : null}
-            </div>
-        );
+            radiusTimeseries: this.state.radiusTimeseries,
+            radiusBounds: this.state.radiusBounds,
+            radiusGamma: this.state.radiusGamma,
+            timeseriesList: Array.from(this.props.availableTimeseries),
+            onCommit: (aestheticProps: AestheticProps): void => {
+                this.setState(_.extend(aestheticProps, {showMappers: false}), () => this.propagateAestheticCommit())
+            },
+        };
 
+        const header = this.renderHeader();
+        const footer = this.renderFooter();
         return (
             <Grid container>
+                <Grid item xs={12}>
+                    {header}
+                </Grid>
                 <Grid container item
-                      xs={12}>
+                      xs={12}
+                      style={{
+                          borderLeft: "1px solid black",
+                          borderRight: "1px solid black",
+                          margin: 0,
+                          padding: "20px",
+                      }}>
+                    <Grid item xs={12} id={this.canvasContainerId} />
                     <Grid item xs={12}>
-                        <Typography gutterBottom>
-                            {this.props.progressMessage}
-                        </Typography>
-                        <LinearProgress variant="determinate"
-                                        value={100 * this.props.progress} />
-                    </Grid>
-                    <Grid item xs={12}>
-                        <div style={{ padding: 40 }}
-                             id={this.canvasContainerId}>
-                        </div>
+                        <PlayerSlider {...playerSliderProps} />
                     </Grid>
                 </Grid>
-                <Grid item xs={4}>
-                    {switchButton}
+                <Grid item xs={12}>
+                    <Drawer anchor="bottom"
+                            open={this.state.showMappers}
+                            onClose={() => this.setState({showMappers: false})} >
+
+                        <TimeseriesMappers {...timeseriesMappersProps} />
+                    </Drawer>
                 </Grid>
-                <Grid item xs={8}>
-                    <PlayerSlider {...playerSliderProps} />
-                </Grid>
-                <Grid item xs>
-                    {dialog}
+                <Grid item xs={12}>
+                    {footer}
                 </Grid>
             </Grid>
         );

@@ -4,12 +4,9 @@ from typing import Optional, Union
 import numpy as np
 
 from activity_viewer.base import type_check
+from activity_viewer.constants import AP_MAX, DV_MAX, LR_MAX
 
 PathType = Union[str, Path]
-
-AP_MAX = 13200  # maximum x value
-DV_MAX = 8000  # maximum y value
-LR_MAX = 11400  # maximum z value
 
 
 class NpzLoader:
@@ -129,7 +126,10 @@ class NpzLoader:
     def get(self, key: str):
         """Get value from data keyed by `key`, or None if `key` is not found."""
         if self._data is not None:
-            return self._data.get(key)
+            try:
+                return self._data.get(key)
+            except:
+                return None
 
     def load_file(self, file_path: PathType, validate: bool = True):
         """Load data from the file living at `file_path`.

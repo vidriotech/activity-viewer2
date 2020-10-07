@@ -26,7 +26,7 @@ export interface StatsHistogramProps {
     selectedStat: string,
     statName: string,
     width: number,
-    onFilterPredicateUpdate(predicate: Predicate, newStat: string): void,
+    onUpdateFilterPredicate(predicate: Predicate, newStat: string): void,
     onStatSelectionChange(event: any): void,
 }
 
@@ -193,7 +193,7 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, IStatsH
         const upperBound = this.state.logScale ? Math.pow(10, this.state.histBounds[1]) : this.state.histBounds[1];
         let predicate = new StatPredicate(this.props.statName, lowerBound, upperBound);
 
-        this.props.onFilterPredicateUpdate(predicate, this.props.statName);
+        this.props.onUpdateFilterPredicate(predicate, this.props.statName);
     }
 
     public componentDidUpdate(prevProps: Readonly<StatsHistogramProps>) {

@@ -2,6 +2,9 @@
  * Endpoint: /compartments
  * Allows to query the compartment tree.
  */
+// eslint-disable-next-line import/no-unresolved
+import {SliceType} from "./enums";
+
 export interface CompartmentNode extends Compartment {
     children: CompartmentNode[];
 }
@@ -106,7 +109,6 @@ export interface AVSettings {
  * Endpoint: /slices/<slice_type>/<coordinate>
  * Allows to query slice data from the Allen volumes.
  */
-export type SliceType = "coronal" | "sagittal";
 
 export interface SliceData {
     annotationImage: string;
@@ -114,6 +116,7 @@ export interface SliceData {
     annotationSlice: number[];
     sliceType: SliceType;
     stride: number;
+    coordinate: number;
 }
 
 /*
