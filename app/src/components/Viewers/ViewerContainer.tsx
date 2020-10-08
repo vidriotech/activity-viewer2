@@ -5,7 +5,7 @@ import Grid from "@material-ui/core/Grid";
 // eslint-disable-next-line import/no-unresolved
 import {APIClient} from "../../apiClient";
 // eslint-disable-next-line import/no-unresolved
-import {AVConstants} from "../../constants";
+import {AVConstants, colorMaps} from "../../constants";
 
 // eslint-disable-next-line import/no-unresolved
 import {
@@ -22,7 +22,7 @@ import {ColorLUT} from "../../models/colorMap";
 // eslint-disable-next-line import/no-unresolved
 import {SliceImageType, SliceType} from "../../models/enums";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate, PropIneqPredicate} from "../../models/predicateModels";
+import {Predicate, PropIneqPredicate} from "../../models/predicates";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesData, TimeseriesSummary} from "../../models/timeseries";
 // eslint-disable-next-line import/no-unresolved
@@ -222,7 +222,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     private async createViewer(): Promise<void> {
-        const v = new BrainViewer(this.props.constants, this.props.settings.epochs);
+        const v = new BrainViewer(this.props.settings.epochs);
         this.initViewer(v);
     }
 
@@ -397,22 +397,18 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                             const summary = this.tsSummaries.get(this.state.colorTimeseries);
 
                             if (this.state.colorMapping !== "nothing") {
-                                this.apiClient.fetchColorMapping(this.state.colorMapping)
-                                    .then((res) => res.data)
-                                    .then((colorLUT) => {
-                                        mapping.color = {
-                                            timeseriesId: this.state.colorTimeseries,
-                                            transformParams: {
-                                                domainBounds: [summary.minVal, summary.maxVal],
-                                                targetBounds: this.state.colorBounds,
-                                                gamma: this.state.colorGamma,
-                                            },
-                                            colorLUT: colorLUT
-                                        };
+                                const colorLUT = colorMaps.get(this.state.colorMapping);
+                                mapping.color = {
+                                    timeseriesId: this.state.colorTimeseries,
+                                    transformParams: {
+                                        domainBounds: [summary.minVal, summary.maxVal],
+                                        targetBounds: this.state.colorBounds,
+                                        gamma: this.state.colorGamma,
+                                    },
+                                    colorLUT: colorLUT ? colorLUT : null
+                                };
 
-                                        this.viewer.setAestheticAssignment(mapping);
-                                    })
-                                    .catch((err) => console.error(err));
+                                this.viewer.setAestheticAssignment(mapping);
                             } else {
                                 mapping.color = {
                                     timeseriesId: this.state.colorTimeseries,

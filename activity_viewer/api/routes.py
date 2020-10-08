@@ -8,7 +8,6 @@ import numpy as np
 
 from activity_viewer.api.state import APIState
 from activity_viewer.api.compute import slice_to_data_uri
-from activity_viewer.compute.mappings import color_map
 from activity_viewer.constants import SliceType, AP_MAX
 from activity_viewer.settings import AVSettings, make_default_settings
 
@@ -20,43 +19,6 @@ state = APIState()
 @app.route("/")
 def hello():
     return "Hello, world!"
-
-
-@app.route("/aesthetics", methods=["POST"])
-def get_aesthetic_mappings():
-    if request.method == "POST" and hasattr(request, "data"):
-        data = json.loads(request.data)
-        penetration_ids = data["penetrationIds"]
-        params = data["params"]
-
-        mappings = []
-        for penetration_id in penetration_ids:
-            mappings.append(state.make_aesthetic_mapping(penetration_id, params).to_dict())
-
-        return {"mappings": mappings}
-
-
-@app.route("/aesthetics/<penetration_id>", methods=["POST"])
-def get_aesthetic_mapping(penetration_id: str):
-    if request.method == "POST" and hasattr(request, "data"):
-        params = json.loads(request.data)
-        penetrations = state.penetrations
-
-        mapping = state.make_aesthetic_mapping(penetration_id, params)
-
-        return mapping.to_dict()
-
-
-@app.route("/color-map/<map_name>")
-def get_colormap(map_name: str):
-    mapping = color_map(map_name)
-    if mapping is None:
-        return make_response(f"Color map identifier '{map_name}' not found.", 404)
-
-    return {
-        "name": map_name,
-        "mapping": mapping.tolist()
-    }
 
 
 @app.route("/compartments")

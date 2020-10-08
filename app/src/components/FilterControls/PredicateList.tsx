@@ -6,7 +6,7 @@ import List from '@material-ui/core/List';
 import Typography from '@material-ui/core/Typography';
 
 // eslint-disable-next-line import/no-unresolved
-import { Predicate, PredicateChain, ANDPredicateChain, ORPredicateChain } from "../../models/predicateModels";
+import { Predicate, PredicateChain, ANDPredicateChain, ORPredicateChain } from "../../models/predicates";
 
 // eslint-disable-next-line import/no-unresolved
 import { PredicateListNode } from './PredicateListNode';

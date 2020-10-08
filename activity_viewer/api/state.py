@@ -5,8 +5,7 @@ from allensdk.core.structure_tree import StructureTree
 from flask import Flask
 import numpy as np
 
-from activity_viewer.base import type_check
-from activity_viewer.compute.mappings import AestheticMapping, ColorMapping, ScalarMapping
+from activity_viewer.base import type_check, snake_to_camel
 from activity_viewer.compute.summaries import TimeseriesSummary
 from activity_viewer.cache import Cache
 from activity_viewer.loaders import NpzLoader
@@ -58,6 +57,10 @@ class APIState:
         self._timeseries_summaries = {}
 
         self.settings = settings
+
+    def _jsonify_compartment(self, compartment: dict):
+        for key in compartment:
+            compartment[snake_to_camel(key)] = compartment.pop(key)
 
     def _annotation_to_rgb(self, vals: np.ndarray):
         if vals is None:
@@ -111,37 +114,6 @@ class APIState:
         except IndexError:
             return None
 
-    def _make_color_mapping(self, penetration_id: str, params: dict):
-        timeseries_id = params["timeseriesId"]
-        mapping = params["mapping"]
-        bounds = params["bounds"]
-
-        if timeseries_id not in self._timeseries_summaries:
-            summary = self.make_timeseries_summary(timeseries_id)
-            if summary is None:
-                return None
-
-        data = self.get_timeseries(penetration_id, timeseries_id)
-        times = data[0, :]
-        values = data[1:, :]
-
-        return ColorMapping.from_bounds(timeseries_id, times, values, bounds, mapping)
-
-    def _make_scalar_mapping(self, penetration_id: str, params: dict):
-        timeseries_id = params["timeseriesId"]
-        bounds = params["bounds"]
-
-        if timeseries_id not in self._timeseries_summaries:
-            summary = self.make_timeseries_summary(timeseries_id)
-            if summary is None:
-                return None
-
-        data = self.get_timeseries(penetration_id, timeseries_id)
-        times = data[0, :]
-        values = data[1:, :]
-
-        return ScalarMapping.from_bounds(timeseries_id, times, values, bounds)
-
     def add_penetrations(self, file_paths: List[PathType]):
         """Add one or more penetrations to the set of current penetrations.
 
@@ -175,11 +147,7 @@ class APIState:
                 populate_children(tr, child)
 
             # make corrections to field names
-            node["rgbTriplet"] = node.pop("rgb_triplet")
-            node["graphId"] = node.pop("graph_id")
-            node["graphOrder"] = node.pop("graph_order")
-            node["structureIdPath"] = node.pop("structure_id_path")
-            node["structureSetIds"] = node.pop("structure_set_ids")
+            self._jsonify_compartment(node)
 
         tree = StructureTree(self.cache.load_structure_graph())
         root = tree.get_structures_by_id([997])[0]
@@ -201,7 +169,11 @@ class APIState:
         i,j,k = (ccf_coord.T / self.settings.system.resolution).astype(np.int)
         cids = annotation_volume[i, j, k]
 
-        return tree.get_structures_by_id(cids)
+        structures = tree.get_structures_by_id(cids)
+        for structure in structures:
+            self._jsonify_compartment(structure)
+
+        return structures
 
     def get_coronal_annotation_rgb(self, ap_coordinate: float):
         ref_slice = self.get_coronal_annotation_slice(ap_coordinate)
@@ -311,29 +283,6 @@ class APIState:
 
         # load once without validation (validation has already been performed at the add step)
         self.npz_loader.load_file(self._penetrations[penetration_id], validate=False)
-
-    def make_aesthetic_mapping(self, penetration_id: str, params: dict):
-        """Create an aesthetic mapping for a given penetration."""
-        if not self.has_penetration(penetration_id):
-            return
-
-        self.load_penetration(penetration_id)
-
-        color_mapping = self._make_color_mapping(
-            penetration_id, params["color"]
-        ) if "color" in params else None
-
-        opacity_mapping = self._make_scalar_mapping(
-            penetration_id, params["opacity"]
-        ) if "opacity" in params else None
-
-        radius_mapping = self._make_scalar_mapping(
-            penetration_id, params["radius"]
-        ) if "radius" in params else None
-
-        visibility = None
-
-        return AestheticMapping(penetration_id, color_mapping, opacity_mapping, radius_mapping, visibility)
 
     def make_timeseries_summary(self, timeseries_id: str) -> TimeseriesSummary:
         if timeseries_id in self._timeseries_summaries:

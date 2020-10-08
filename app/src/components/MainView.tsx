@@ -13,7 +13,7 @@ import {AVSettings, ExportingUnit, PenetrationData, UnitStatsListResponse} from 
 // eslint-disable-next-line import/no-unresolved
 import {UnitModel} from '../models/unitModel';
 // eslint-disable-next-line import/no-unresolved
-import {Predicate} from '../models/predicateModels';
+import {Predicate} from '../models/predicates';
 
 
 // eslint-disable-next-line import/no-unresolved

@@ -10,7 +10,6 @@ import {
     Object3D,
     PerspectiveCamera,
     Points,
-    PointsMaterial,
     Scene,
     ShaderMaterial,
     Vector2,
@@ -18,7 +17,16 @@ import {
 } from "three";
 
 // eslint-disable-next-line import/no-unresolved
-import {AVConstants, ballTexture, CoronalMax, SagittalMax} from "../constants";
+import {
+    apiEndpoint,
+    ballTexture,
+    colorMaps, compartmentFragmentShader, compartmentVertexShader,
+    CoronalMax,
+    defaultOpacity,
+    defaultRadius, pointFragmentShader,
+    pointVertexShader,
+    SagittalMax, volumeCenterPoint
+} from "../constants";
 
 // eslint-disable-next-line import/no-unresolved
 import {AestheticMapping} from "../models/aestheticMapping";
@@ -50,7 +58,6 @@ export class BrainViewer {
     public container = "container";
     public flip = true; // flip y axis
 
-    protected constants: AVConstants;
     protected epochs: Epoch[];
 
     // animation
@@ -87,8 +94,7 @@ export class BrainViewer {
     private loadedCompartments: Set<string>;
     private visibleCompartments: Set<string>;
 
-    constructor(constants: AVConstants, epochs: Epoch[]) {
-        this.constants = constants;
+    constructor(epochs: Epoch[]) {
         this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
         this.cameraStartPosition = [0, 0, -20000];
 
@@ -305,7 +311,7 @@ export class BrainViewer {
         const colors = [];
         let colorLUT: ColorLUT;
         if (!aestheticMapping.color || !aestheticMapping.color.colorLUT) {
-            colorLUT = this.constants.defaultColorLUT;
+            colorLUT = colorMaps.get("nothing");
         } else {
             colorLUT = aestheticMapping.color.colorLUT;
         }
@@ -334,7 +340,7 @@ export class BrainViewer {
         let opacityGamma: number;
         if (aestheticMapping.opacity === null) {
             opacityDomain = new Vector2(1, 1);
-            opacityTarget = new Vector2(this.constants.defaultOpacity, this.constants.defaultOpacity);
+            opacityTarget = new Vector2(defaultOpacity, defaultOpacity);
             opacityGamma = 1;
         } else {
             opacityDomain = new Vector2(...aestheticMapping.opacity.transformParams.domainBounds);
@@ -347,7 +353,7 @@ export class BrainViewer {
         let radiusGamma: number;
         if (aestheticMapping.radius === null) {
             radiusDomain = new Vector2(1, 1);
-            radiusTarget = new Vector2(this.constants.defaultRadius, this.constants.defaultRadius);
+            radiusTarget = new Vector2(defaultRadius, defaultRadius);
             radiusGamma = 1;
         } else {
             radiusDomain = new Vector2(...aestheticMapping.radius.transformParams.domainBounds);
@@ -370,8 +376,8 @@ export class BrainViewer {
                 radiusTarget: { value: radiusTarget },
                 radiusGamma: { value: radiusGamma },
             },
-            vertexShader: this.constants.pointVertexShader,
-            fragmentShader: this.constants.pointFragmentShader,
+            vertexShader: pointVertexShader,
+            fragmentShader: pointFragmentShader,
             depthTest: false,
             transparent: true,
             vertexColors: true
@@ -379,8 +385,8 @@ export class BrainViewer {
 
         material.defaultAttributeValues = {
             color: [0, 128/255, 1],
-            opacity: this.constants.defaultOpacity,
-            size: this.constants.defaultRadius,
+            opacity: defaultOpacity,
+            size: defaultRadius,
             show: 1.0,
         };
 
@@ -488,7 +494,7 @@ export class BrainViewer {
     }
 
     public loadPenetration(penetration: Penetration): void {
-        const centerPoint = this.constants.centerPoint.map((t: number) => -t) as [number, number, number];
+        const centerPoint = volumeCenterPoint.map((t: number) => -t) as [number, number, number];
         const defaultAesthetics: AestheticMapping = {
             color: null,
             opacity: null,
@@ -503,10 +509,10 @@ export class BrainViewer {
         kolor.fill(0);
 
         const opacity = new Float32Array(penetration.nUnits);
-        opacity.fill(this.constants.defaultOpacity);
+        opacity.fill(defaultOpacity);
 
         const size = new Float32Array(penetration.nUnits);
-        size.fill(400 * this.constants.defaultRadius);
+        size.fill(400 * defaultRadius);
 
         const visible = new Float32Array(penetration.visible);
 
@@ -762,7 +768,7 @@ export class BrainViewer {
             opacities = new Float32Array(opacityData.slice(nPoints * timeIdx, nPoints * (timeIdx + 1)));
         } else {
             opacities = new Float32Array(nPoints);
-            opacities.fill(this.constants.defaultOpacity);
+            opacities.fill(defaultOpacity);
         }
 
         const radiusData = this.radiusData.get(penetrationId);
@@ -771,7 +777,7 @@ export class BrainViewer {
             sizes = new Float32Array(radiusData.slice(nPoints * timeIdx, nPoints * (timeIdx + 1)));
         } else {
             sizes = new Float32Array(nPoints);
-            sizes.fill(this.constants.defaultRadius);
+            sizes.fill(defaultRadius);
         }
 
         const visible = penetration.visible;
@@ -835,7 +841,7 @@ export class BrainViewer {
         const compartmentColor = '#' + this.rgb2Hex(compartmentNode.rgbTriplet);
 
         const loader = new THREE.OBJLoader();
-        const path = `${this.constants.apiEndpoint}/mesh/${compartmentId}`;
+        const path = `${apiEndpoint}/mesh/${compartmentId}`;
 
         loader.load(path, (obj: Object3D) => {
             const makeMaterial = (child: Mesh): void => {
@@ -843,8 +849,8 @@ export class BrainViewer {
                     uniforms: {
                         color: {type: 'c', value: new THREE.Color(compartmentColor)},
                     },
-                    vertexShader: this.constants.compartmentVertexShader,
-                    fragmentShader: this.constants.compartmentFragmentShader,
+                    vertexShader: compartmentVertexShader,
+                    fragmentShader: compartmentFragmentShader,
                     transparent: true,
                     depthTest: true,
                     depthWrite: false,
@@ -855,7 +861,7 @@ export class BrainViewer {
             obj.traverse(makeMaterial.bind(this))
 
             obj.name = name;
-            const [x, y, z] = this.constants.centerPoint.map((t: number) => -t);
+            const [x, y, z] = volumeCenterPoint.map((t: number) => -t);
             obj.position.set(x, y, z);
 
             this.loadedCompartments.add(name);

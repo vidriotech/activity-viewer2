@@ -12,7 +12,7 @@ import Typography from '@material-ui/core/Typography';
 
 import {AVConstants, defaultColorFadedHex, defaultColorHex} from '../../constants';
 
-import { Predicate, StatPredicate } from '../../models/predicateModels';
+import { Predicate, StatPredicate } from '../../models/predicates';
 
 export interface StatsHistogramProps {
     data: number[];

@@ -3,7 +3,6 @@ import axios, {AxiosResponse} from "axios";
 import {
     AVSettings, CompartmentNodeInterface,
     ExportingUnit,
-    PenetrationData,
     PenetrationResponse,
     SettingsRequest,
     SliceData,
@@ -55,18 +54,6 @@ export class APIClient {
 
     public async GET(uri: string): Promise<any> {
         return axios.get(uri);
-    }
-
-    async fetchAestheticMappings(params: AestheticRequest): Promise<AxiosResponse<{mappings: AestheticMapping[]}>> {
-        return axios({
-            method: "POST",
-            url: `${this.endpoint}/aesthetics`,
-            data: params,
-        });
-    }
-
-    async fetchColorMapping(mapping: string): Promise<AxiosResponse<ColorLUT>> {
-        return await axios.get(`${this.endpoint}/color-map/${mapping}`);
     }
 
     async fetchCompartmentTree(): Promise<CompartmentNodeInterface> {

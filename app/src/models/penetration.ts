@@ -6,7 +6,7 @@ import {Compartment} from "./apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {AVConstants} from "../constants";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate} from "./predicateModels";
+import {Predicate} from "./predicates";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesData} from "./timeseries";
 // eslint-disable-next-line import/no-unresolved

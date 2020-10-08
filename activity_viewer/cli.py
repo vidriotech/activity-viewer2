@@ -6,7 +6,7 @@ import subprocess
 from typing import Tuple
 
 import click
-import numpy as np
+from gevent.pywsgi import WSGIServer
 
 from activity_viewer.api import app
 from activity_viewer.api.routes import state
@@ -113,7 +113,8 @@ def start_daemon(ctx: click.core.Context, settings_file: str):
         click.echo(f"Failed to load settings from file '{settings_file}': {e}. Using default settings.", err=True)
         state.settings = make_default_settings()
 
-    app.run(host="127.0.0.1", port=3030, debug=True)
+    http_server = WSGIServer(("", 3030), app)
+    http_server.serve_forever()
 
 
 @cli.command()
@@ -169,5 +170,3 @@ def visualize(ctx: click.core.Context, filenames: Tuple[str]):
     subprocess.run(shlex.split(f"'{npm}' start"), env=env)
 
     api_proc.kill()
-
-

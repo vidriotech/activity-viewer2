@@ -9,7 +9,7 @@ import {AVConstants} from "../../constants";
 // eslint-disable-next-line import/no-unresolved
 import {AVSettings} from "../../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate, PropIneqPredicate} from "../../models/predicateModels";
+import {Predicate, PropIneqPredicate} from "../../models/predicates";
 
 // eslint-disable-next-line import/no-unresolved
 // eslint-disable-next-line import/no-unresolved

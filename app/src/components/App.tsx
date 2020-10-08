@@ -17,7 +17,7 @@ import {AVSettings, ExportingUnit, PenetrationData} from "../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration, PenetrationInterface} from "../models/penetration";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate} from "../models/predicateModels";
+import {Predicate} from "../models/predicates";
 // eslint-disable-next-line import/no-unresolved
 import {UnitModel} from "../models/unitModel";
 

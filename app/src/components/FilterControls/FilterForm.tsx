@@ -10,7 +10,7 @@ import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 
 // eslint-disable-next-line import/no-unresolved
-import {Predicate, PropEqPredicate, StatPredicate, SubcompartmentPredicate} from "../../models/predicateModels";
+import {Predicate, PropEqPredicate, StatPredicate, SubcompartmentPredicate} from "../../models/predicates";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved

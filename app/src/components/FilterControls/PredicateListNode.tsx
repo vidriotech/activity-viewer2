@@ -12,7 +12,7 @@ import ListSubheader from '@material-ui/core/ListSubheader';
 import DeleteIcon from '@material-ui/icons/Delete';
 
 import { UnitModel } from '../../models/unitModel';
-import { Predicate, PredicateChain, ANDPredicateChain, ORPredicateChain } from '../../models/predicateModels';
+import { Predicate, PredicateChain, ANDPredicateChain, ORPredicateChain } from '../../models/predicates';
 import { Typography } from '@material-ui/core';
 import ListItemIcon from "@material-ui/core/ListItemIcon";
 

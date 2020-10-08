@@ -6,7 +6,7 @@ import Grid from "@material-ui/core/Grid";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate} from "../../models/predicateModels";
+import {Predicate} from "../../models/predicates";
 
 // eslint-disable-next-line import/no-unresolved
 import {FilterForm, FilterFormProps} from "../FilterControls/FilterForm";
