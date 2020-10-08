@@ -202,9 +202,11 @@ export class App extends React.Component<{}, AppState> {
         selectedPenetrationIds.forEach((penetrationId) => {
             const penetration = this.penetrations.get(penetrationId);
             penetration.compartments.forEach((compartment, idx) => {
-                if (compartment.name) {
+                if (compartment && compartment.name) {
                     const node = this.state.compartmentTree.getCompartmentNodeByName(compartment.name);
-                    node.registerUnit(penetration.id, penetration.unitIds[idx]);
+                    if (node) {
+                        node.registerUnit(penetration.id, penetration.unitIds[idx]);
+                    }
                 }
             });
         })
