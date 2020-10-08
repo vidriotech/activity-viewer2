@@ -35,15 +35,6 @@ import "./assets/css/index.css";
 import "fontsource-roboto";
 
 // eslint-disable-next-line import/no-unresolved
-import { APIClient } from "./apiClient";
-// eslint-disable-next-line import/no-unresolved
-import { AVConstants } from "./constants";
-// eslint-disable-next-line import/no-unresolved
-import { CompartmentTree } from "./compartmentTree";
-// eslint-disable-next-line import/no-unresolved
-import { CompartmentNodeInterface, AVSettings } from "./models/apiModels";
-
-// eslint-disable-next-line import/no-unresolved
 import { App } from "./components/App";
 
 // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it

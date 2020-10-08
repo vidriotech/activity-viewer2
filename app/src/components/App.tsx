@@ -11,8 +11,6 @@ import {createMuiTheme, ThemeProvider} from '@material-ui/core/styles';
 import {APIClient} from "../apiClient";
 // eslint-disable-next-line import/no-unresolved
 import { AVConstants } from "../constants";
-// eslint-disable-next-line import/no-unresolved
-import { CompartmentTree } from "../compartmentTree";
 
 // eslint-disable-next-line import/no-unresolved
 import {AVSettings, ExportingUnit, PenetrationData} from "../models/apiModels";
@@ -25,7 +23,7 @@ import {UnitModel} from "../models/unitModel";
 
 // eslint-disable-next-line import/no-unresolved
 import { MainView, MainViewProps } from "./MainView";
-import {CompartmentTree2} from "../models/compartmentTree";
+import {CompartmentTree} from "../models/compartmentTree";
 
 const theme = createMuiTheme({
     palette: {
@@ -53,13 +51,13 @@ const theme = createMuiTheme({
 });
 
 interface AppState {
-    compartmentTree: CompartmentTree2;
+    compartmentTree: CompartmentTree;
     constants: AVConstants;
     settings: AVSettings;
 
     availablePenetrations: Set<string>;
     loadedPenetrations: Set<string>;
-    selectedPenetrations: Set<string>;
+    selectedPenetrationIds: Set<string>;
 
     availableStats: Set<string>;
     availableTimeseries: Set<string>;
@@ -83,7 +81,7 @@ export class App extends React.Component<{}, AppState> {
 
             availablePenetrations: new Set<string>(),
             loadedPenetrations: new Set<string>(),
-            selectedPenetrations: new Set<string>(),
+            selectedPenetrationIds: new Set<string>(),
 
             availableStats: new Set<string>(),
             availableTimeseries: new Set<string>(),
@@ -125,14 +123,6 @@ export class App extends React.Component<{}, AppState> {
                     availableTimeseries.add(timeseriesId);
                 });
 
-                // register all units in their respective compartment nodes
-                penetrationData.compartments.forEach((compartment, idx) => {
-                    if (compartment.name) {
-                        const node = this.state.compartmentTree.getCompartmentNodeByName(compartment.name);
-                        node.registerUnit(penetrationData.id, penetrationData.unitIds[idx]);
-                    }
-                });
-
                 const loadedPenetrations = _.clone(this.state.loadedPenetrations);
                 loadedPenetrations.add(pid);
 
@@ -144,7 +134,7 @@ export class App extends React.Component<{}, AppState> {
     private getSelectedPenetrations(): Map<string, Penetration> {
         const selectedPenetrations = new Map<string, Penetration>();
 
-        this.state.selectedPenetrations.forEach((id) => {
+        this.state.selectedPenetrationIds.forEach((id) => {
             const pen = this.penetrations.get(id);
             selectedPenetrations.set(id, pen);
         });
@@ -188,10 +178,10 @@ export class App extends React.Component<{}, AppState> {
             const loadedPenetrations = _.clone(this.state.loadedPenetrations);
             loadedPenetrations.delete(penetrationId);
 
-            const selectedPenetrations = _.clone(this.state.selectedPenetrations);
+            const selectedPenetrations = _.clone(this.state.selectedPenetrationIds);
             selectedPenetrations.delete(penetrationId);
 
-            this.setState({loadedPenetrations, selectedPenetrations});
+            this.setState({loadedPenetrations, selectedPenetrationIds: selectedPenetrations});
         }
     }
 
@@ -205,10 +195,29 @@ export class App extends React.Component<{}, AppState> {
         });
     }
 
+    private handleUpdateSelectedPenetrations(selectedPenetrationIds: string[]): void {
+        this.state.compartmentTree.unregisterAllUnits();
+
+        // register all units in their respective compartment nodes
+        selectedPenetrationIds.forEach((penetrationId) => {
+            const penetration = this.penetrations.get(penetrationId);
+            penetration.compartments.forEach((compartment, idx) => {
+                if (compartment.name) {
+                    const node = this.state.compartmentTree.getCompartmentNodeByName(compartment.name);
+                    node.registerUnit(penetration.id, penetration.unitIds[idx]);
+                }
+            });
+        })
+
+        this.setState({
+            selectedPenetrationIds: new Set<string>(selectedPenetrationIds)
+        });
+    }
+
     public componentDidMount(): void {
         let availablePenetrations: Set<string>;
         let settings: AVSettings = null;
-        let compartmentTree: CompartmentTree2 = null;
+        let compartmentTree: CompartmentTree = null;
 
         this.apiClient.fetchSettings()
             .then((res) => res.data)
@@ -218,7 +227,7 @@ export class App extends React.Component<{}, AppState> {
                 return this.apiClient.fetchCompartmentTree();
             })
             .then((rootNode) => {
-                compartmentTree = CompartmentTree2.fromCompartmentNode(rootNode);
+                compartmentTree = CompartmentTree.fromCompartmentNode(rootNode);
 
                 return this.apiClient.fetchPenetrationIds();
             })
@@ -252,11 +261,7 @@ export class App extends React.Component<{}, AppState> {
 
             onRequestUnitExport: this.handleRequestUnitExport.bind(this),
             onRequestUnloadPenetration: this.handleRequestUnloadPenetration.bind(this),
-            onUpdateSelectedPenetrations: (selectedPenetrations: string[]) => {
-                this.setState({
-                    selectedPenetrations: new Set<string>(selectedPenetrations)
-                });
-            },
+            onUpdateSelectedPenetrations: this.handleUpdateSelectedPenetrations.bind(this),
             onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
         }
 

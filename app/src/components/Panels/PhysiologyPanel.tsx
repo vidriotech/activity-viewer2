@@ -11,9 +11,6 @@ import {headerStyle, tab10Blue} from "../../styles";
 import {AVSettings, PenetrationData} from "../../models/apiModels";
 
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
-
-// eslint-disable-next-line import/no-unresolved
 import {CompartmentList, CompartmentListProps} from "../CompartmentList/CompartmentList";
 import Typography from "@material-ui/core/Typography";
 import IconButton from "@material-ui/core/IconButton";
@@ -24,13 +21,15 @@ import {Penetration} from "../../models/penetration";
 import {TomographyPanel, TomographyPanelProps} from "./TomographyPanel";
 // eslint-disable-next-line import/no-unresolved
 import {SliceType} from "../../models/enums";
+import {CompartmentTree} from "../../models/compartmentTree";
 
 export interface PhysiologyPanelProps {
-    selectedPenetrations: Map<string, Penetration>;
-    compartmentViewTree: CompartmentNodeView;
+    compartmentTree: CompartmentTree;
     constants: AVConstants;
     settings: AVSettings;
 
+    selectedPenetrations: Map<string, Penetration>;
+    visibleCompartmentIds: Set<number>;
     busy: boolean;
 
     showTomographyAnnotation: boolean;
@@ -39,7 +38,7 @@ export interface PhysiologyPanelProps {
     testSliceType: SliceType;
 
     onCollapse(): void;
-    onToggleCompartmentVisible(rootNode: CompartmentNodeView): void;
+    onToggleCompartmentVisible(compartmentId: number): void;
 
     onCommitSlicing(): void;
     onSelectSliceType(sliceType: SliceType, testSliceBounds: [number, number]): void;
@@ -92,11 +91,11 @@ export class PhysiologyPanel extends React.Component<PhysiologyPanelProps, Physi
 
     public render(): React.ReactElement {
         const compartmentListProps: CompartmentListProps = {
-            selectedPenetrations: this.props.selectedPenetrations,
             busy: this.props.busy,
-            compartmentViewTree: this.props.compartmentViewTree,
-            constants: this.props.constants,
+            compartmentTree: this.props.compartmentTree,
             settings: this.props.settings,
+
+            visibleCompartmentIds: this.props.visibleCompartmentIds,
 
             onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
         };

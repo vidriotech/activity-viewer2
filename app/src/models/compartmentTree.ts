@@ -63,6 +63,10 @@ export class CompartmentNode implements CompartmentNodeInterface {
         }
     }
 
+    public unregisterAllUnits(): void {
+        this.penetrationUnits.clear();
+    }
+
     public nExactPenetrations(): number {
         return this.penetrationUnits.size;
     }
@@ -131,7 +135,7 @@ export class CompartmentNode implements CompartmentNodeInterface {
     }
 }
 
-export class CompartmentTree2 {
+export class CompartmentTree {
     protected rootNode: CompartmentNode;
 
     protected id2Node: Map<number, CompartmentNode>;
@@ -145,16 +149,18 @@ export class CompartmentTree2 {
         this.acronym2Id = new Map<string, number>();
     }
 
-    public static fromCompartmentNode(root: CompartmentNodeInterface): CompartmentTree2 {
-        const c = new CompartmentTree2();
+    public static fromCompartmentNode(root: CompartmentNodeInterface): CompartmentTree {
+        const c = new CompartmentTree();
 
         c.rootNode = CompartmentNode.fromResponse(root);
-        const queue = [c.rootNode];
+        let queue = [c.rootNode];
         while (queue.length > 0) {
             const node = queue.splice(0, 1)[0];
             c.id2Node.set(node.id, node);
             c.name2Id.set(node.name, node.id);
             c.acronym2Id.set(node.acronym, node.id);
+
+            queue = queue.concat(node.children);
         }
         return c;
     }
@@ -167,6 +173,10 @@ export class CompartmentTree2 {
         return this.id2Node.values();
     }
 
+    public getCompartmentNodeById(nodeId: number): CompartmentNode {
+        return this.id2Node.get(nodeId);
+    }
+
     public getCompartmentNodeByName(nodeName: string): CompartmentNode {
         if (this.name2Id.has(nodeName)) {
             return this.id2Node.get(this.name2Id.get(nodeName));
@@ -175,5 +185,11 @@ export class CompartmentTree2 {
         }
 
         return null;
+    }
+
+    public unregisterAllUnits(): void {
+        for (const node of this.getAllCompartmentNodes()) {
+            node.unregisterAllUnits();
+        }
     }
 }

@@ -13,19 +13,19 @@ import ExpandLess from '@material-ui/icons/ExpandLess';
 import ExpandMore from '@material-ui/icons/ExpandMore';
 
 // eslint-disable-next-line import/no-unresolved
-import { CompartmentNodeView } from '../../viewmodels/compartmentViewModel';
-// eslint-disable-next-line import/no-unresolved
-import {PenetrationData} from "../../models/apiModels";
-// eslint-disable-next-line import/no-unresolved
-import {Penetration} from "../../models/penetration";
+import {CompartmentNode} from "../../models/compartmentTree";
+import Typography from "@material-ui/core/Typography";
+import Container from "@material-ui/core/Container";
+import Grid from "@material-ui/core/Grid";
 
 
 export interface CompartmentListNodeProps {
-    selectedPenetrations: Map<string, Penetration>;
     busy: boolean;
-    compartmentNodeView: CompartmentNodeView;
+    compartmentNode: CompartmentNode;
     showChildren: boolean;
-    onToggleDescendentVisible(descendentNode: CompartmentNodeView): void;
+    visibleCompartmentIds: Set<number>;
+
+    onToggleCompartmentVisible(compartmentId: number): void;
 }
 
 interface CompartmentListNodeState {
@@ -37,30 +37,12 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
         super(props);
 
         this.state = {
-            open: props.compartmentNodeView.name === "root",
+            open: props.compartmentNode.name === "root",
         }
     }
 
-    private handleToggleSelfVisible(): void {
-        const copyOfSelf: CompartmentNodeView = _.cloneDeep(this.props.compartmentNodeView);
-        copyOfSelf.isVisible = !copyOfSelf.isVisible;
-
-        this.props.onToggleDescendentVisible(copyOfSelf);
-    }
-
-    private handleToggleDescendentVisible(descendentNode: CompartmentNodeView): void {
-        const children = this.props.compartmentNodeView.children.slice();
-        const idx = children.map((child) => child.name).indexOf(descendentNode.name);
-        children[idx] = descendentNode;
-
-        const copyOfSelf = _.clone(this.props.compartmentNodeView);
-        copyOfSelf.children = children;
-        this.props.onToggleDescendentVisible(copyOfSelf);
-    }
-
-    public render(): React.ReactElement {
-        const children = this.props.showChildren ?
-            this.props.compartmentNodeView.children.sort((a, b) => {
+    private renderChildren(): React.ReactElement[] {
+        const children = this.props.compartmentNode.children.sort((a, b) => {
             // leaf nodes go last
             if (a.children.length > 0 && b.children.length === 0) {
                 return -1;
@@ -75,74 +57,78 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
             }
 
             return aName < bName ? -1 : 1;
-        }) : [];
+        });
 
-        const hasChildren = (children.length > 0);
+        return children.map((node) => {
+            const props: CompartmentListNodeProps = {
+                busy: this.props.busy,
+                compartmentNode: node,
+                showChildren: this.props.showChildren,
+                visibleCompartmentIds: this.props.visibleCompartmentIds,
+                onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
+            }
 
-        const childList = hasChildren ? (
-            <Collapse in={this.state.open}
-                      timeout='auto'
-                      unmountOnExit
-                      style={{ paddingLeft: 16 }}
-                      key={`${this.props.compartmentNodeView.acronym}-children`}>
-                <List>
-                    {children.map((child) => (
-                        <CompartmentListNode selectedPenetrations={this.props.selectedPenetrations}
-                                             busy={this.props.busy}
-                                             compartmentNodeView={child}
-                                             showChildren={true}
-                                             onToggleDescendentVisible={this.handleToggleDescendentVisible.bind(this)} />
-                    ))}
-                </List>
-            </Collapse>
-        ) : null;
+            return (
+                <ListItem dense key={`compartment-node-${node.id}`}>
+                    <CompartmentListNode {...props} />
+                </ListItem>
+            );
+        });
+    }
+
+    public render(): React.ReactElement {
+        let childList;
+        if (this.props.showChildren && this.props.compartmentNode.children.length > 0) {
+            childList = (
+                <Collapse in={this.state.open}
+                          timeout='auto'
+                          unmountOnExit
+                          style={{ paddingLeft: 2 }}
+                          key={`${this.props.compartmentNode.acronym}-children`}>
+                    <List>
+                        {this.renderChildren()}
+                    </List>
+                </Collapse>
+            );
+        } else {
+            childList = null;
+        }
 
         let expandIcon = null;
-        if (hasChildren) {
+        if (childList) {
             expandIcon = (
-                <ListItemSecondaryAction key={`${this.props.compartmentNodeView}-expand`}>
-                    <IconButton onClick={() => {this.setState({ open: ! this.state.open })}}>
-                        {this.state.open ? <ExpandLess /> : <ExpandMore />}
-                    </IconButton>
-                </ListItemSecondaryAction>
+                <IconButton onClick={() => {this.setState({ open: ! this.state.open })}}>
+                    {this.state.open ? <ExpandLess /> : <ExpandMore />}
+                </IconButton>
             );
         }
 
-        let nPenetrations = 0;
-        let nPoints = 0;
-        this.props.selectedPenetrations.forEach((penetrationData) => {
-            let hasContributed = false;
-            penetrationData.compartments.forEach((compartment) => {
-                if (!compartment) {
-                    return;
-                }
-
-                if (compartment.name === this.props.compartmentNodeView.name) {
-                    if (!hasContributed) {
-                        nPenetrations += 1;
-                        hasContributed = true;
-                    }
-
-                    nPoints += 1;
-                }
-            });
-        });
+        const nUnits = this.props.compartmentNode.nDescendentUnits();
+        const nPenetrations = this.props.compartmentNode.nDescendentPenetrations();
 
         return (
-            <div>
-                <ListItem key={this.props.compartmentNodeView.acronym} >
+            <Grid container>
+                <Grid item xs={1}>
                     <Checkbox disabled={this.props.busy}
-                              edge='start'
-                              onChange={this.handleToggleSelfVisible.bind(this)}
-                              checked={this.props.compartmentNodeView.isVisible}
+                              edge="start"
+                              onChange={() => this.props.onToggleCompartmentVisible(this.props.compartmentNode.id)}
+                              checked={this.props.visibleCompartmentIds.has(this.props.compartmentNode.id)}
                               tabIndex={-1}
-                              inputProps={{ 'aria-labelledby': this.props.compartmentNodeView.acronym }}
+                              inputProps={{ "aria-labelledby": `compartment-node-${this.props.compartmentNode.id}-select` }}
                     />
-                    <ListItemText primary={`${this.props.compartmentNodeView.name} (${nPoints} pts/${nPenetrations} pens)`} />
+                </Grid>
+                <Grid item xs={9}>
+                    <Typography gutterBottom>
+                        {`${this.props.compartmentNode.name} (${nUnits} units/${nPenetrations} penetrations)`}
+                    </Typography>
+                </Grid>
+                <Grid item xs={1}>
                     {expandIcon}
-                </ListItem>
-                {childList}
-            </div>
+                </Grid>
+                <Grid item xs>
+                    {childList}
+                </Grid>
+            </Grid>
         );
     }
 }

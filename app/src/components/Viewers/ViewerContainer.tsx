@@ -26,8 +26,6 @@ import {Predicate, PropIneqPredicate} from "../../models/predicateModels";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesData, TimeseriesSummary} from "../../models/timeseries";
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
-// eslint-disable-next-line import/no-unresolved
 import {BrainViewer} from "../../viewers/brainViewer";
 
 import Typography from "@material-ui/core/Typography";
@@ -46,10 +44,10 @@ import Button from "@material-ui/core/Button";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesMappers, TimeseriesMappersProps} from "../TimeseriesControls/TimeseriesMappers";
 import Drawer from "@material-ui/core/Drawer";
-import {CompartmentNode, CompartmentTree2} from "../../models/compartmentTree";
+import {CompartmentNode, CompartmentTree} from "../../models/compartmentTree";
 
 export interface ViewerContainerProps {
-    compartmentTree: CompartmentTree2;
+    compartmentTree: CompartmentTree;
     constants: AVConstants;
     settings: AVSettings;
 

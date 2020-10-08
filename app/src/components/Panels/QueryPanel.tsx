@@ -9,16 +9,13 @@ import {Penetration} from "../../models/penetration";
 import {Predicate} from "../../models/predicateModels";
 
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
-
-// eslint-disable-next-line import/no-unresolved
 import {FilterForm, FilterFormProps} from "../FilterControls/FilterForm";
 import {PredicateList, PredicateListProps} from "../FilterControls/PredicateList";
-import {CompartmentTree2} from "../../models/compartmentTree";
+import {CompartmentTree} from "../../models/compartmentTree";
 
 export interface QueryPanelProps {
     busy: boolean;
-    compartmentTree: CompartmentTree2;
+    compartmentTree: CompartmentTree;
 
     selectedPenetrations: Map<string, Penetration>;
     availableStats: Set<string>;

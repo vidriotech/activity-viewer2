@@ -6,8 +6,6 @@ import Grid from '@material-ui/core/Grid';
 // eslint-disable-next-line import/no-unresolved
 import {APIClient} from '../apiClient';
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentTree} from '../compartmentTree';
-// eslint-disable-next-line import/no-unresolved
 import {AVConstants} from '../constants';
 
 // eslint-disable-next-line import/no-unresolved
@@ -17,8 +15,6 @@ import {UnitModel} from '../models/unitModel';
 // eslint-disable-next-line import/no-unresolved
 import {Predicate} from '../models/predicateModels';
 
-// eslint-disable-next-line import/no-unresolved
-import {CompartmentNodeView} from '../viewmodels/compartmentViewModel';
 
 // eslint-disable-next-line import/no-unresolved
 import {CompartmentList, CompartmentListProps} from './CompartmentList/CompartmentList';
@@ -57,7 +53,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 // eslint-disable-next-line import/no-unresolved
 import {SelectPenetrationsDialog} from "./SelectPenetrationsDialog";
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentTree2} from "../models/compartmentTree";
+import {CompartmentTree} from "../models/compartmentTree";
 
 interface UnitStatsData {
     penetrationId: string;
@@ -65,7 +61,7 @@ interface UnitStatsData {
 }
 
 export interface MainViewProps {
-    compartmentTree: CompartmentTree2;
+    compartmentTree: CompartmentTree;
     constants: AVConstants;
     settings: AVSettings;
 

@@ -10,17 +10,12 @@ import TextField from "@material-ui/core/TextField";
 import Autocomplete from "@material-ui/lab/Autocomplete";
 
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentTree} from "../../compartmentTree";
-
-// eslint-disable-next-line import/no-unresolved
 import {Predicate, PropEqPredicate, StatPredicate, SubcompartmentPredicate} from "../../models/predicateModels";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved
 import {UnitModel} from "../../models/unitModel";
 
-// eslint-disable-next-line import/no-unresolved
-import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
 import Button from "@material-ui/core/Button";
 import ButtonGroup from "@material-ui/core/ButtonGroup";
 import Container from "@material-ui/core/Container";
@@ -29,11 +24,11 @@ import Grid from "@material-ui/core/Grid";
 // eslint-disable-next-line import/no-unresolved
 import {StatsHistogramProps} from "./StatsHistogram";
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentTree2} from "../../models/compartmentTree";
+import {CompartmentTree} from "../../models/compartmentTree";
 
 export interface FilterFormProps {
     busy: boolean;
-    compartmentTree: CompartmentTree2;
+    compartmentTree: CompartmentTree;
 
     selectedPenetrations: Map<string, Penetration>;
     availableStats: Set<string>;

@@ -12,9 +12,6 @@ import {AVSettings} from "../../models/apiModels";
 import {Predicate, PropIneqPredicate} from "../../models/predicateModels";
 
 // eslint-disable-next-line import/no-unresolved
-import {CompartmentNodeView} from "../../viewmodels/compartmentViewModel";
-
-// eslint-disable-next-line import/no-unresolved
 // eslint-disable-next-line import/no-unresolved
 // eslint-disable-next-line import/no-unresolved
 import {ViewerContainer, ViewerContainerProps} from "../Viewers/ViewerContainer";
@@ -27,10 +24,10 @@ import {DataPanel, DataPanelProps} from "./DataPanel";
 import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved
 import {SliceType} from "../../models/enums";
-import {CompartmentTree2} from "../../models/compartmentTree";
+import {CompartmentTree} from "../../models/compartmentTree";
 
 export interface DisplayPanelProps {
-    compartmentTree: CompartmentTree2;
+    compartmentTree: CompartmentTree;
     constants: AVConstants;
     settings: AVSettings;
 
@@ -70,7 +67,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             showDataPanel: true,
             showPhysPanel: true,
 
-            visibleCompartmentIds: new Set<number>(),
+            visibleCompartmentIds: new Set<number>([this.props.compartmentTree.getCompartmentNodeByName("root").id]),
 
             showTomographyAnnotation: true,
             showTomographySlice: false,
@@ -166,6 +163,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             busy: this.props.busy,
 
             selectedPenetrations: this.props.selectedPenetrations,
+            visibleCompartmentIds: this.state.visibleCompartmentIds,
 
             showTomographyAnnotation: this.state.showTomographyAnnotation,
             showTestSlice: this.state.showTestSlice,
