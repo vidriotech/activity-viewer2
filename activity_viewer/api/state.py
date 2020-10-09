@@ -59,8 +59,9 @@ class APIState:
         self.settings = settings
 
     def _jsonify_compartment(self, compartment: dict):
-        for key in compartment:
-            compartment[snake_to_camel(key)] = compartment.pop(key)
+        if compartment:
+            for key in compartment:
+                compartment[snake_to_camel(key)] = compartment.pop(key)
 
     def _annotation_to_rgb(self, vals: np.ndarray):
         if vals is None:

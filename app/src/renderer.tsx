@@ -26,23 +26,25 @@
  * ```
  */
 
+import {ipcRenderer} from "electron";
+
 import React from "react";
 import ReactDOM from "react-dom";
 
 // Import styling
 import "./assets/css/index.css";
-// import "fomantic-ui-css/semantic.css";
 import "fontsource-roboto";
 
 // eslint-disable-next-line import/no-unresolved
 import { App } from "./components/App";
 
-// Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
-const root = document.createElement("div");
-root.id = "root";
-document.body.appendChild(root);
+ipcRenderer.on("getSettings", (event, response) => {
+    // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
+    const root = document.createElement("div");
+    root.id = "root";
+    document.body.appendChild(root);
 
-ReactDOM.render(<App />, document.getElementById("root"));
+    ReactDOM.render(<App initialSettingsPath={response} />, document.getElementById("root"));
+});
 
-
-
+ipcRenderer.send("getSettings");

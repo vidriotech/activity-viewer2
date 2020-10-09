@@ -142,34 +142,6 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         // }
     }
 
-    private fetchAndUpdateUnitStats(value: string): void {
-        if (value !== 'nothing' && !this.statsData.has(value)) {
-            this.apiClient.fetchUnitStatsById(value)
-                .then((res: any) => res.data)
-                .then((responseData: UnitStatsListResponse) => {
-                    const statsData: UnitStatsData[] = [];
-
-                    responseData.unitStats.forEach((data) => {
-                        statsData.push({
-                            penetrationId: data.penetrationId,
-                            values: data.data
-                        });
-                    });
-
-                    this.statsData.set(value, statsData);
-                    this.setState({ selectedStat: value });
-                })
-                .catch((err: Error) => console.error(err));
-        } else {
-            this.setState({ selectedStat: value });
-        }
-    }
-
-    private handleStatSelectionChange(event: React.ChangeEvent<{name?: string; value: string}>): void {
-        const value = event.target.value;
-        this.fetchAndUpdateUnitStats(value);
-    }
-
     public get isBusy(): boolean {
         return this.state.progress < 1;
     }

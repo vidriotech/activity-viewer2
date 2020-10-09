@@ -248,7 +248,7 @@ def get_settings():
     if request.method == "POST":
         data = json.loads(request.data)
 
-        if "settings_path" in data:
+        if "settingsPath" in data:
             try:
                 state.settings = AVSettings.from_file(data["settings_path"])
             except Exception as e:
@@ -266,12 +266,10 @@ def get_slices():
     coordinate = request.args.get("coordinate", type=float, default=AP_MAX / 2)
 
     if slice_type == SliceType.CORONAL.value:
-        print("coronal")
         template_slice = state.get_coronal_template_slice(coordinate)
         annotation_rgb = state.get_coronal_annotation_rgb(coordinate)
         annotation_slice = state.get_coronal_annotation_slice(coordinate)
     elif slice_type == SliceType.SAGITTAL.value:
-        print("sagittal")
         template_slice = state.get_sagittal_template_slice(coordinate)
         annotation_rgb = state.get_sagittal_annotation_rgb(coordinate)
         annotation_slice = state.get_sagittal_annotation_slice(coordinate)

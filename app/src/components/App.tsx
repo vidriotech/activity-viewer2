@@ -50,6 +50,10 @@ const theme = createMuiTheme({
     }
 });
 
+export interface AppProps {
+    initialSettingsPath: string;
+}
+
 interface AppState {
     compartmentTree: CompartmentTree;
     constants: AVConstants;
@@ -67,11 +71,11 @@ interface AppState {
     ready: boolean;
 }
 
-export class App extends React.Component<{}, AppState> {
+export class App extends React.Component<AppProps, AppState> {
     private apiClient: APIClient;
     private penetrations: Map<string, Penetration>;
 
-    constructor(props: {}) {
+    constructor(props: AppProps) {
         super(props);
 
         this.state = {
@@ -221,8 +225,7 @@ export class App extends React.Component<{}, AppState> {
         let settings: AVSettings = null;
         let compartmentTree: CompartmentTree = null;
 
-        this.apiClient.fetchSettings()
-            .then((res) => res.data)
+        this.apiClient.setSettings(this.props.initialSettingsPath)
             .then((data: AVSettings) => {
                 settings = data;
 

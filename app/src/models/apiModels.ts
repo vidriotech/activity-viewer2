@@ -82,7 +82,7 @@ export interface UnitStatsValuesResponse {
  * Settings may be queried and updated from this endpoint.
  */
 export interface SettingsRequest {
-    settings_path: string;
+    settingsPath: string;
 }
 
 export interface Epoch {

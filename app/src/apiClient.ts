@@ -95,52 +95,20 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/slices?sliceType=${sliceType}&coordinate=${coordinate}`);
     }
 
-    async fetchTimeseries(penetrationId: string, timeseriesId: string): Promise<AxiosResponse<TimeseriesData>> {
-        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries/${timeseriesId}`);
-    }
-
-    async fetchPenetationTimeseries(timeseriesIds: string[], penetrationIds: string[] = [], page = 1, limit = 5): Promise<AxiosResponse<PenetrationTimeseriesResponse>> {
-        let uri = `${this.endpoint}/timeseries?timeseriesIds=${timeseriesIds.join(",")}&page=${page}&limit=${limit}`;
-
-        if (penetrationIds.length > 0) {
-            uri += `&penetrationIds=${penetrationIds.join(",")}`;
-        }
-
-        return await axios.get(uri);
-    }
-
-    async fetchTimeseriesList(penetrationId: string) {
-        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}/timeseries`);
-    }
-
-    async fetchTimeseriesById(timeseriesId: string): Promise<AxiosResponse<TimeseriesResponse>> {
-        return await axios.get(`${this.endpoint}/timeseries/${timeseriesId}`);
-    }
-
     async fetchTimeseriesSummary(timeseriesId: string): Promise<AxiosResponse<TimeseriesSummary>> {
         return await axios.get(`${this.endpoint}/timeseries/${timeseriesId}/summary`);
     }
 
-    async fetchUnitStatsById(statId: string): Promise<AxiosResponse<UnitStatsListResponse>> {
-        return await axios.get(`${this.endpoint}/unit-stats/${statId}`);
-    }
-
-    async setSettings(settingsPath: string) {
+    async setSettings(settingsPath: string): Promise<AVSettings> {
         const settingsReqData: SettingsRequest = {
-            // eslint-disable-next-line @typescript-eslint/camelcase
-            settings_path: settingsPath,
+            settingsPath: settingsPath,
         }
 
-        const settings = await axios({
+        return await axios({
             "method": "post",
             "url": `${this.endpoint}/settings`,
             "data": settingsReqData,
             "timeout": 5000
-        })
-        .catch((error: any) => {
-            console.error(error);
-        });
-
-        return settings;
+        }).then((res: AxiosResponse<AVSettings>) => res.data);
     }
 }
