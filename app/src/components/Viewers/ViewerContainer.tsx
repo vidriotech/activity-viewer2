@@ -563,9 +563,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const dataPanelHeader = (
             this.props.showDataPanel ?
                 null :
-                <Grid item
-                      justify="flex-start"
-                      xs={1}>
+                <Grid container item xs={1}
+                      justify="flex-start" >
                     <IconButton color="inherit"
                                 size="small"
                                 onClick={(): void => this.props.onExpand("l")}>
@@ -577,9 +576,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const physiologyPanelHeader = (
             this.props.showPhysPanel ?
                 null :
-                <Grid item
-                      justify="flex-end"
-                      xs={1}>
+                <Grid container item xs={1}
+                      justify="flex-end">
                     <IconButton color="inherit"
                                 size="small"
                                 onClick={(): void => this.props.onExpand("r")}>
@@ -589,9 +587,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         );
 
         const lockButton = (
-            <Grid item
-                  justify="flex-end"
-                  xs={1}>
+            <Grid container item xs={1}
+                  justify="flex-end" >
                 {
                     this.state.rotateLocked ?
                         <IconButton disabled={this.props.busy}
@@ -611,8 +608,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         );
 
         return (
-            <Grid container
-                  spacing={0}
+            <Grid container spacing={0}
                   style={{
                       backgroundColor: tab10Blue,
                       "borderLeft": "1px solid black",

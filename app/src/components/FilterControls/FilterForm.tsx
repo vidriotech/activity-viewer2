@@ -188,7 +188,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
                           disabled={disabled || this.props.busy}
                           id={id}
                           options={options}
-                          // getOptionLabel={(option: string): string => option}
                           filterSelectedOptions
                           onChange={(_evt, newValue: string): void => {
                               this.handleUpdatePropField(key, newValue);

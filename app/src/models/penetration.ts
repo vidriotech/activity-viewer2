@@ -97,6 +97,28 @@ export class Penetration implements PenetrationInterface {
         this.unitModels = unitModels;
     }
 
+    protected assignCompartments(unitIds: number[], compartments: Compartment[]): void {
+        unitIds.forEach((uid, idx) => {
+            const localIdx = _.sortedIndexOf(this.unitIds, uid);
+
+            if (localIdx > -1) {
+                this._compartments[localIdx] = compartments[idx];
+            }
+        });
+    }
+
+    protected assignCoordinates(unitIds: number[], coordinates: number[]): void {
+        unitIds.forEach((uid, idx) => {
+            const localIdx = _.sortedIndexOf(this.unitIds, uid);
+
+            if (localIdx > -1) {
+                this.coordinates[3  * localIdx] = coordinates[3 * idx];
+                this.coordinates[3 * localIdx + 1] = coordinates[3 * idx + 1];
+                this.coordinates[3 * localIdx + 2] = coordinates[3 * idx + 2];
+            }
+        });
+    }
+
     public static fromResponse(data: PenetrationInterface): Penetration {
         const p = new Penetration(data.id);
 
@@ -114,28 +136,6 @@ export class Penetration implements PenetrationInterface {
         });
 
         return p;
-    }
-
-    public assignCompartments(unitIds: number[], compartments: Compartment[]): void {
-        unitIds.forEach((uid, idx) => {
-            const localIdx = _.sortedIndexOf(this.unitIds, uid);
-
-            if (localIdx > -1) {
-                this._compartments[localIdx] = compartments[idx];
-            }
-        });
-    }
-
-    public assignCoordinates(unitIds: number[], coordinates: number[]): void {
-        unitIds.forEach((uid, idx) => {
-            const localIdx = _.sortedIndexOf(this.unitIds, uid);
-
-            if (localIdx > -1) {
-                this.coordinates[3  * localIdx] = coordinates[3 * idx];
-                this.coordinates[3 * localIdx + 1] = coordinates[3 * idx + 1];
-                this.coordinates[3 * localIdx + 2] = coordinates[3 * idx + 2];
-            }
-        });
     }
 
     public getCompartmentIds(selectedOnly = true): string[] {
@@ -293,7 +293,7 @@ export class Penetration implements PenetrationInterface {
     }
 
     public set unitIds(vals) {
-        this._unitIds = vals.slice().sort();
+        this._unitIds = vals.slice().sort((a, b) => a - b);
 
         // clear out unit-indexed values
         this._compartments = new Array<Compartment>(this.nUnits);

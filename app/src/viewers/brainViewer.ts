@@ -1,7 +1,6 @@
 import * as _ from "lodash";
 
 import {
-    BufferAttribute,
     BufferGeometry,
     Color,
     Float32BufferAttribute,
@@ -16,7 +15,6 @@ import {
     WebGLRenderer
 } from "three";
 
-// eslint-disable-next-line import/no-unresolved
 import {
     apiEndpoint,
     ballTexture,
@@ -26,6 +24,7 @@ import {
     defaultRadius, pointFragmentShader,
     pointVertexShader,
     SagittalMax, volumeCenterPoint
+    // eslint-disable-next-line import/no-unresolved
 } from "../constants";
 
 // eslint-disable-next-line import/no-unresolved
@@ -34,21 +33,21 @@ import {AestheticMapping} from "../models/aestheticMapping";
 import {Epoch} from "../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "../models/colorMap";
-
+// eslint-disable-next-line import/no-unresolved
+import {CompartmentNode} from "../models/compartmentTree";
 // eslint-disable-next-line import/no-unresolved
 import {SliceImageType, SliceType} from "../models/enums";
+// eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../models/penetration";
-import {TomographySlice} from "../models/tomographySlice";
 // eslint-disable-next-line import/no-unresolved
 import {SlicingPlanes} from "../models/slicingPlanes";
-import {CompartmentNode} from "../models/compartmentTree";
+// eslint-disable-next-line import/no-unresolved
+import {TomographySlice} from "../models/tomographySlice";
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const THREE = require("three");
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 require("three-obj-loader")(THREE);
-
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const OrbitControls = require("ndb-three-orbit-controls")(THREE);
 
@@ -74,7 +73,7 @@ export class BrainViewer {
     protected renderer: WebGLRenderer = null;
     protected scene: Scene = null;
     protected camera: PerspectiveCamera = null;
-    protected orbitControls: any = null;
+    protected orbitControls: typeof OrbitControls = null;
 
     protected lastTimestamp: number = null;
 
@@ -712,7 +711,7 @@ export class BrainViewer {
                     break;
             }
             geometry.attributes.position = new Float32BufferAttribute(position2, 3);
-            (geometry.attributes.position as BufferAttribute).needsUpdate = true;
+            (geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
         });
     }
 
@@ -726,7 +725,7 @@ export class BrainViewer {
             const geometry = points.geometry;
             const position3 = new Float32Array(penetration.getXYZ());
             geometry.setAttribute("position", new Float32BufferAttribute(position3, 3));
-            (geometry.attributes.position as BufferAttribute).needsUpdate = true;
+            (geometry.attributes.position as THREE.BufferAttribute).needsUpdate = true;
         });
     }
 
@@ -845,9 +844,11 @@ export class BrainViewer {
 
         loader.load(path, (obj: Object3D) => {
             const makeMaterial = (child: Mesh): void => {
-                child.material = new THREE.ShaderMaterial({
+                child.material = new ShaderMaterial({
                     uniforms: {
-                        color: {type: 'c', value: new THREE.Color(compartmentColor)},
+                        color: {
+                            value: new THREE.Color(compartmentColor)
+                        },
                     },
                     vertexShader: compartmentVertexShader,
                     fragmentShader: compartmentFragmentShader,
