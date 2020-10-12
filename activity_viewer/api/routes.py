@@ -250,7 +250,7 @@ def get_settings():
 
         if "settingsPath" in data:
             try:
-                state.settings = AVSettings.from_file(data["settings_path"])
+                state.settings = AVSettings.from_file(data["settingsPath"])
             except Exception as e:
                 app.logger.warning(f"Error: {e}. Using default settings.")
                 state.settings = make_default_settings()

@@ -98,21 +98,8 @@ def download(ctx: click.core.Context, force: bool):
 
 
 @cli.command()
-@click.argument("settings_file",
-                type=click.Path(exists=True, dir_okay=False),
-                nargs=1,
-                required=False)
-@click.pass_context
-def start_daemon(ctx: click.core.Context, settings_file: str):
+def start_daemon():
     """Start the `viewerd` daemon."""
-    settings_file = ctx.obj["settings_file"] if settings_file is None else settings_file
-
-    try:
-        state.settings = AVSettings.from_file(settings_file)
-    except Exception as e:
-        click.echo(f"Failed to load settings from file '{settings_file}': {e}. Using default settings.", err=True)
-        state.settings = make_default_settings()
-
     http_server = WSGIServer(("", 3030), app)
     http_server.serve_forever()
 

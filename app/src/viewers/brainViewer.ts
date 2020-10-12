@@ -866,8 +866,13 @@ export class BrainViewer {
             obj.position.set(x, y, z);
 
             this.loadedCompartments.add(name);
-            this.visibleCompartments.add(name);
+
             this.scene.add(obj);
+
+            // user can select and unselect before the compartment has a chance to load
+            if (!this.visibleCompartments.has(name)) {
+                obj.visible = false;
+            }
         });
     }
 
@@ -884,20 +889,19 @@ export class BrainViewer {
         // loading sets visible as a side effect
         const name = compartmentNode.name;
 
+        if (visible) {
+            this.visibleCompartments.add(name);
+        } else {
+            this.visibleCompartments.delete(name)
+        }
+
         if (visible && !this.loadedCompartments.has(name)) {
             this.loadCompartment(compartmentNode);
-        } else { // if not visible, don't bother loading, otherwise update an already-loaded compartment
-            const compartmentObj = this.scene.getObjectByName(name);
+        }
+        const compartmentObj = this.scene.getObjectByName(name);
 
-            if (compartmentObj) {
-                compartmentObj.visible = visible;
-
-                if (visible) {
-                    this.visibleCompartments.add(name);
-                } else {
-                    this.visibleCompartments.delete(name);
-                }
-            }
+        if (compartmentObj) {
+            compartmentObj.visible = visible;
         }
     }
 }

@@ -1,5 +1,3 @@
-import * as os from "os";
-
 import {BrowserWindow, app, dialog, ipcMain} from "electron";
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
@@ -28,7 +26,8 @@ const createWindow = (): void => {
     // require a settings file
     dialog.showOpenDialog({
         title: "Select settings file",
-        defaultPath: os.homedir(),
+        // defaultPath: os.homedir(),
+        defaultPath: __dirname,
         properties: ["openFile"]
     }).then((value) => {
         if (value.canceled) {
@@ -64,8 +63,6 @@ const createWindow = (): void => {
 };
 
 ipcMain.on("getSettings", (event, args) => {
-    console.log(event);
-    console.log(args);
     event.reply("getSettings", settingsPath);
 });
 
