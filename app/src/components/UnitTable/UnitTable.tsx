@@ -79,7 +79,7 @@ interface MuiVirtualizedTableProps extends WithStyles<typeof styles> {
 class MuiVirtualizedTable extends React.PureComponent<MuiVirtualizedTableProps> {
     static defaultProps = {
         headerHeight: 48,
-        rowHeight: 48,
+        rowHeight: 60,
     };
 
     getRowClassName = ({ index }: Row) => {
@@ -171,7 +171,6 @@ interface UnitData {
 
 export interface UnitTableProps {
     selectedPenetrations: Map<string, Penetration>;
-    busy: boolean;
 }
 
 export function UnitTable(props: UnitTableProps): React.ReactElement {
@@ -188,18 +187,13 @@ export function UnitTable(props: UnitTableProps): React.ReactElement {
                 id: k++,
                 penetrationId: penetrationId,
                 unitId: uid,
-                compartmentName: penetrationData.compartments[jdx].acronym,
+                compartmentName: penetrationData.compartments[jdx].name,
             });
         });
     });
 
     return (
-        <Container style={{ height: 500, width: '100%' }}>
-            <div>
-                <Typography gutterBottom>
-                    Export selected units to .npz.
-                </Typography>
-            </div>
+        <Container disableGutters style={{ height: 819, width: '100%' }}>
             <VirtualizedTable rowCount={rows.length}
                             rowGetter={({ index }) => rows[index]}
                             columns={[
@@ -215,7 +209,7 @@ export function UnitTable(props: UnitTableProps): React.ReactElement {
                                     numeric: true,
                                 },
                                 {
-                                    width: 120,
+                                    width: 200,
                                     label: 'Compartment',
                                     dataKey: 'compartmentName',
                                 },

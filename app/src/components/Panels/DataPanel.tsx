@@ -18,7 +18,7 @@ import {AVSettings, PenetrationData} from "../../models/apiModels";
 import {Penetration} from "../../models/penetration";
 
 // eslint-disable-next-line import/no-unresolved
-import {UnitTable2} from "../UnitTable/UnitTable2";
+import {UnitTable} from "../UnitTable/UnitTable";
 
 export interface DataPanelProps {
     selectedPenetrations: Map<string, Penetration>;
@@ -91,11 +91,8 @@ export class DataPanel extends React.Component<DataPanelProps, DataPanelState> {
                   item>
                 <Grid item xs={12}>{header}</Grid>
                 <Grid item xs={12}>
-                    <UnitTable2 selectedPenetrations={this.props.selectedPenetrations} />
+                    <UnitTable selectedPenetrations={this.props.selectedPenetrations} />
                 </Grid>
-                {/*<Grid item xs={12}>*/}
-                {/*    <CompartmentList {...compartmentListProps} />*/}
-                {/*</Grid>*/}
             </Grid>
         );
     }
