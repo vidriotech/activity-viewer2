@@ -1,31 +1,15 @@
-import os
 import os.path as op
-import shutil
 import setuptools
 
 readme = op.join(op.abspath(op.dirname(__file__)), "README.rst")
 with open(readme, "r") as fh:
     long_description = fh.read()
 
-binaries = []
-package_data = {}
-if op.exists("app/out/Activity Viewer-win32-x64"):
-    try:
-        shutil.copytree("app/out/Activity Viewer-win32-x64", "app_win")
-    except FileExistsError:
-        pass
-
-    binaries += ["app_win"]
-    package_data["app_win"] = []
-    for (root, _, filenames) in os.walk("app_win"):
-        for filename in filenames:
-            package_data["app_win"].append(op.join(root, filename))
-
 
 setuptools.setup(
     name="mesoscale_activity_viewer",
     version="0.1.0",
-    packages=setuptools.find_packages() + binaries,
+    packages=setuptools.find_packages(),
     url="https://github.com/vidriotech/activity-viewer2",
     license="MIT",
     author="Alan Liddell",
@@ -40,8 +24,8 @@ setuptools.setup(
     ],
     entry_points={
         "console_scripts": [
-            "viewer=activity_viewer.__main__:main",
-            "viewer-win=activity_viewer.win:main"
+            "viewerd=activity_viewer.__main__:main",
+            "viewer=activity_viewer.app:main"
         ]
     },
     python_requires=">=3.7, <4",
@@ -57,6 +41,5 @@ setuptools.setup(
         "numpy==1.18.5",
         "Pillow==7.2.0",
         "requests==2.24.0",
-    ],
-    package_data=package_data
+    ]
 )

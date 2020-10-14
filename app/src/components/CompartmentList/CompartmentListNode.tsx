@@ -23,6 +23,7 @@ export interface CompartmentListNodeProps {
     busy: boolean;
     compartmentNode: CompartmentNode;
     showChildren: boolean;
+    skipEmptyChildren: boolean;
     visibleCompartmentIds: Set<number>;
 
     onToggleCompartmentVisible(compartmentId: number): void;
@@ -59,21 +60,45 @@ export class CompartmentListNode extends React.Component<CompartmentListNodeProp
             return aName < bName ? -1 : 1;
         });
 
-        return children.map((node) => {
+        const compartments: React.ReactElement[] = [];
+        children.forEach((child) => {
+            if (this.props.skipEmptyChildren && child.nDescendentUnits() === 0) {
+                return;
+            }
+
             const props: CompartmentListNodeProps = {
                 busy: this.props.busy,
-                compartmentNode: node,
+                compartmentNode: child,
                 showChildren: this.props.showChildren,
+                skipEmptyChildren: this.props.skipEmptyChildren,
                 visibleCompartmentIds: this.props.visibleCompartmentIds,
                 onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
             }
 
-            return (
-                <ListItem dense key={`compartment-node-${node.id}`}>
+            compartments.push((
+                <ListItem dense key={`compartment-node-${child.id}`}>
                     <CompartmentListNode {...props} />
                 </ListItem>
-            );
+            ));
         });
+
+        return compartments;
+        // return children.map((child) => {
+        //     const props: CompartmentListNodeProps = {
+        //         busy: this.props.busy,
+        //         compartmentNode: child,
+        //         showChildren: this.props.showChildren,
+        //         skipEmptyChildren: this.props.skipEmptyChildren,
+        //         visibleCompartmentIds: this.props.visibleCompartmentIds,
+        //         onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
+        //     }
+        //
+        //     return (
+        //         <ListItem dense key={`compartment-node-${child.id}`}>
+        //             <CompartmentListNode {...props} />
+        //         </ListItem>
+        //     );
+        // });
     }
 
     public render(): React.ReactElement {

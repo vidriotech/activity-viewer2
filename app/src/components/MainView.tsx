@@ -21,7 +21,7 @@ import {CompartmentList, CompartmentListProps} from './CompartmentList/Compartme
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesMappers, TimeseriesMappersProps} from './TimeseriesControls/TimeseriesMappers';
 // eslint-disable-next-line import/no-unresolved
-import {ViewerContainer, ViewerContainerProps} from './Viewers/ViewerContainer';
+import {ViewerContainer, ViewerContainerProps} from './ViewerContainer/ViewerContainer';
 // eslint-disable-next-line import/no-unresolved
 import {UnitTable, UnitTableProps} from './UnitTable/UnitTable';
 // eslint-disable-next-line import/no-unresolved
@@ -83,9 +83,8 @@ export interface MainViewProps {
 interface MainViewState {
     availablePenetrations: PenetrationData[];
     filterPredicate: Predicate;
-    progress: number;
-    progressMessage: string;
-    selectedStat: string;
+
+    componentIsBusy: boolean;
 
     compartmentListHidden: boolean;
     unitTableHidden: boolean;
@@ -103,7 +102,7 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
     private statsData: Map<string, UnitStatsData[]>;
     private timeseriesData: Map<string, TimeseriesData[]>;
     private timeseriesSummaries: Map<string, TimeseriesSummary>;
-    // private workers: MapperWorker[];
+    private busyMessages: Map<string, string>; // ComponentName => busy message
 
     constructor(props: MainViewProps) {
         super(props);
@@ -111,12 +110,9 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.state = {
             availablePenetrations: [],
 
-            selectedStat: "nothing",
-
             filterPredicate: null,
 
-            progress: 1,
-            progressMessage: "Ready.",
+            componentIsBusy: false,
 
             compartmentListHidden: false,
             unitTableHidden: false,
@@ -133,23 +129,10 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.statsData = new Map<string, UnitStatsData[]>();
         this.timeseriesData = new Map<string, TimeseriesData[]>();
         this.timeseriesSummaries = new Map<string, TimeseriesSummary>();
-
-        // this.workers = [];
-        // for (let i = 0; i < 4; i++) {
-        //     const worker = new MapperWorker();
-        //     worker.onmessage = this.onMapperMessage.bind(this);
-        //     this.workers.push(worker);
-        // }
+        this.busyMessages = new Map<string, string>();
     }
 
-    public get isBusy(): boolean {
-        return this.state.progress < 1;
-    }
-
-    public componentDidUpdate(
-        prevProps: Readonly<MainViewProps>,
-        prevState: Readonly<MainViewState>
-    ): void {
+    public componentDidUpdate(prevProps: Readonly<MainViewProps>): void {
         if (prevProps.loadedPenetrations !== this.props.loadedPenetrations) {
             this.setState({dialogOpen: true});
         }
@@ -157,12 +140,10 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
 
     public render(): React.ReactNode {
         const queryPanelProps: QueryPanelProps = {
-            busy: this.isBusy,
             compartmentTree: this.props.compartmentTree,
 
             selectedPenetrations: this.props.selectedPenetrations,
             availableStats: this.props.availableStats,
-
             filterPredicate: this.props.filterPredicate,
 
             onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
@@ -176,15 +157,8 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             availableTimeseries: this.props.availableTimeseries,
             selectedPenetrations: this.props.selectedPenetrations,
 
-            busy: this.isBusy,
-            progress: this.state.progress,
-            progressMessage: this.state.progressMessage,
-
             onRequestUnitExport: this.props.onRequestUnitExport,
             onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
-            onUpdateProgress: (progress: number, progressMessage: string): void => {
-                this.setState({progress, progressMessage})
-            }
         };
 
         return (

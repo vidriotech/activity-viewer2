@@ -14,6 +14,21 @@ import {CompartmentNode, CompartmentTree} from "../../models/compartmentTree";
 // eslint-disable-next-line import/no-unresolved
 import { CompartmentListNode, CompartmentListNodeProps } from './CompartmentListNode';
 import ListItem from "@material-ui/core/ListItem";
+import {tab10Blue, tab10Orange} from "../../styles";
+import Typography from "@material-ui/core/Typography";
+import Grid from "@material-ui/core/Grid";
+import Switch from "@material-ui/core/Switch";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import FormControl from "@material-ui/core/FormControl";
+import FormLabel from "@material-ui/core/FormLabel";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import Radio from "@material-ui/core/Radio";
+
+enum SubsetSelection {
+    ALL,
+    SELECTED,
+    NONEMPTY
+}
 
 export interface CompartmentListProps {
     busy: boolean;
@@ -27,7 +42,7 @@ export interface CompartmentListProps {
 
 interface CompartmentListState {
     filteredCompartmentIds: number[];
-    showSelectedOnly: boolean;
+    subsetSelection: SubsetSelection;
 }
 
 export class CompartmentList extends React.Component<CompartmentListProps, CompartmentListState> {
@@ -36,7 +51,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
 
         this.state = {
             filteredCompartmentIds: [],
-            showSelectedOnly: false,
+            subsetSelection: SubsetSelection.ALL,
         };
     }
 
@@ -48,6 +63,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
                 busy: this.props.busy,
                 compartmentNode: node,
                 showChildren: false,
+                skipEmptyChildren: false,
                 visibleCompartmentIds: this.props.visibleCompartmentIds,
                 onToggleCompartmentVisible: this.props.onToggleCompartmentVisible
             };
@@ -64,21 +80,88 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
         return this.renderCompartmentsFromIdList(this.state.filteredCompartmentIds);
     }
 
+    private renderHeader(): React.ReactElement {
+        return (
+            <Container disableGutters>
+                <Typography component="h5"
+                            variant="body1"
+                            align="center">
+                    Compartment Selection
+                </Typography>
+                <FormControl fullWidth component="fieldset">
+                    {/*<FormLabel component="legend">Subset selection</FormLabel>*/}
+                    <RadioGroup row aria-label="subset" name="subset"
+                                value={this.state.subsetSelection}
+                                onChange={
+                                    (event): void => {
+                                        this.setState({subsetSelection: Number(event.target.value) as SubsetSelection})
+                                    }} >
+                        <FormControlLabel
+                            value={SubsetSelection.ALL}
+                            control={<Radio color="default" />}
+                            label="Show all"
+                            labelPlacement="bottom"
+                        />
+                        <FormControlLabel
+                            value={SubsetSelection.SELECTED}
+                            control={<Radio color="default" />}
+                            label="Show selected"
+                            labelPlacement="bottom"
+                        />
+                        <FormControlLabel
+                            value={SubsetSelection.NONEMPTY}
+                            control={<Radio color="default" />}
+                            label="Show nonempty"
+                            labelPlacement="bottom"
+                        />
+                    </RadioGroup>
+                </FormControl>
+            </Container>
+        );
+    }
+
+    private renderNonemptyCompartments(): React.ReactElement[] {
+        const compartments: React.ReactElement[] = [];
+        for (const node of this.props.compartmentTree.getAllCompartmentNodes()) {
+            if (node.nDescendentUnits() > 0) {
+                const props: CompartmentListNodeProps = {
+                    busy: this.props.busy,
+                    compartmentNode: node,
+                    showChildren: false,
+                    skipEmptyChildren: false,
+                    visibleCompartmentIds: this.props.visibleCompartmentIds,
+                    onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
+                };
+
+                compartments.push((
+                    <ListItem dense key={`compartment-node-filtered-${node.id}`}>
+                        <CompartmentListNode {...props} />
+                    </ListItem>
+                ));
+            }
+        }
+
+        return compartments;
+    }
+
     private renderSelectedCompartments(): React.ReactElement[] {
         return this.renderCompartmentsFromIdList(Array.from(this.props.visibleCompartmentIds));
     }
 
     public render(): React.ReactElement {
-        // fill children of list depending on state of filter text
+        // fill children of list depending on state of filter text or subset selection
         let listChildren;
         if (this.state.filteredCompartmentIds.length > 0) {
             listChildren = this.renderFilteredCompartments();
+        } else if (this.state.subsetSelection === SubsetSelection.SELECTED) {
+            listChildren = this.renderSelectedCompartments();
         } else {
             const rootNode = this.props.compartmentTree.getCompartmentNodeByName("root")
             const rootNodeProps: CompartmentListNodeProps = {
                 busy: this.props.busy,
                 compartmentNode: rootNode,
                 showChildren: true,
+                skipEmptyChildren: this.state.subsetSelection === SubsetSelection.NONEMPTY,
                 visibleCompartmentIds: this.props.visibleCompartmentIds,
                 onToggleCompartmentVisible: this.props.onToggleCompartmentVisible,
             };
@@ -92,6 +175,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
 
         return (
             <Container disableGutters>
+                {this.renderHeader()}
                 <Autocomplete multiple
                               size="small"
                               disabled={this.props.busy}

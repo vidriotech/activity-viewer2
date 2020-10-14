@@ -28,7 +28,7 @@ import {
 } from "../constants";
 
 // eslint-disable-next-line import/no-unresolved
-import {AestheticMapping} from "../models/aestheticMapping";
+import {AestheticMapping, ColorMapping} from "../models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
 import {Epoch} from "../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
@@ -117,6 +117,34 @@ export class BrainViewer {
         if (this.flip) {
             this.camera.up.setY(-1);
         }
+    }
+
+    protected initColorGradient(mapping: ColorMapping): void {
+        const labelWidth = 40;
+        const fontSize = 28;
+
+        const root = new THREE.Object3D();
+        const labelBaseScale = 0.01;
+
+        const canvas = this.makeColorCanvas(1280, labelWidth, fontSize, mapping);
+        const texture = new THREE.CanvasTexture(canvas);
+
+        texture.minFilter = THREE.LinearFilter;
+        texture.wrapS = THREE.ClampToEdgeWrapping;
+        texture.wrapT = THREE.ClampToEdgeWrapping;
+
+        const labelMaterial = new THREE.SpriteMaterial({
+            map: texture,
+            transparent: true,
+        });
+        const labels = new THREE.Sprite(labelMaterial);
+        root.add(labels);
+
+        labels.scale.x = canvas.width * labelBaseScale;
+        labels.scale.y = canvas.height * labelBaseScale;
+
+        this.camera.add(root);
+        root.position.set(5, 0, -10);
     }
 
     protected initEpochLabels(): void {
@@ -392,21 +420,45 @@ export class BrainViewer {
         return material;
     }
 
-    protected makeLabelCanvas(baseWidth: number, fontSize: number, epochs: Epoch[]): HTMLCanvasElement {
-        const borderSize = 2;
-        const ctx = document.createElement('canvas').getContext('2d');
-        const font = `${fontSize}px sans-serif`;
-        ctx.font = font;
-        // measure how long the name will be
-        const textWidth = ctx.measureText(name).width;
+    protected makeColorCanvas(height: number, width: number, fontSize: number, mapping: ColorMapping): HTMLCanvasElement {
+        const ctx = document.createElement("canvas").getContext('2d');
 
-        const doubleBorderSize = borderSize * 2;
-        const width = baseWidth + doubleBorderSize;
-        const height = fontSize + doubleBorderSize;
+        ctx.font = `${fontSize}px sans-serif`;
         ctx.canvas.width = width;
         ctx.canvas.height = height;
 
-        // need to set font again after resizing canvas
+        if (!mapping) {
+            const colorLUT = colorMaps.get("nothing");
+            const [r, g, b] = colorLUT.mapping.slice(0, 3);
+            ctx.fillStyle = `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+            ctx.fillRect(0, 0, width, height);
+        } else {
+            const [domainStart, domainStop] = mapping.transformParams.domainBounds;
+            const [targetStart, targetStop] = mapping.transformParams.targetBounds;
+            const colorLUT = mapping.colorLUT;
+            const nSteps = Math.ceil(targetStop * 255) - Math.floor(targetStart * 255);
+
+            for (let i = Math.floor(targetStart * 255); i < Math.ceil(targetStop * 255); i++) {
+                const idx = i - Math.floor(targetStart * 255);
+                const startY = height - (idx + 1) * height / nSteps;
+
+                const [r, g, b] = colorLUT.mapping.slice(3 * i, 3 * (i + 1));
+                ctx.fillStyle = `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
+                ctx.fillRect(0, startY, width, height / nSteps);
+            }
+        }
+
+        return ctx.canvas;
+    }
+
+    protected makeLabelCanvas(baseWidth: number, fontSize: number, epochs: Epoch[]): HTMLCanvasElement {
+        const ctx = document.createElement('canvas').getContext('2d');
+        const font = `${fontSize}px sans-serif`;
+
+        const width = baseWidth + 5;
+        const height = fontSize + 10;
+        ctx.canvas.width = width;
+        ctx.canvas.height = height;
         ctx.font = font;
         ctx.textBaseline = 'middle';
         ctx.textAlign = 'center';
@@ -428,7 +480,7 @@ export class BrainViewer {
         });
 
         // scale to fit but don't stretch
-        const scaleFactor = Math.min(1, baseWidth / textWidth);
+        const scaleFactor = Math.min(1, baseWidth);
         ctx.translate(width / 2, height / 2);
         ctx.scale(scaleFactor, 1);
 
@@ -544,7 +596,9 @@ export class BrainViewer {
         });
     }
 
-    public setAestheticAssignment(mapping: AestheticMapping): void {
+    public setAestheticAssignment(mapping: AestheticMapping, callback: Function): void {
+        this.initColorGradient(mapping.color);
+
         this.loadedPenetrationsMap.forEach((penetration, penetrationId) => {
             const pointObj = this.penetrationPointsMap.get(penetrationId);
             if (!pointObj) {
@@ -563,8 +617,11 @@ export class BrainViewer {
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
                             this.updatePenetrationAttributes(penetrationId, true);
+                            callback();
                         }
                     });
+            } else {
+                callback();
             }
 
             if (mapping.opacity) {
@@ -576,8 +633,11 @@ export class BrainViewer {
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
                             this.updatePenetrationAttributes(penetrationId, true);
+                            callback();
                         }
                     });
+            } else {
+                callback();
             }
 
             if (mapping.radius) {
@@ -589,8 +649,11 @@ export class BrainViewer {
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
                             this.updatePenetrationAttributes(penetrationId, true);
+                            callback();
                         }
                     });
+            } else {
+                callback();
             }
         });
     }

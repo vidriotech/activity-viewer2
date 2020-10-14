@@ -5,6 +5,25 @@ import numpy as np
 from PIL import Image
 
 
+def slice_to_image(slice_data: np.ndarray, annotation: np.ndarray, rotate: int) -> Image:
+    if rotate != 0:
+        slice_data = np.rot90(slice_data, rotate)
+        annotation = np.rot90(annotation, rotate)
+
+    alpha_channel = (255 * (annotation != 0)).astype(np.uint8)
+    slice_alpha = np.concatenate(
+        (slice_data, alpha_channel[:, :, np.newaxis]),
+        axis=2
+    )
+
+    if slice_alpha.shape[2] == 4:
+        mode = "RGBA"
+    else:
+        mode = "LA"
+
+    return Image.fromarray(slice_alpha, mode=mode)
+
+
 def slice_to_data_uri(slice_data: np.ndarray, annotation: np.ndarray, rotate: int) -> str:
     """Convert an RGB or grayscale array to a PNG data URI.
 
@@ -22,22 +41,7 @@ def slice_to_data_uri(slice_data: np.ndarray, annotation: np.ndarray, rotate: in
     data_uri: str
         Base64-encoded PNG image with transparency.
     """
-    if rotate != 0:
-        slice_data = np.rot90(slice_data, rotate)
-        annotation = np.rot90(annotation, rotate)
-
-    alpha_channel = (255 * (annotation != 0)).astype(np.uint8)
-    slice_alpha = np.concatenate(
-        (slice_data, alpha_channel[:, :, np.newaxis]),
-        axis=2
-    )
-
-    if slice_alpha.shape[2] == 4:
-        mode = "RGBA"
-    else:
-        mode = "LA"
-
-    img = Image.fromarray(slice_alpha, mode=mode)
+    img = slice_to_image(slice_data, annotation, rotate)
 
     # convert image to PNG
     img_io = BytesIO()

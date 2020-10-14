@@ -262,7 +262,7 @@ def get_settings():
 def get_slices():
     rotate = 0
 
-    slice_type = request.args.get("sliceType", type=int, default=SliceType.CORONAL)
+    slice_type = request.args.get("sliceType", type=int, default=SliceType.CORONAL.value)
     coordinate = request.args.get("coordinate", type=float, default=AP_MAX / 2)
 
     if slice_type == SliceType.CORONAL.value:
@@ -274,7 +274,6 @@ def get_slices():
         annotation_rgb = state.get_sagittal_annotation_rgb(coordinate)
         annotation_slice = state.get_sagittal_annotation_slice(coordinate)
         rotate = 1
-        slice_type = 1
     else:
         template_slice = annotation_rgb = annotation_slice = None
 

@@ -4,7 +4,6 @@ import Grid from '@material-ui/core/Grid';
 import IconButton from '@material-ui/core/IconButton';
 import Input from '@material-ui/core/Input';
 import Slider from '@material-ui/core/Slider';
-import TextField from '@material-ui/core/TextField';
 import Typography from '@material-ui/core/Typography';
 import { createStyles, Theme, makeStyles } from '@material-ui/core/styles';
 
@@ -68,7 +67,6 @@ export function PlayerSlider(props: PlayerSliderProps): React.ReactElement {
     }
 
     const disabled = props.busy || (marks.length === 1);
-
     const playPauseButton = (
         <IconButton size='small'
                     className={classes.margin}

@@ -14,12 +14,10 @@ import {PredicateList, PredicateListProps} from "../FilterControls/PredicateList
 import {CompartmentTree} from "../../models/compartmentTree";
 
 export interface QueryPanelProps {
-    busy: boolean;
     compartmentTree: CompartmentTree;
 
     selectedPenetrations: Map<string, Penetration>;
     availableStats: Set<string>;
-
     filterPredicate: Predicate;
 
     onUpdateFilterPredicate(predicate: Predicate): void;
@@ -27,20 +25,17 @@ export interface QueryPanelProps {
 
 export function QueryPanel(props: QueryPanelProps): React.ReactElement {
     const filterFormProps: FilterFormProps = {
-        busy: props.busy,
-
         compartmentTree: props.compartmentTree,
         selectedPenetrations: props.selectedPenetrations,
         availableStats: props.availableStats,
-
         filterPredicate: props.filterPredicate,
+
         onUpdateFilterPredicate: props.onUpdateFilterPredicate,
     };
 
     const predicateListProps: PredicateListProps = {
-        busy: props.busy,
-
         filterPredicate: props.filterPredicate,
+
         onUpdateFilterPredicate: props.onUpdateFilterPredicate,
     };
 

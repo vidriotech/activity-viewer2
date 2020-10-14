@@ -1,3 +1,5 @@
+import {homedir} from "os";
+
 import {BrowserWindow, app, dialog, ipcMain} from "electron";
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
@@ -26,8 +28,7 @@ const createWindow = (): void => {
     // require a settings file
     dialog.showOpenDialog({
         title: "Select settings file",
-        // defaultPath: os.homedir(),
-        defaultPath: __dirname,
+        defaultPath: homedir(),
         properties: ["openFile"]
     }).then((value) => {
         if (value.canceled) {

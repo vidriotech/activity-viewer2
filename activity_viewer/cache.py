@@ -118,8 +118,8 @@ class Cache:
 
     def load_template_volume(self) -> np.ndarray:
         """Load template volume from cache."""
-        if not self.template_volume_exists():
-            self.save_template_volume()
+        if self._template_volume is not None:
+            return self._template_volume
 
         try:
             self._template_volume, self._template_header = nrrd.read(self.template_volume_path)

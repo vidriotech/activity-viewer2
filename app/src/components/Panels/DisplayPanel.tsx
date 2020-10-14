@@ -12,9 +12,7 @@ import {AVSettings} from "../../models/apiModels";
 import {Predicate, PropIneqPredicate} from "../../models/predicates";
 
 // eslint-disable-next-line import/no-unresolved
-// eslint-disable-next-line import/no-unresolved
-// eslint-disable-next-line import/no-unresolved
-import {ViewerContainer, ViewerContainerProps} from "../Viewers/ViewerContainer";
+import {ViewerContainer, ViewerContainerProps} from "../ViewerContainer/ViewerContainer";
 // eslint-disable-next-line import/no-unresolved
 // eslint-disable-next-line import/no-unresolved
 import {PhysiologyPanel, PhysiologyPanelProps} from "./PhysiologyPanel";
@@ -24,6 +22,7 @@ import {DataPanel, DataPanelProps} from "./DataPanel";
 import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved
 import {SliceType} from "../../models/enums";
+// eslint-disable-next-line import/no-unresolved
 import {CompartmentTree} from "../../models/compartmentTree";
 
 export interface DisplayPanelProps {
@@ -34,18 +33,16 @@ export interface DisplayPanelProps {
     availableTimeseries: Set<string>;
     selectedPenetrations: Map<string, Penetration>;
 
-    busy: boolean;
-    progress: number;
-    progressMessage: string;
-
     onRequestUnitExport(): void;
     onUpdateFilterPredicate(predicate: Predicate, newStat?: string): void;
-    onUpdateProgress(progress: number, progressMessage: string): void;
 }
 
 interface DisplayPanelState {
     showDataPanel: boolean;
     showPhysPanel: boolean;
+
+    progress: number;
+    progressMessage: string;
 
     visibleCompartmentIds: Set<number>;
 
@@ -66,6 +63,9 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         this.state = {
             showDataPanel: true,
             showPhysPanel: true,
+
+            progress: 1,
+            progressMessage: "Ready.",
 
             visibleCompartmentIds: new Set<number>([this.props.compartmentTree.getCompartmentNodeByName("root").id]),
 
@@ -107,13 +107,17 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         this.setState({visibleCompartmentIds});
     }
 
+    private isBusy(): boolean {
+        return this.state.progress < 1;
+    }
+
     public render(): React.ReactElement {
         const dataPanelProps: DataPanelProps = {
             selectedPenetrations: this.props.selectedPenetrations,
             constants: this.props.constants,
             settings: this.props.settings,
 
-            busy: this.props.busy,
+            busy: this.isBusy(),
 
             onCollapse: () => {this.setState({showDataPanel: false})},
             onRequestUnitExport: this.props.onRequestUnitExport,
@@ -128,9 +132,9 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             selectedPenetrations: this.props.selectedPenetrations,
             visibleCompartmentIds: this.state.visibleCompartmentIds,
 
-            busy: this.props.busy,
-            progress: this.props.progress,
-            progressMessage: this.props.progressMessage,
+            busy: this.isBusy(),
+            progress: this.state.progress,
+            progressMessage: this.state.progressMessage,
 
             showDataPanel: this.state.showDataPanel,
             showPhysPanel: this.state.showPhysPanel,
@@ -152,7 +156,9 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
                 }
             },
             onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
-            onUpdateProgress: this.props.onUpdateProgress,
+            onUpdateProgress: (progress: number, progressMessage: string): void => {
+                this.setState({progress, progressMessage})
+            }
         };
 
         const physiologyPanelProps: PhysiologyPanelProps = {
@@ -160,7 +166,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             constants: this.props.constants,
             settings: this.props.settings,
 
-            busy: this.props.busy,
+            busy: this.isBusy(),
 
             selectedPenetrations: this.props.selectedPenetrations,
             visibleCompartmentIds: this.state.visibleCompartmentIds,

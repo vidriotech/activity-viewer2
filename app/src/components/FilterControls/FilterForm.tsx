@@ -27,12 +27,10 @@ import {StatsHistogramProps} from "./StatsHistogram";
 import {CompartmentTree} from "../../models/compartmentTree";
 
 export interface FilterFormProps {
-    busy: boolean;
     compartmentTree: CompartmentTree;
 
     selectedPenetrations: Map<string, Penetration>;
     availableStats: Set<string>;
-
     filterPredicate: Predicate;
 
     onUpdateFilterPredicate(predicate: Predicate): void;
@@ -185,7 +183,7 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
 
         return (
             <Autocomplete size="small"
-                          disabled={disabled || this.props.busy}
+                          disabled={disabled}
                           id={id}
                           options={options}
                           filterSelectedOptions
@@ -207,7 +205,7 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
 
     private renderFilterButton(): React.ReactElement {
         const disabled = (
-            this.props.busy || this.state.loadProgress < 1 || (
+            this.state.loadProgress < 1 || (
                 this.state.strEqualsValue === "" &&
                 this.state.strNotEqualsValue === "" &&
                 this.state.strSubsetEqualsValue === "" && (
@@ -272,7 +270,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
                        type="number"
                        size="small"
                        value={this.state[key]}
-                       disabled={this.props.busy}
                        onChange={(evt) => {
                            const newState = {
                                statLowerBound: this.state.statLowerBound,
@@ -331,7 +328,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         let formChildren = [
             <FormControl>
                 <Select autoWidth
-                        disabled={this.props.busy}
                         variant="outlined"
                         labelId="filter-form-select-label"
                         id="filter-form-select"

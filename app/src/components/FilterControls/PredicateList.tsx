@@ -12,7 +12,6 @@ import { Predicate, PredicateChain, ANDPredicateChain, ORPredicateChain } from "
 import { PredicateListNode } from './PredicateListNode';
 
 export interface PredicateListProps {
-    busy: boolean;
     filterPredicate: Predicate;
 
     onUpdateFilterPredicate(predicate: Predicate): void;
@@ -59,7 +58,7 @@ export class PredicateList extends React.Component<PredicateListProps, {}> {
 
             const predicate = deleteSubpredicate(
                 this.props.filterPredicate as PredicateChain,
-                _.clone(indexChain)
+                indexChain.slice()
             );
 
             this.props.onUpdateFilterPredicate(predicate);
@@ -68,7 +67,8 @@ export class PredicateList extends React.Component<PredicateListProps, {}> {
 
     public render(): React.ReactElement {
         const predicateString = this.props.filterPredicate === null ?
-            '' : this.props.filterPredicate.toString();
+            "" :
+            this.props.filterPredicate.toString();
 
         return (
             <Container disableGutters>

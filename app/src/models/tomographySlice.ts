@@ -28,9 +28,6 @@ export class TomographySlice {
     protected annotationImage: string;
     protected templateImage: string;
 
-    protected pixelAnnotations: number[];
-
-    protected stride: number;
     protected _coordinate: number;
 
     public _imageType: SliceImageType;
@@ -116,8 +113,6 @@ export class TomographySlice {
 
         s.annotationImage = sliceData.annotationImage;
         s.templateImage = sliceData.templateImage;
-        s.pixelAnnotations = sliceData.annotationSlice;
-        s.stride = sliceData.stride;
         s._coordinate = sliceData.coordinate;
         s._imageType = SliceImageType.ANNOTATION;
 

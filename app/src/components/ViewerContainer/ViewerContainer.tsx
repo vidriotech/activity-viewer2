@@ -120,13 +120,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     private viewer: BrainViewer = null;
 
     private tsSummaries: Map<string, TimeseriesSummary>;
-    private tsData: Map<string, TimeseriesData[]>;
-
-    private colorMappings: Map<string, ColorMapping>;
-    private opacityMappings: Map<string, ScalarMapping>;
-    private radiusMappings: Map<string, ScalarMapping>;
-
-    private colorLUTs: Map<string, ColorLUT>;
+    private progress = 1;
 
     constructor(props: ViewerContainerProps) {
         super(props);
@@ -176,14 +170,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         this.recordedBlobs = [];
 
         this.tsSummaries = new Map<string, TimeseriesSummary>();
-        this.tsData = new Map<string, TimeseriesData[]>();
-
-        this.colorLUTs = new Map<string, ColorLUT>();
-        this.colorLUTs.set("nothing", this.props.constants.defaultColorLUT);
-
-        this.colorMappings = new Map<string, ColorMapping>();
-        this.opacityMappings = new Map<string, ScalarMapping>();
-        this.radiusMappings = new Map<string, ScalarMapping>();
     }
 
     private animate(): void {
@@ -339,6 +325,15 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             });
     }
 
+    private onFetchSuccessful(increment: number): void {
+        this.progress += increment;
+        const message = this.progress < 1 ?
+            `Loading timeseries... ${Math.round(100 * this.progress)}%` :
+            "Ready."
+
+        this.props.onUpdateProgress(this.progress, message);
+    }
+
     private propagateAestheticCommit(): void {
         this.fetchTimeseriesSummary(this.state.colorTimeseries)
             .then(() => this.fetchTimeseriesSummary(this.state.opacityTimeseries))
@@ -387,41 +382,30 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                     timeMin,
                     timeMax,
                     timeStep: timeStep,
-                    timeVal: timeMin
+                    timeVal: timeMin,
                 }, () => {
                     if (this.viewer) {
+                        this.progress = 0;
+                        this.props.onUpdateProgress(0, "Loading timeseries...");
+
                         this.viewer.setTime(this.state.timeMin, this.state.timeMax, this.state.timeStep, this.state.timeVal);
                         this.viewer.clearAestheticAssignments();
+
+                        const increment = 1 / (3 * this.props.selectedPenetrations.size);
 
                         if (this.state.colorTimeseries !== "nothing") {
                             const summary = this.tsSummaries.get(this.state.colorTimeseries);
 
-                            if (this.state.colorMapping !== "nothing") {
-                                const colorLUT = colorMaps.get(this.state.colorMapping);
-                                mapping.color = {
-                                    timeseriesId: this.state.colorTimeseries,
-                                    transformParams: {
-                                        domainBounds: [summary.minVal, summary.maxVal],
-                                        targetBounds: this.state.colorBounds,
-                                        gamma: this.state.colorGamma,
-                                    },
-                                    colorLUT: colorLUT ? colorLUT : null
-                                };
-
-                                this.viewer.setAestheticAssignment(mapping);
-                            } else {
-                                mapping.color = {
-                                    timeseriesId: this.state.colorTimeseries,
-                                    transformParams: {
-                                        domainBounds: [summary.minVal, summary.maxVal],
-                                        targetBounds: this.state.colorBounds,
-                                        gamma: this.state.colorGamma,
-                                    },
-                                    colorLUT: null
-                                };
-
-                                this.viewer.setAestheticAssignment(mapping);
-                            }
+                            const colorLUT = colorMaps.get(this.state.colorMapping);
+                            mapping.color = {
+                                timeseriesId: this.state.colorTimeseries,
+                                transformParams: {
+                                    domainBounds: [summary.minVal, summary.maxVal],
+                                    targetBounds: this.state.colorBounds,
+                                    gamma: this.state.colorGamma,
+                                },
+                                colorLUT: colorLUT ? colorLUT : null
+                            };
                         }
 
                         if (this.state.opacityTimeseries !== "nothing") {
@@ -434,8 +418,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                                     gamma: this.state.opacityGamma,
                                 }
                             };
-
-                            this.viewer.setAestheticAssignment(mapping);
                         }
 
                         if (this.state.radiusTimeseries !== "nothing") {
@@ -449,8 +431,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                                 }
                             };
 
-                            this.viewer.setAestheticAssignment(mapping);
                         }
+
+                        this.viewer.setAestheticAssignment(mapping, () => this.onFetchSuccessful(increment));
                     }
                 });
             })
@@ -623,22 +606,19 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                 {dataPanelHeader}
                 <Grid container item xs
                       justify="flex-start">
-                    {this.props.progress < 1 ?
+                    {this.props.busy ?
                         <Grid item xs={1}>
                             <CircularProgress color="secondary"
                                               variant="indeterminate"
-                                              value={100 * this.props.progress}
                                               size={20} />
 
                         </Grid> : null
                     }
-                    {this.props.progress < 1 ?
-                        <Grid item xs>
-                            <Typography align="left" gutterBottom>
-                                {this.props.progressMessage}
-                            </Typography>
-                        </Grid> : null
-                    }
+                    <Grid item xs>
+                        <Typography align="left" gutterBottom>
+                            {this.props.progressMessage}
+                        </Typography>
+                    </Grid>
                 </Grid>
                 {lockButton}
                 {physiologyPanelHeader}
