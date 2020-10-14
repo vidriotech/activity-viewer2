@@ -12,6 +12,7 @@ import FormControlLabel from "@material-ui/core/FormControlLabel";
 
 export interface SliceSelectorProps {
     busy: boolean;
+    disableSlider: boolean;
 
     sliceType: SliceType;
 
@@ -64,7 +65,7 @@ export function SliceSelector(props: SliceSelectorProps): React.ReactElement {
                         max={props.sliderLimits[1]}
                         marks={sliderMarks}
                         value={props.sliderValues}
-                        disabled={props.busy || !props.checked}
+                        disabled={props.busy || props.disableSlider || !props.checked}
                         onChange={(_e, values: [number, number]) => {
                             props.onUpdateSlider(values);
                         }} />

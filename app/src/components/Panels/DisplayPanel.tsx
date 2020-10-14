@@ -107,6 +107,10 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         this.setState({visibleCompartmentIds});
     }
 
+    private handleUnselectSliceType() {
+
+    }
+
     private isBusy(): boolean {
         return this.state.progress < 1;
     }
@@ -171,6 +175,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             selectedPenetrations: this.props.selectedPenetrations,
             visibleCompartmentIds: this.state.visibleCompartmentIds,
 
+            showTomographySlice: this.state.showTomographySlice,
             showTomographyAnnotation: this.state.showTomographyAnnotation,
             showTestSlice: this.state.showTestSlice,
             testSliceBounds: this.state.testSliceBounds,
@@ -188,7 +193,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
                 });
             },
             onUnselectSliceType: () => {
-                this.setState({showTestSlice: false, showTomographySlice: false});
+                this.setState({showTestSlice: false, showTomographySlice: false})
             },
             onUpdateTestSliceBounds: (testSliceBounds: [number, number]): void => {
                 this.setState({

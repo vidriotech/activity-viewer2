@@ -609,7 +609,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
                             <CircularProgress color="secondary"
                                               variant="indeterminate"
                                               size={20} />
-
                         </Grid> : null
                     }
                     <Grid item xs
@@ -686,25 +685,20 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     public componentDidUpdate(prevProps: Readonly<ViewerContainerProps>): void {
-        if (this.props.showTestSlice && (
-            !prevProps.showTestSlice ||
-            (prevProps.testSliceType !== this.props.testSliceType) ||
-            (prevProps.testSliceBounds !== this.props.testSliceBounds))
-        ) {
+        if (!prevProps.showTestSlice && this.props.showTestSlice) {
             this.setTestSlice();
-        } else if (!this.props.showTestSlice) {
+        } else if (prevProps.showTestSlice && !this.props.showTestSlice) {
             this.removeTestSlice();
+        } else if (this.props.showTestSlice && prevProps.testSliceBounds !== this.props.testSliceBounds) {
+            this.setTestSlice();
         }
 
-        if (this.props.showTomographySlice && (
-            !prevProps.showTomographySlice ||
-            (prevProps.tomographySliceType !== this.props.tomographySliceType) ||
-            (prevProps.tomographySliceCoordinate !== this.props.tomographySliceCoordinate))
-        ) {
+        if (!prevProps.showTomographySlice && this.props.showTomographySlice) {
             this.setTomographySlice();
-        } else if (!this.props.showTomographySlice) {
+        } else if (prevProps.showTomographySlice && !this.props.showTomographySlice) {
             this.removeTomographySlice();
-        } else if (prevProps.showTomographyAnnotation !== this.props.showTomographyAnnotation) {
+            this.unlockFromPlane();
+        } else if (this.props.showTomographySlice && prevProps.showTomographyAnnotation !== this.props.showTomographyAnnotation) {
             this.updateTomographySliceTexture();
         }
 

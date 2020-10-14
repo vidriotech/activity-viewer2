@@ -63,6 +63,7 @@ def get_image(image_path: str):
 
     return send_file(file_path)
 
+
 @app.route("/mesh/<int:structure_id>")
 def get_mesh(structure_id: int):
     return state.cache.load_structure_mesh(structure_id)

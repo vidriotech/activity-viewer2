@@ -32,6 +32,7 @@ export interface PhysiologyPanelProps {
     visibleCompartmentIds: Set<number>;
     busy: boolean;
 
+    showTomographySlice: boolean;
     showTomographyAnnotation: boolean;
     showTestSlice: boolean;
     testSliceBounds: [number, number];
@@ -103,6 +104,7 @@ export class PhysiologyPanel extends React.Component<PhysiologyPanelProps, Physi
         const tomographyPanelProps: TomographyPanelProps = {
             busy: this.props.busy,
 
+            showTomographySlice: this.props.showTomographySlice,
             showTomographyAnnotation: this.props.showTomographyAnnotation,
             showTestSlice: this.props.showTestSlice,
             testSliceBounds: this.props.testSliceBounds,

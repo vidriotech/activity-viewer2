@@ -14,6 +14,7 @@ import Button from "@material-ui/core/Button";
 export interface TomographyPanelProps {
     busy: boolean;
 
+    showTomographySlice: boolean;
     showTomographyAnnotation: boolean;
     showTestSlice: boolean;
     testSliceBounds: [number, number];
@@ -73,6 +74,9 @@ export class TomographyPanel extends React.Component<TomographyPanelProps, Tomog
         let sagittalIsChecked: boolean;
         let bounds: [number, number];
 
+        const unselect = (sliceType === SliceType.CORONAL && this.state.sagittalIsChecked) ||
+            (sliceType === SliceType.SAGITTAL && this.state.coronalIsChecked);
+
         switch (sliceType) {
             case SliceType.CORONAL:
                 bounds = this.state.coronalBounds;
@@ -87,7 +91,7 @@ export class TomographyPanel extends React.Component<TomographyPanelProps, Tomog
         }
 
         this.setState({coronalIsChecked, sagittalIsChecked}, () => {
-            if (!(coronalIsChecked || sagittalIsChecked)) {
+            if (!(coronalIsChecked || sagittalIsChecked) || unselect) {
                 this.props.onUnselectSliceType();
             } else {
                 this.props.onSelectSliceType(sliceType, bounds);
@@ -108,12 +112,33 @@ export class TomographyPanel extends React.Component<TomographyPanelProps, Tomog
         });
     }
 
+    private isCommitDisabled(): boolean {
+        let isDisabled = false;
+
+        if (!this.props.showTestSlice && !this.state.coronalIsChecked && !this.state.sagittalIsChecked) {
+            isDisabled = false;
+        }
+
+        return isDisabled;
+
+        // this.state = {
+        //     coronalBounds: coronalBounds,
+        //     coronalIsChecked: this.props.testSliceType === SliceType.CORONAL,
+        //     coronalTemplateIsChecked: this.props.testSliceType === SliceType.CORONAL && !this.props.showTomographyAnnotation,
+        //
+        //     sagittalBounds: sagittalBounds,
+        //     sagittalIsChecked: this.props.testSliceType === SliceType.SAGITTAL,
+        //     sagittalTemplateIsChecked: this.props.testSliceType === SliceType.SAGITTAL && !this.props.showTomographyAnnotation,
+        // }
+    }
+
     public render(): React.ReactElement {
         return (
             <Grid container
                   style={{padding: "40px"}} >
                 <Grid item xs={12}>
                     <SliceSelector busy={this.props.busy}
+                                   disableSlider={this.props.showTomographySlice}
                                    sliceType={SliceType.CORONAL}
                                    checked={this.state.coronalIsChecked}
                                    templateChecked={this.state.coronalTemplateIsChecked}
@@ -131,6 +156,7 @@ export class TomographyPanel extends React.Component<TomographyPanelProps, Tomog
                 </Grid>
                 <Grid item xs={12}>
                     <SliceSelector busy={this.props.busy}
+                                   disableSlider={this.props.showTomographySlice}
                                    sliceType={SliceType.SAGITTAL}
                                    checked={this.state.sagittalIsChecked}
                                    templateChecked={this.state.sagittalTemplateIsChecked}
@@ -149,7 +175,7 @@ export class TomographyPanel extends React.Component<TomographyPanelProps, Tomog
                 <Grid item>
                     <Button variant="contained"
                             color="primary"
-                            disabled={this.props.busy}
+                            disabled={this.props.busy || this.isCommitDisabled()}
                             onClick={this.props.onCommitSlicing} >
                         Commit
                     </Button>

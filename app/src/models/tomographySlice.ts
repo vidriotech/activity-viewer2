@@ -21,9 +21,9 @@ export class TomographySlice {
     private readonly _sliceType: SliceType;
     private readonly geometry: Geometry;
 
-    private texture: Texture;
-    private _annotationMesh: Mesh;
-    private _templateMesh: Mesh;
+    private _annotationTexture: Texture;
+    private _templateTexture: Texture;
+    private _mesh: Mesh;
 
     protected _coordinate: number;
     public _imageType: SliceImageType;
@@ -51,39 +51,15 @@ export class TomographySlice {
         }
     }
 
-    private async makeMeshFromImageUri(filePath: string): Promise<Mesh> {
-        const loadTexture = (texture: Texture): Mesh => {
-            this.texture = texture;
-
+    private makeTextureFromImageUri(filePath: string): Promise<Texture> {
+        const loadTexture = (texture: Texture): Texture => {
             texture.minFilter = LinearFilter;
             texture.wrapS = ClampToEdgeWrapping;
             texture.wrapT = ClampToEdgeWrapping;
             texture.flipY = this._sliceType === SliceType.SAGITTAL;
 
-            // material
-            const material = TomographySlice.makeMaterial(texture);
-            // mesh
-            const mesh = new Mesh(this.geometry, material);
-
-            switch(this._sliceType) {
-                case SliceType.CORONAL:
-                    mesh.position.set(
-                        this._coordinate - CoronalMax / 2,
-                        0,
-                        0
-                    );
-                    break;
-                case SliceType.SAGITTAL:
-                    mesh.position.set(
-                        0,
-                        0,
-                        this._coordinate - SagittalMax / 2
-                    );
-                    break;
-            }
-
-            return mesh;
-        };
+            return texture;
+        }
 
         const loader = new TextureLoader();
         return new Promise((resolve) => {
@@ -98,12 +74,49 @@ export class TomographySlice {
         const annotationImageUri = `${apiEndpoint}/images/a${sliceType}${truncatedCoord}.png`;
         const templateImageUri = `${apiEndpoint}/images/t${sliceType}${truncatedCoord}.png`;
 
-        return this.makeMeshFromImageUri(annotationImageUri)
-            .then((mesh) => {
-                this._annotationMesh = mesh;
+        return this.makeTextureFromImageUri(annotationImageUri)
+            .then((texture) => {
+                this._annotationTexture = texture;
             })
             .then(() => {
-                this.makeMeshFromImageUri(templateImageUri);
+                return this.makeTextureFromImageUri(templateImageUri);
+            })
+            .then((texture) => {
+                this._templateTexture = texture;
+            })
+            .then(() => {
+                // material
+                let material: Material;
+                switch (this._imageType) {
+                    case SliceImageType.ANNOTATION:
+                        material = TomographySlice.makeMaterial(this._annotationTexture);
+                        break;
+                    case SliceImageType.TEMPLATE:
+                        material = TomographySlice.makeMaterial(this._templateTexture);
+                        break;
+                }
+
+                // mesh
+                const mesh = new Mesh(this.geometry, material);
+
+                switch(this._sliceType) {
+                    case SliceType.CORONAL:
+                        mesh.position.set(
+                            this._coordinate - CoronalMax / 2,
+                            0,
+                            0
+                        );
+                        break;
+                    case SliceType.SAGITTAL:
+                        mesh.position.set(
+                            0,
+                            0,
+                            this._coordinate - SagittalMax / 2
+                        );
+                        break;
+                }
+
+                this._mesh = mesh;
             });
     }
 
@@ -123,11 +136,7 @@ export class TomographySlice {
     }
 
     public get mesh(): Mesh {
-        if (this._imageType === SliceImageType.ANNOTATION) {
-            return this._annotationMesh;
-        } else {
-            return this._templateMesh;
-        }
+        return this._mesh;
     }
 
     public get imageType(): SliceImageType {
@@ -140,6 +149,14 @@ export class TomographySlice {
         }
 
         this._imageType = imageType;
+        switch (this._imageType) {
+            case SliceImageType.ANNOTATION:
+                this._mesh.material = TomographySlice.makeMaterial(this._annotationTexture);
+                break;
+            case SliceImageType.TEMPLATE:
+                this._mesh.material = TomographySlice.makeMaterial(this._templateTexture);
+                break;
+        }
     }
 
     public get sliceType(): SliceType {
