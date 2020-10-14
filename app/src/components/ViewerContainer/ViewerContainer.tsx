@@ -61,16 +61,19 @@ export interface ViewerContainerProps {
     showDataPanel: boolean;
     showPhysPanel: boolean;
 
-    showTomographyAnnotation: boolean;
     showTomographySlice: boolean;
     tomographySliceType: SliceType;
     tomographySliceCoordinate: number;
+    rotateLocked: boolean;
 
     showTestSlice: boolean;
-    testSliceType: SliceType;
     testSliceBounds: [number, number];
 
+    sliceType: SliceType;
+    sliceImageType: SliceImageType;
+
     onExpand(side: "l" | "r"): void;
+    onSetRotateLocked(rotateLocked: boolean): void;
     onUpdateFilterPredicate(predicate: Predicate, newStat?: string): void;
     onUpdateProgress(progress: number, progressMessage: string): void;
 }
@@ -103,7 +106,6 @@ interface ViewerContainerState extends AestheticProps {
     timeStep: number;
     timeVal: number;
 
-    rotateLocked: boolean;
     showMappers: boolean;
 }
 
@@ -161,7 +163,6 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             timeStep: timeStep,
             timeVal: isNaN(timeMin) ? 0 : timeMin,
 
-            rotateLocked: false,
             showMappers: false,
         };
 
@@ -212,22 +213,20 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     private lockToPlane(): void {
-        this.setState({rotateLocked: true}, () => {
-            if (this.viewer) {
-                this.viewer.lockToPlane();
-                this.viewer.hideAllCompartments();
-                this.viewer.projectToPlane();
-            }
-        });
+        if (this.viewer) {
+            this.viewer.lockToPlane();
+            this.viewer.hideAllCompartments();
+            this.viewer.projectToPlane();
+        }
+        this.props.onSetRotateLocked(true);
     }
 
     private unlockFromPlane(): void {
-        this.setState({rotateLocked: false}, () => {
-            if (this.viewer) {
-                this.viewer.unlockFromPlane();
-                this.viewer.undoProjectToPlane();
-            }
-        });
+        if (this.viewer) {
+            this.viewer.unlockFromPlane();
+            this.viewer.undoProjectToPlane();
+        }
+        this.props.onSetRotateLocked(false);
     }
 
     private setTestSlice(): void {
@@ -238,7 +237,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const center = (this.props.testSliceBounds[0] + this.props.testSliceBounds[1]) / 2;
         const offset = Math.abs(this.props.testSliceBounds[0] - center);
 
-        this.viewer.setSlicingPlanes(this.props.testSliceType, {center, offset});
+        this.viewer.setSlicingPlanes(this.props.sliceType, {center, offset});
     }
 
     private removeTestSlice(): void {
@@ -249,7 +248,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         this.viewer.removeSlicingPlanes();
     }
 
-    private setTomographySlice(): void {
+    private setTomographySlice(lock: boolean): void {
         if (!this.viewer) {
             return;
         }
@@ -258,12 +257,12 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         const slice = new TomographySlice(this.props.tomographySliceType, coordinate);
         slice.initialize()
             .then(() => {
-                slice.imageType = this.props.showTomographyAnnotation ?
-                    SliceImageType.ANNOTATION :
-                    SliceImageType.TEMPLATE;
+                slice.imageType = this.props.sliceImageType
 
                 this.viewer.setTomographySlice(slice);
-                this.lockToPlane();
+                if (lock) {
+                    this.lockToPlane();
+                }
             })
             .catch((err) => {
                 console.error(err);
@@ -283,8 +282,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             return;
         }
 
-        const displayTemplate = !this.props.showTomographyAnnotation;
-        this.viewer.updateSliceTexture(displayTemplate);
+        this.viewer.updateSliceTexture(this.props.sliceImageType);
     }
 
     private downloadRecording(): void {
@@ -528,7 +526,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     private renderCompartments(): void {
-        if (!this.viewer || this.state.rotateLocked) {
+        if (!this.viewer || this.props.rotateLocked) {
             return;
         }
 
@@ -571,7 +569,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             <Grid container item xs={1}
                   justify="flex-end" >
                 {
-                    this.state.rotateLocked ?
+                    this.props.rotateLocked ?
                         <IconButton disabled={this.props.busy}
                                     color="inherit"
                                     size="small"
@@ -693,12 +691,14 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             this.setTestSlice();
         }
 
-        if (!prevProps.showTomographySlice && this.props.showTomographySlice) {
-            this.setTomographySlice();
+        if ((!prevProps.showTomographySlice && this.props.showTomographySlice) ||
+            (this.props.showTomographySlice && prevProps.tomographySliceCoordinate !== this.props.tomographySliceCoordinate)
+        ) {
+            this.setTomographySlice(false);
         } else if (prevProps.showTomographySlice && !this.props.showTomographySlice) {
             this.removeTomographySlice();
             this.unlockFromPlane();
-        } else if (this.props.showTomographySlice && prevProps.showTomographyAnnotation !== this.props.showTomographyAnnotation) {
+        } else if (this.props.showTomographySlice && prevProps.sliceImageType !== this.props.sliceImageType) {
             this.updateTomographySliceTexture();
         }
 

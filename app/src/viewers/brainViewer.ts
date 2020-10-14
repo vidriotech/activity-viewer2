@@ -724,11 +724,9 @@ export class BrainViewer {
         }
     }
 
-    public updateSliceTexture(displayTemplate: boolean): void {
+    public updateSliceTexture(sliceImageType: SliceImageType): void {
         if (this.tomographySlice) {
-            this.tomographySlice.imageType = displayTemplate ?
-                SliceImageType.TEMPLATE :
-                SliceImageType.ANNOTATION;
+            this.tomographySlice.imageType = sliceImageType;
         }
     }
 

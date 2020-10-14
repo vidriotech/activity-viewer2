@@ -20,7 +20,7 @@ import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved
 import {TomographyPanel, TomographyPanelProps} from "./TomographyPanel";
 // eslint-disable-next-line import/no-unresolved
-import {SliceType} from "../../models/enums";
+import {SliceImageType, SliceType} from "../../models/enums";
 import {CompartmentTree} from "../../models/compartmentTree";
 
 export interface PhysiologyPanelProps {
@@ -31,18 +31,31 @@ export interface PhysiologyPanelProps {
     selectedPenetrations: Map<string, Penetration>;
     visibleCompartmentIds: Set<number>;
     busy: boolean;
+    isSlicing: boolean;
+    isLocked: boolean;
+    tomographySliceShown: boolean;
 
-    showTomographySlice: boolean;
-    showTomographyAnnotation: boolean;
+    tomographyAnnotationShown: boolean;
     showTestSlice: boolean;
     testSliceBounds: [number, number];
-    testSliceType: SliceType;
+
+    sliceCoordinate: number;
+
+    sliceType: SliceType;
+    sliceImageType: SliceImageType;
 
     onCollapse(): void;
     onToggleCompartmentVisible(compartmentId: number): void;
 
+    onBeginSlicing(): void;
+    onCancelSlicing(): void;
     onCommitSlicing(): void;
-    onSelectSliceType(sliceType: SliceType, testSliceBounds: [number, number]): void;
+    onClearSlicing(): void;
+    onSetSliceType(sliceType: SliceType): void;
+    onSetSliceImageType(sliceImageType: SliceImageType): void;
+    onSetSliceCoordinate(coordinate: number): void;
+
+    onSelectSliceType(sliceType: SliceType, testSliceBounds: [number, number], showTemplate: boolean): void;
     onUnselectSliceType(): void;
     onUpdateTestSliceBounds(bounds: [number, number]): void;
     onToggleTemplateDisplay(): void;
@@ -103,14 +116,26 @@ export class PhysiologyPanel extends React.Component<PhysiologyPanelProps, Physi
 
         const tomographyPanelProps: TomographyPanelProps = {
             busy: this.props.busy,
+            isSlicing: this.props.isSlicing,
+            isLocked: this.props.isLocked,
+            tomographySliceShown: this.props.tomographySliceShown,
 
-            showTomographySlice: this.props.showTomographySlice,
-            showTomographyAnnotation: this.props.showTomographyAnnotation,
             showTestSlice: this.props.showTestSlice,
             testSliceBounds: this.props.testSliceBounds,
-            testSliceType: this.props.testSliceType,
 
+            sliceCoordinate: this.props.sliceCoordinate,
+
+            sliceType: this.props.sliceType,
+            sliceImageType: this.props.sliceImageType,
+
+            onBeginSlicing: this.props.onBeginSlicing,
+            onCancelSlicing: this.props.onCancelSlicing,
             onCommitSlicing: this.props.onCommitSlicing,
+            onClearSlicing: this.props.onClearSlicing,
+            onSetSliceType: this.props.onSetSliceType,
+            onSetSliceImageType: this.props.onSetSliceImageType,
+            onSetSliceCoordinate: this.props.onSetSliceCoordinate,
+
             onSelectSliceType: this.props.onSelectSliceType,
             onUnselectSliceType: this.props.onUnselectSliceType,
             onUpdateTestSliceBounds: this.props.onUpdateTestSliceBounds,

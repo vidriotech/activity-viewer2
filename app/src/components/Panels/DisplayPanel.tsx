@@ -4,7 +4,7 @@ import * as _ from "lodash";
 import Grid from "@material-ui/core/Grid";
 
 // eslint-disable-next-line import/no-unresolved
-import {AVConstants} from "../../constants";
+import {AVConstants, CoronalMax, SagittalMax} from "../../constants";
 
 // eslint-disable-next-line import/no-unresolved
 import {AVSettings} from "../../models/apiModels";
@@ -21,7 +21,7 @@ import {DataPanel, DataPanelProps} from "./DataPanel";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved
-import {SliceType} from "../../models/enums";
+import {SliceImageType, SliceType} from "../../models/enums";
 // eslint-disable-next-line import/no-unresolved
 import {CompartmentTree} from "../../models/compartmentTree";
 
@@ -50,10 +50,12 @@ interface DisplayPanelState {
     showTomographySlice: boolean;
     tomographySliceType: SliceType;
     tomographySliceCoordinate: number;
+    rotateLocked: boolean;
 
     showTestSlice: boolean;
     testSliceBounds: [number, number];
-    testSliceType: SliceType;
+    sliceType: SliceType;
+    sliceImageType: SliceImageType;
 }
 
 export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPanelState> {
@@ -72,12 +74,32 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             showTomographyAnnotation: true,
             showTomographySlice: false,
             tomographySliceType: null,
-            tomographySliceCoordinate: NaN,
+            tomographySliceCoordinate: SliceType.CORONAL / 2,
+            rotateLocked: false,
 
             showTestSlice: false,
             testSliceBounds: [NaN, NaN],
-            testSliceType: null,
+            sliceType: SliceType.CORONAL,
+            sliceImageType: SliceImageType.ANNOTATION,
         };
+    }
+
+    private handleBeginSlicing(): void {
+        let testSliceBounds: [number, number];
+
+        switch (this.state.sliceType) {
+            case SliceType.CORONAL:
+                testSliceBounds = [CoronalMax / 2 - 500, CoronalMax / 2 + 500];
+                break;
+            case SliceType.SAGITTAL:
+                testSliceBounds = [SagittalMax / 2 - 500, SagittalMax / 2 + 500];
+                break;
+        }
+
+        this.setState({
+            testSliceBounds,
+            showTestSlice: true
+        });
     }
 
     private handleCommitSlicing(): void {
@@ -86,13 +108,71 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         this.setState({
             showTestSlice: false,
             showTomographySlice: true,
-            tomographySliceType: this.state.testSliceType,
+            tomographySliceType: this.state.sliceType,
             tomographySliceCoordinate: sliceCoordinate,
         }, () => {
             const coordName = this.state.tomographySliceType === SliceType.CORONAL ?
                 "x" : "z";
             const predicate = new PropIneqPredicate(coordName, ...this.state.testSliceBounds);
             this.props.onUpdateFilterPredicate(predicate);
+        });
+    }
+
+    private handleSetSliceCoordinate(coordinate: number): void {
+        this.setState({
+            tomographySliceCoordinate: coordinate
+        }, () => {
+            if (this.state.rotateLocked) {
+                let coordName: "x" | "z";
+                let maxCoord: number;
+
+                switch (this.state.tomographySliceType) {
+                    case SliceType.CORONAL:
+                        coordName = "x";
+                        maxCoord = CoronalMax;
+                        break;
+                    case SliceType.SAGITTAL:
+                        coordName = "z";
+                        maxCoord = SagittalMax;
+                }
+
+                const padding = (this.state.testSliceBounds[1] - this.state.testSliceBounds[0]) / 2;
+                const predicate = new PropIneqPredicate(
+                    coordName,
+                    Math.max(0, coordinate - padding),
+                    Math.min(maxCoord, coordinate + padding)
+                );
+
+                this.props.onUpdateFilterPredicate(predicate);
+            }
+        });
+    }
+
+    private handleSetRotateLocked(rotateLocked: boolean): void {
+        this.setState({rotateLocked}, () => {
+            if (this.state.rotateLocked && this.state.showTomographySlice) {
+                let coordName: "x" | "z";
+                let maxCoord: number;
+
+                switch (this.state.tomographySliceType) {
+                    case SliceType.CORONAL:
+                        coordName = "x";
+                        maxCoord = CoronalMax;
+                        break;
+                    case SliceType.SAGITTAL:
+                        coordName = "z";
+                        maxCoord = SagittalMax;
+                }
+
+                const padding = (this.state.testSliceBounds[1] - this.state.testSliceBounds[0]) / 2;
+                const predicate = new PropIneqPredicate(
+                    coordName,
+                    Math.max(0, this.state.tomographySliceCoordinate - padding),
+                    Math.min(maxCoord, this.state.tomographySliceCoordinate + padding)
+                );
+
+                this.props.onUpdateFilterPredicate(predicate);
+            }
         });
     }
 
@@ -105,10 +185,6 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         }
 
         this.setState({visibleCompartmentIds});
-    }
-
-    private handleUnselectSliceType() {
-
     }
 
     private isBusy(): boolean {
@@ -143,14 +219,16 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             showDataPanel: this.state.showDataPanel,
             showPhysPanel: this.state.showPhysPanel,
 
-            showTomographyAnnotation: this.state.showTomographyAnnotation,
             showTomographySlice: this.state.showTomographySlice,
             tomographySliceType: this.state.tomographySliceType,
             tomographySliceCoordinate: this.state.tomographySliceCoordinate,
+            rotateLocked: this.state.rotateLocked,
 
             showTestSlice: this.state.showTestSlice,
-            testSliceType: this.state.testSliceType,
             testSliceBounds: this.state.testSliceBounds,
+
+            sliceType: this.state.sliceType,
+            sliceImageType: this.state.sliceImageType,
 
             onExpand: (side: "l" | "r"): void => {
                 if (side === "l") {
@@ -159,6 +237,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
                     this.setState({showPhysPanel: true});
                 }
             },
+            onSetRotateLocked: this.handleSetRotateLocked.bind(this),
             onUpdateFilterPredicate: this.props.onUpdateFilterPredicate,
             onUpdateProgress: (progress: number, progressMessage: string): void => {
                 this.setState({progress, progressMessage})
@@ -171,25 +250,43 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             settings: this.props.settings,
 
             busy: this.isBusy(),
+            isSlicing: this.state.showTestSlice,
+            isLocked: this.state.rotateLocked,
 
             selectedPenetrations: this.props.selectedPenetrations,
             visibleCompartmentIds: this.state.visibleCompartmentIds,
+            tomographySliceShown: this.state.showTomographySlice,
+            tomographyAnnotationShown: this.state.showTomographyAnnotation,
 
-            showTomographySlice: this.state.showTomographySlice,
-            showTomographyAnnotation: this.state.showTomographyAnnotation,
             showTestSlice: this.state.showTestSlice,
             testSliceBounds: this.state.testSliceBounds,
-            testSliceType: this.state.testSliceType,
+
+            sliceCoordinate: this.state.tomographySliceCoordinate,
+
+            sliceType: this.state.sliceType,
+            sliceImageType: this.state.sliceImageType,
 
             onCollapse: () => {this.setState({showPhysPanel: false})},
             onToggleCompartmentVisible: this.handleToggleCompartmentVisible.bind(this),
 
+            onBeginSlicing: this.handleBeginSlicing.bind(this),
+            onCancelSlicing: () => {this.setState({showTestSlice: false})},
             onCommitSlicing: this.handleCommitSlicing.bind(this),
-            onSelectSliceType: (testSliceType: SliceType, testSliceBounds: [number, number]) => {
+            onClearSlicing: () => {this.setState({showTomographySlice: false})},
+            onSetSliceType: (sliceType: SliceType) => {
+                this.setState({sliceType})
+            },
+            onSetSliceImageType: (sliceImageType: SliceImageType) => {
+                this.setState({sliceImageType})
+            },
+            onSetSliceCoordinate: this.handleSetSliceCoordinate.bind(this),
+
+            onSelectSliceType: (testSliceType: SliceType, testSliceBounds: [number, number], showTemplate: boolean) => {
                 this.setState({
                     showTestSlice: true,
-                    testSliceType,
+                    sliceType: testSliceType,
                     testSliceBounds,
+                    showTomographyAnnotation: !showTemplate
                 });
             },
             onUnselectSliceType: () => {

@@ -1,186 +1,204 @@
 import React from "react";
 
 // eslint-disable-next-line import/no-unresolved
-import {CoronalMax, SagittalMax} from "../../constants";
+// eslint-disable-next-line import/no-unresolved
+import {SliceImageType, SliceType} from "../../models/enums";
 
 // eslint-disable-next-line import/no-unresolved
-import {SliceType} from "../../models/enums";
-
-// eslint-disable-next-line import/no-unresolved
-import {SliceSelector} from "../Tomography/SliceSelector";
-import Grid from "@material-ui/core/Grid";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import RadioGroup from "@material-ui/core/RadioGroup";
+import Radio from "@material-ui/core/Radio";
+import Typography from "@material-ui/core/Typography";
+import Container from "@material-ui/core/Container";
 import Button from "@material-ui/core/Button";
+import ButtonGroup from "@material-ui/core/ButtonGroup";
+import Slider from "@material-ui/core/Slider";
+import {CoronalMax, SagittalMax} from "../../constants";
+import FormGroup from "@material-ui/core/FormGroup";
+import Switch from "@material-ui/core/Switch";
+import {tab10Orange} from "../../styles";
 
 export interface TomographyPanelProps {
     busy: boolean;
+    isSlicing: boolean;
+    isLocked: boolean;
+    tomographySliceShown: boolean;
 
-    showTomographySlice: boolean;
-    showTomographyAnnotation: boolean;
     showTestSlice: boolean;
     testSliceBounds: [number, number];
-    testSliceType: SliceType;
 
+    sliceCoordinate: number;
+
+    sliceType: SliceType;
+    sliceImageType: SliceImageType;
+
+    onBeginSlicing(): void;
+    onCancelSlicing(): void;
     onCommitSlicing(): void;
-    onSelectSliceType(sliceType: SliceType, testSliceBounds: [number, number]): void;
+    onClearSlicing(): void;
+    onSetSliceType(sliceType: SliceType): void;
+    onSetSliceImageType(sliceImageType: SliceImageType): void;
+    onSetSliceCoordinate(coordinate: number): void;
+
+    onSelectSliceType(sliceType: SliceType, testSliceBounds: [number, number], showTemplate: boolean): void;
     onUnselectSliceType(): void;
     onUpdateTestSliceBounds(testSliceBounds: [number, number]): void;
     onToggleTemplateDisplay(): void;
 }
 
-export interface TomographyPanelState {
-    coronalIsChecked: boolean;
-    coronalTemplateIsChecked: boolean;
-    coronalBounds: [number, number];
-
-    sagittalIsChecked: boolean;
-    sagittalTemplateIsChecked: boolean;
-    sagittalBounds: [number, number];
-}
-
-export class TomographyPanel extends React.Component<TomographyPanelProps, TomographyPanelState> {
+export class TomographyPanel extends React.Component<TomographyPanelProps, {}> {
     constructor(props: TomographyPanelProps) {
         super(props);
+    }
+    private renderCoordinateSlider(): React.ReactElement {
+        const sliderMax = this.props.sliceType === SliceType.CORONAL ?
+            CoronalMax :
+            SagittalMax;
+        const sliderMarks = [
+            {label: "0.0 mm", value: 0},
+            {label: `${(sliderMax / 1000).toFixed(2)} mm`, value: sliderMax}
+        ];
 
-        const coronalBounds = this.props.testSliceType === SliceType.CORONAL ?
-            this.props.testSliceBounds :
-            [-500, 500].map((x) => x + CoronalMax / 2) as [number, number];
-
-        const sagittalBounds = this.props.testSliceType === SliceType.SAGITTAL ?
-            this.props.testSliceBounds :
-            [-500, 500].map((x) => x + SagittalMax / 2) as [number, number];
-
-        this.state = {
-            coronalBounds: coronalBounds,
-            coronalIsChecked: this.props.testSliceType === SliceType.CORONAL,
-            coronalTemplateIsChecked: this.props.testSliceType === SliceType.CORONAL && !this.props.showTomographyAnnotation,
-
-            sagittalBounds: sagittalBounds,
-            sagittalIsChecked: this.props.testSliceType === SliceType.SAGITTAL,
-            sagittalTemplateIsChecked: this.props.testSliceType === SliceType.SAGITTAL && !this.props.showTomographyAnnotation,
-        }
+        return (
+            <Slider min={0}
+                    max={sliderMax}
+                    marks={sliderMarks}
+                    value={this.props.sliceCoordinate}
+                    disabled={this.props.busy || !this.props.tomographySliceShown}
+                    onChange={(_e, value: number) => {
+                        this.props.onSetSliceCoordinate(value);
+                    }} />
+        );
     }
 
-    private handleBoundsChange(sliceType: SliceType, values: [number, number]): void {
-        this.setState({
-            coronalBounds: sliceType === SliceType.CORONAL ? values : this.state.coronalBounds,
-            sagittalBounds: sliceType === SliceType.SAGITTAL ? values : this.state.sagittalBounds,
-        }, () => {
-            this.props.onUpdateTestSliceBounds(values);
-        });
-    }
+    private renderTestSlider(): React.ReactElement {
+        const sliderMax = this.props.sliceType === SliceType.CORONAL ?
+            CoronalMax :
+            SagittalMax;
+        const sliderMarks = [
+            {label: "0.0 mm", value: 0},
+            {label: `${(sliderMax / 1000).toFixed(2)} mm`, value: sliderMax}
+        ];
 
-    private handleToggleSliceDisplay(sliceType: SliceType): void {
-        let coronalIsChecked: boolean;
-        let sagittalIsChecked: boolean;
-        let bounds: [number, number];
-
-        const unselect = (sliceType === SliceType.CORONAL && this.state.sagittalIsChecked) ||
-            (sliceType === SliceType.SAGITTAL && this.state.coronalIsChecked);
-
-        switch (sliceType) {
-            case SliceType.CORONAL:
-                bounds = this.state.coronalBounds;
-                coronalIsChecked = !this.state.coronalIsChecked;
-                sagittalIsChecked = false;
-                break;
-            case SliceType.SAGITTAL:
-                bounds = this.state.sagittalBounds;
-                coronalIsChecked = false;
-                sagittalIsChecked = !this.state.sagittalIsChecked;
-                break;
-        }
-
-        this.setState({coronalIsChecked, sagittalIsChecked}, () => {
-            if (!(coronalIsChecked || sagittalIsChecked) || unselect) {
-                this.props.onUnselectSliceType();
-            } else {
-                this.props.onSelectSliceType(sliceType, bounds);
-            }
-        });
-    }
-
-    private handleToggleTemplateDisplay(sliceType: SliceType): void {
-        this.setState({
-            coronalTemplateIsChecked: sliceType === SliceType.CORONAL ?
-                !this.state.coronalTemplateIsChecked :
-                this.state.coronalTemplateIsChecked,
-            sagittalTemplateIsChecked: sliceType === SliceType.SAGITTAL ?
-                !this.state.sagittalTemplateIsChecked :
-                this.state.sagittalTemplateIsChecked
-        }, () => {
-            this.props.onToggleTemplateDisplay();
-        });
-    }
-
-    private isCommitDisabled(): boolean {
-        let isDisabled = false;
-
-        if (!this.props.showTestSlice && !this.state.coronalIsChecked && !this.state.sagittalIsChecked) {
-            isDisabled = false;
-        }
-
-        return isDisabled;
-
-        // this.state = {
-        //     coronalBounds: coronalBounds,
-        //     coronalIsChecked: this.props.testSliceType === SliceType.CORONAL,
-        //     coronalTemplateIsChecked: this.props.testSliceType === SliceType.CORONAL && !this.props.showTomographyAnnotation,
-        //
-        //     sagittalBounds: sagittalBounds,
-        //     sagittalIsChecked: this.props.testSliceType === SliceType.SAGITTAL,
-        //     sagittalTemplateIsChecked: this.props.testSliceType === SliceType.SAGITTAL && !this.props.showTomographyAnnotation,
-        // }
+        return (
+            <Slider min={0}
+                    max={sliderMax}
+                    marks={sliderMarks}
+                    value={this.props.testSliceBounds}
+                    disabled={this.props.busy || !this.props.isSlicing}
+                    onChange={(_e, values: [number, number]) => {
+                        this.props.onUpdateTestSliceBounds(values);
+                    }} />
+        )
     }
 
     public render(): React.ReactElement {
+        // begin or commit slicing
+        const submitButton = this.props.isSlicing ? (
+            <Button disabled={this.props.busy}
+                    color="primary"
+                    variant="contained"
+                    onClick={this.props.onCommitSlicing}>
+                Commit Slicing
+            </Button>
+        ): (
+            <Button disabled={this.props.busy || this.props.isSlicing || this.props.isLocked || this.props.tomographySliceShown}
+                    color="primary"
+                    variant="contained"
+                    onClick={this.props.onBeginSlicing}>
+                Begin Slicing
+            </Button>
+        );
+
+        // remove shown slice
+        const clearButton = this.props.isSlicing ? (
+            <Button disabled={this.props.busy || !this.props.isSlicing}
+                    color="secondary"
+                    variant="contained"
+                    onClick={this.props.onCancelSlicing}>
+                Cancel Slicing
+            </Button>
+        ): (
+            <Button disabled={this.props.busy || !this.props.tomographySliceShown}
+                    color="secondary"
+                    variant="contained"
+                    onClick={this.props.onClearSlicing}>
+                Clear Slice
+            </Button>
+        );
+
+        // realign test slices
+        const testSlider = this.renderTestSlider();
+
+        // move slices
+        const coordinateSlider = this.renderCoordinateSlider();
+
+        const radioDisabled = this.props.busy || this.props.isSlicing || this.props.isLocked || this.props.tomographySliceShown;
+
         return (
-            <Grid container
-                  style={{padding: "40px"}} >
-                <Grid item xs={12}>
-                    <SliceSelector busy={this.props.busy}
-                                   disableSlider={this.props.showTomographySlice}
-                                   sliceType={SliceType.CORONAL}
-                                   checked={this.state.coronalIsChecked}
-                                   templateChecked={this.state.coronalTemplateIsChecked}
-                                   sliderLimits={[0, CoronalMax]}
-                                   sliderValues={this.state.coronalBounds}
-                                   onToggle={(): void => {
-                                       this.handleToggleSliceDisplay(SliceType.CORONAL);
-                                   }}
-                                   onToggleTemplate={(): void => {
-                                       this.handleToggleTemplateDisplay(SliceType.CORONAL)
-                                   }}
-                                   onUpdateSlider={(values: [number, number]): void => {
-                                       this.handleBoundsChange(SliceType.CORONAL, values);
-                                   }} />
-                </Grid>
-                <Grid item xs={12}>
-                    <SliceSelector busy={this.props.busy}
-                                   disableSlider={this.props.showTomographySlice}
-                                   sliceType={SliceType.SAGITTAL}
-                                   checked={this.state.sagittalIsChecked}
-                                   templateChecked={this.state.sagittalTemplateIsChecked}
-                                   sliderLimits={[0, SagittalMax]}
-                                   sliderValues={this.state.sagittalBounds}
-                                   onToggle={(): void => {
-                                       this.handleToggleSliceDisplay(SliceType.SAGITTAL)
-                                   }}
-                                   onToggleTemplate={(): void => {
-                                       this.handleToggleTemplateDisplay(SliceType.SAGITTAL)
-                                   }}
-                                   onUpdateSlider={(values: [number, number]): void => {
-                                       this.handleBoundsChange(SliceType.SAGITTAL, values);
-                                   }} />
-                </Grid>
-                <Grid item>
-                    <Button variant="contained"
-                            color="primary"
-                            disabled={this.props.busy || this.isCommitDisabled()}
-                            onClick={this.props.onCommitSlicing} >
-                        Commit
-                    </Button>
-                </Grid>
-            </Grid>
+            <Container disableGutters
+                       style={{justifyContent: "center"}} >
+                <Container disableGutters
+                           style={{
+                               backgroundColor: tab10Orange,
+                               borderTop: "1px solid black",
+                               borderBottom: "1px solid black",
+                               color: "white",
+                               padding: 5
+                           }} >
+                    <Typography component="h5"
+                                variant="body1"
+                                align="center">
+                        Tomography
+                    </Typography>
+                </Container>
+                <Container disableGutters
+                           style={{
+                               paddingLeft: 40,
+                               paddingRight: 40
+                           }} >
+                    <FormGroup row>
+                        <RadioGroup row
+                                    aria-label="subset" name="subset"
+                                    value={this.props.sliceType}
+                                    onChange={
+                                        (event): void => {
+                                            this.props.onSetSliceType(Number(event.target.value) as SliceType)
+                                        }} >
+                            <FormControlLabel
+                                disabled={radioDisabled}
+                                value={SliceType.CORONAL}
+                                control={<Radio color="default" />}
+                                label="Coronal"
+                                labelPlacement="bottom"
+                            />
+                            <FormControlLabel
+                                disabled={radioDisabled}
+                                value={SliceType.SAGITTAL}
+                                control={<Radio color="default" />}
+                                label="Sagittal"
+                                labelPlacement="bottom"
+                            />
+                        </RadioGroup>
+                        <FormControlLabel control={<Switch checked={this.props.sliceImageType === SliceImageType.TEMPLATE}
+                                                           disabled={this.props.busy || !this.props.tomographySliceShown}
+                                                           onChange={() => {
+                                                               if (this.props.sliceImageType === SliceImageType.ANNOTATION) {
+                                                                   this.props.onSetSliceImageType(SliceImageType.TEMPLATE);
+                                                               } else {
+                                                                   this.props.onSetSliceImageType(SliceImageType.ANNOTATION);
+                                                               }
+                                                           }} />}
+                                          label="Show template" />
+                        <ButtonGroup>
+                            {submitButton}
+                            {clearButton}
+                        </ButtonGroup>
+                    </FormGroup>
+                    {testSlider}
+                    {coordinateSlider}
+                </Container>
+            </Container>
         );
     }
 }

@@ -209,8 +209,7 @@ export class TimeseriesMappers extends React.Component<TimeseriesMappersProps, T
                     <Button disabled={commitDisabled}
                             color="primary"
                             variant="contained"
-                            onClick={this.handleCommit.bind(this)}
-                    >
+                            onClick={this.handleCommit.bind(this)} >
                         Commit
                     </Button>
                 </Grid>

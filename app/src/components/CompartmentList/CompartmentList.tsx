@@ -83,13 +83,20 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
     private renderHeader(): React.ReactElement {
         return (
             <Container disableGutters>
-                <Typography component="h5"
-                            variant="body1"
-                            align="center">
-                    Compartment Selection
-                </Typography>
+                <Container disableGutters
+                           style={{
+                               backgroundColor: tab10Orange,
+                               borderBottom: "1px solid black",
+                               color: "white",
+                               padding: 5
+                           }} >
+                    <Typography component="h5"
+                                variant="body1"
+                                align="center">
+                        Compartment Selection
+                    </Typography>
+                </Container>
                 <FormControl fullWidth component="fieldset">
-                    {/*<FormLabel component="legend">Subset selection</FormLabel>*/}
                     <RadioGroup row aria-label="subset" name="subset"
                                 value={this.state.subsetSelection}
                                 onChange={
