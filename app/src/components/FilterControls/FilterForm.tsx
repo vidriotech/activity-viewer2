@@ -79,7 +79,11 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
                 .then(() => {
                     if (unitStatId === this.state.currentCondition) {
                         c += 1;
-                        this.setState({loadProgress: c / this.props.selectedPenetrations.size});
+                        let progress = c / this.props.selectedPenetrations.size;
+                        if (Math.abs(progress - 1) < 1e-15) {
+                            progress = 1;
+                        }
+                        this.setState({loadProgress: progress});
                     }
                 });
         });

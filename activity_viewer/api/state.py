@@ -60,8 +60,11 @@ class APIState:
 
     def _jsonify_compartment(self, compartment: dict):
         if compartment:
+            j_compartment = {}
             for key in compartment:
-                compartment[snake_to_camel(key)] = compartment.pop(key)
+                j_compartment[snake_to_camel(key)] = compartment[key]
+
+            return j_compartment
 
     def _annotation_to_rgb(self, vals: np.ndarray):
         if vals is None:
@@ -140,21 +143,19 @@ class APIState:
     def get_compartment_tree(self):
         """Get the entire compartment hierarchy."""
         def populate_children(tr: StructureTree, node: dict):
-            for child in tr.children([node["id"]])[0]:
-                child["children"] = []
-                node["children"].append(child)
-                
-            for child in node["children"]:
-                populate_children(tr, child)
-
             # make corrections to field names
-            self._jsonify_compartment(node)
+            node = self._jsonify_compartment(node)
+            node["children"] = []
+
+            for child in tr.children([node["id"]])[0]:
+                node["children"].append(populate_children(tr, child))
+
+            return node
 
         tree = StructureTree(self.cache.load_structure_graph())
         root = tree.get_structures_by_id([997])[0]
         root["rgb_triplet"] = 3*[135]
-        root["children"] = []
-        populate_children(tree, root)
+        root = populate_children(tree, root)
 
         return root
 
@@ -171,10 +172,7 @@ class APIState:
         cids = annotation_volume[i, j, k]
 
         structures = tree.get_structures_by_id(cids)
-        for structure in structures:
-            self._jsonify_compartment(structure)
-
-        return structures
+        return [self._jsonify_compartment(s) for s in structures]
 
     def get_coronal_annotation_rgb(self, ap_coordinate: float):
         ref_slice = self.get_coronal_annotation_slice(ap_coordinate)

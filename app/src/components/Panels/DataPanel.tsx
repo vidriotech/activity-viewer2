@@ -13,7 +13,7 @@ import {AVConstants} from "../../constants";
 import {tab10Blue} from "../../styles";
 
 // eslint-disable-next-line import/no-unresolved
-import {AVSettings, PenetrationData} from "../../models/apiModels";
+import {AVSettings} from "../../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration} from "../../models/penetration";
 

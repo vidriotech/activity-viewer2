@@ -634,6 +634,10 @@ export class BrainViewer {
                             this.updatePenetrationAttributes(penetrationId, true);
                             callback();
                         }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        callback();
                     });
             } else {
                 callback();
@@ -642,7 +646,7 @@ export class BrainViewer {
             if (mapping.opacity) {
                 penetration.getTimeseries(mapping.opacity.timeseriesId)
                     .then((data) => {
-                        if (data.times) {
+                        if (data && data.times) {
                             this.opacityData.set(
                                 penetrationId,
                                 this.interpExtrapTranspose(data.times, data.values)
@@ -650,6 +654,10 @@ export class BrainViewer {
                             this.updatePenetrationAttributes(penetrationId, true);
                             callback();
                         }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        callback();
                     });
             } else {
                 callback();
@@ -658,7 +666,7 @@ export class BrainViewer {
             if (mapping.radius) {
                 penetration.getTimeseries(mapping.radius.timeseriesId)
                     .then((data) => {
-                        if (data.times) {
+                        if (data && data.times) {
                             this.radiusData.set(
                                 penetrationId,
                                 this.interpExtrapTranspose(data.times, data.values)
@@ -666,6 +674,10 @@ export class BrainViewer {
                             this.updatePenetrationAttributes(penetrationId, true);
                             callback();
                         }
+                    })
+                    .catch((err) => {
+                        console.error(err);
+                        callback();
                     });
             } else {
                 callback();

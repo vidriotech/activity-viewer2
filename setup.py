@@ -38,8 +38,10 @@ setuptools.setup(
         "gevent==20.9.0",
         "importlib-metadata==1.7.0",
         "matplotlib==3.2.2",
+        "multidict==4.5.0",
         "numpy==1.18.5",
         "Pillow==7.2.0",
         "requests==2.24.0",
+        "yarl==1.6.0",
     ]
 )

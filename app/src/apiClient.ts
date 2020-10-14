@@ -58,10 +58,10 @@ export class APIClient {
 
     async fetchCompartmentTree(): Promise<CompartmentNodeInterface> {
         return axios.get(`${this.endpoint}/compartments`)
-            .then((res) => res.data);
+            .then((res) => res.data); // errors caught by caller
     }
 
-    async fetchExportedData(exportData: ExportingUnit[]): Promise<AxiosResponse<Blob>> {
+    async fetchExportedData(exportData: ExportingUnit[]): Promise<Blob> {
         const data = {
             data: exportData,
         };
@@ -72,7 +72,7 @@ export class APIClient {
             data: data,
             timeout: 5000,
             responseType: "blob",
-        });
+        }).then((res: AxiosResponse<Blob>) => res.data);
     }
 
     async fetchPenetrationIds(): Promise<AxiosResponse<PenetrationIdsResponse>> {
@@ -83,8 +83,9 @@ export class APIClient {
         return await axios.get(`${this.endpoint}/penetrations?page=${page}&limit=${limit}`);
     }
 
-    async fetchPenetrationVitals(penetrationId: string): Promise<AxiosResponse<PenetrationInterface>> {
-        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`);
+    async fetchPenetrationVitals(penetrationId: string): Promise<PenetrationInterface> {
+        return await axios.get(`${this.endpoint}/penetrations/${penetrationId}`)
+            .then((res: AxiosResponse<PenetrationInterface>) => res.data);
     }
 
     async fetchSettings(): Promise<AxiosResponse<AVSettings>> {

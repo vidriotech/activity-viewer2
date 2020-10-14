@@ -323,6 +323,10 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
     private onFetchSuccessful(increment: number): void {
         this.progress += increment;
+        if (Math.abs(1 - this.progress) < 1e-15) {
+            this.progress = 1;
+        }
+
         const message = this.progress < 1 ?
             `Loading timeseries... ${Math.round(100 * this.progress)}%` :
             "Ready."

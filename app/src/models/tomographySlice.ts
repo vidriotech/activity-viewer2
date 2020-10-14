@@ -117,7 +117,7 @@ export class TomographySlice {
                 }
 
                 this._mesh = mesh;
-            });
+            }); // errors caught by caller
     }
 
     public static makeMaterial(texture: Texture): Material {

@@ -16,7 +16,11 @@ def _get_gui_path():
 
     build_dir = binary = path = None
     app_out = Path("app", "out")
+
     if system == "Windows":
+        if base_path.name == "pkgs":
+            base_path = base_path.parent
+
         build_dir = "Activity Viewer-win32-x64"
         binary = "Activity Viewer.exe"
     elif system == "Darwin":

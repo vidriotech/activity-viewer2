@@ -104,8 +104,8 @@ export class App extends React.Component<AppProps, AppState> {
             let penetrationData: PenetrationInterface;
 
             await this.apiClient.fetchPenetrationVitals(pid)
-                .then((res) => {
-                    penetrationData = res.data;
+                .then((data) => {
+                    penetrationData = data;
                 })
                 .catch((err) => {
                     console.error(err)
@@ -160,7 +160,6 @@ export class App extends React.Component<AppProps, AppState> {
         });
 
         this.apiClient.fetchExportedData(unitExport)
-            .then((data) => data.data)
             .then((data) => {
                 const blob = new Blob([data]);
                 const url = URL.createObjectURL(blob);
@@ -172,6 +171,8 @@ export class App extends React.Component<AppProps, AppState> {
                 a.click();
 
                 window.URL.revokeObjectURL(url);
+            }).catch((err) => {
+                console.error(err)
             });
     }
 

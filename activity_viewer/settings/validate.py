@@ -1,12 +1,11 @@
 from collections import deque
+from glob import glob
 import json
 from pathlib import Path
 from typing import Union
 
-from allensdk.api.queries.ontologies_api import OntologiesApi
 from allensdk.core.structure_tree import StructureTree
 
-from activity_viewer.base import type_check
 from activity_viewer.cache import Cache
 from .avsettings import AVSettings
 from .sections import Compartment, System
@@ -28,6 +27,7 @@ class SettingsValidator:
 
         self._compartment = settings["compartment"] if "compartment" in settings else {}
         self._system = settings["system"] if "system" in settings else {}
+        self._epochs = settings["epochs"] if "epochs" in settings else []
 
         # construct temporary cache for loading structure tree
         # data directory and CCF version are relevant, so use what's given
@@ -126,23 +126,23 @@ class SettingsValidator:
                     elif val_lower in nm_id_map:
                         cid = nm_id_map[val_lower]
                     else:
-                        messages["errors"].append(f"Unrecognized compartment in include: '{val}'.")
+                        messages["errors"].append(f"Unrecognized compartment in 'include': '{val}'.")
                         continue
                 elif isinstance(val, int):
                     if val not in ac_id_map.values():
-                        messages["errors"].append(f"Unrecognized compartment ID in include: {val}")
+                        messages["errors"].append(f"Unrecognized compartment ID in 'include': {val}")
                         continue
 
                     cid = val
                 else:
-                    messages["errors"].append(f"Invalid compartment in include: '{val}'.")
+                    messages["errors"].append(f"Invalid compartment in 'include': '{val}'.")
                     continue
 
                 # duplicate entry
                 if cid in include_ids:
                     ac = id_ac_map[cid]
                     nm = id_nm_map[cid]
-                    messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in include.")
+                    messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in 'include'.")
 
                 include_ids.add(cid)
         else:
@@ -160,29 +160,29 @@ class SettingsValidator:
                     elif val_lower in nm_id_map:
                         cid = nm_id_map[val_lower]
                     else:
-                        messages["errors"].append(f"Unrecognized compartment in exclude: '{val}'.")
+                        messages["errors"].append(f"Unrecognized compartment in 'exclude': '{val}'.")
                         continue
                 elif isinstance(val, int):
                     if val not in ac_id_map.values():
-                        messages["errors"].append(f"Unrecognized compartment ID in exclude: {val}")
+                        messages["errors"].append(f"Unrecognized compartment ID in 'exclude': {val}")
                         continue
 
                     cid = val
                 else:
-                    messages["errors"].append(f"Invalid compartment in exclude: '{val}'.")
+                    messages["errors"].append(f"Invalid compartment in 'exclude': '{val}'.")
                     continue
 
                 # entry found in include
                 if cid in include_ids:
                     ac = id_ac_map[cid]
                     nm = id_nm_map[cid]
-                    messages["warnings"].append(f"Included compartment with id {cid}, name '{nm}', or acronym '{ac}', found in exclude, exclude entry will be ignored.")
+                    messages["warnings"].append(f"Included compartment with id {cid}, name '{nm}', or acronym '{ac}', found in 'exclude', exclude entry will be ignored.")
 
                 # duplicate entry
                 if cid in exclude_ids:
                     ac = id_ac_map[cid]
                     nm = id_nm_map[cid]
-                    messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in exclude.")
+                    messages["warnings"].append(f"Duplicate compartment with id {cid}, name '{nm}', or acronym '{ac}', found in 'exclude'.")
 
                 exclude_ids.add(cid)
         else:
@@ -203,10 +203,11 @@ class SettingsValidator:
         atlas_version = self._system["atlasVersion"] if "atlasVersion" in self._system else System.DEFAULTS["atlas_version"]
         cache_directory = self._system["cacheDirectory"] if "cacheDirectory" in self._system else System.DEFAULTS["cache_directory"]
         resolution = self._system["resolution"] if "resolution" in self._system else System.DEFAULTS["resolution"]
+        data_files = self._system["dataFiles"] if "dataFiles" in self._system else System.DEFAULTS["data_files"]
 
         # flag additional keys
         for k in self._system:
-            if k not in ("atlasVersion", "cacheDirectory", "resolution"):
+            if k not in ("atlasVersion", "cacheDirectory", "resolution", "dataFiles"):
                 messages["errors"].append(f"Unrecognized field '{k}' in system section.")
 
         # atlas version
@@ -220,6 +221,63 @@ class SettingsValidator:
         # resolution
         if resolution not in (10, 25, 50, 100):
             messages["errors"].append(f"Unrecognized voxel resolution: {resolution}.")
+
+        # data files
+        if isinstance(data_files, str):
+            data_files = [data_files]
+
+        if isinstance(data_files, list):
+            for data_file in data_files:
+                if not isinstance(data_file, str):
+                    messages["errors"].append(f"Non-string value found in dataFiles: '{data_file}'")
+                    continue
+
+                unglobbed = glob(data_file)
+                if len(unglobbed) == 0:
+                    messages["warnings"].append(f"Expanding glob '{data_file}' gave no results.")
+        else:
+            messages["errors"].append("Expecting a string or list of strings in dataFiles.")
+
+        if len(messages["errors"]) > n_errors:
+            is_valid = False
+
+        return is_valid, messages
+    
+    def _validate_epochs(self, messages: dict) -> (bool, dict):
+        """Validate epochs value."""
+        is_valid = True
+
+        n_errors = len(messages["errors"])  # check this later to determine validity
+
+        if isinstance(self._epochs, list):
+            for epoch in self._epochs:
+                if not isinstance(epoch, dict):
+                    messages["errors"].append(f"Non-object value found in epochs: {epoch}")
+                    continue
+
+                try:
+                    label = messages.pop("label")
+                    if not isinstance(label, str):
+                        messages["errors"].append(f"Non-string value given for epoch label: '{label}'.")
+                except KeyError:
+                    messages["errors"].append(f"Epoch missing a label.")
+
+                try:
+                    bounds = messages.pop("bounds")
+                    if not isinstance(bounds, list):
+                        messages["errors"].append(f"Non-list value given for epoch bounds: '{bounds}'.")
+                    elif len(bounds) != 2:
+                        messages["errors"].append(f"Bounds list given with {len(bounds)} values.")
+                    elif bounds[0] >= bounds[1]:
+                        messages["errors"].append(f"Times reversed in bounds list.")
+                except KeyError:
+                    messages["errors"].append("Epoch missing bounds.")
+
+                for k in epoch:  # additional keys
+                    messages["errors"].append(f"Unrecognized keys found in epoch: '{k}'")
+
+        else:
+            messages["errors"].append("Expecting a list (possibly empty) of epochs.")
 
         if len(messages["errors"]) > n_errors:
             is_valid = False
