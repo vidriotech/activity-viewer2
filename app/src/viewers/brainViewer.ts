@@ -80,6 +80,8 @@ export class BrainViewer {
     protected epochLabels: Object3D = null;
     protected epochSlider: Line = null;
 
+    protected colorGradient: Object3D = null;
+
     protected loadedPenetrationsMap: Map<string, Penetration>;
     protected penetrationPointsMap: Map<string, Points<BufferGeometry>>;
 
@@ -121,12 +123,12 @@ export class BrainViewer {
 
     protected initColorGradient(mapping: ColorMapping): void {
         const labelWidth = 40;
-        const fontSize = 28;
+        const fontSize = 20;
 
         const root = new THREE.Object3D();
         const labelBaseScale = 0.01;
 
-        const canvas = this.makeColorCanvas(1280, labelWidth, fontSize, mapping);
+        const canvas = this.makeColorCanvas(500, labelWidth, fontSize, mapping);
         const texture = new THREE.CanvasTexture(canvas);
 
         texture.minFilter = THREE.LinearFilter;
@@ -144,7 +146,9 @@ export class BrainViewer {
         labels.scale.y = canvas.height * labelBaseScale;
 
         this.camera.add(root);
-        root.position.set(5, 0, -10);
+        root.position.set(5.5, 0, -10);
+
+        this.colorGradient = root;
     }
 
     protected initEpochLabels(): void {
@@ -152,7 +156,7 @@ export class BrainViewer {
             return null;
         }
 
-        const labelWidth = 1200;
+        const labelWidth = 1000;
         const fontSize = 28;
 
         const epochs = this.epochs;
@@ -420,40 +424,47 @@ export class BrainViewer {
         return material;
     }
 
-    protected makeColorCanvas(height: number, width: number, fontSize: number, mapping: ColorMapping): HTMLCanvasElement {
-        const ctx = document.createElement("canvas").getContext('2d');
+    protected makeColorCanvas(height: number, baseWidth: number, fontSize: number, mapping: ColorMapping): HTMLCanvasElement {
+        if (!mapping) {
+            return;
+        }
 
-        ctx.font = `${fontSize}px sans-serif`;
+        const ctx = document.createElement("canvas").getContext("2d");
+
+        const width = baseWidth + 100;
         ctx.canvas.width = width;
         ctx.canvas.height = height;
 
-        if (!mapping) {
-            const colorLUT = colorMaps.get("nothing");
-            const [r, g, b] = colorLUT.mapping.slice(0, 3);
+        const [domainStart, domainStop] = mapping.transformParams.domainBounds;
+        const [targetStart, targetStop] = mapping.transformParams.targetBounds;
+        const colorLUT = mapping.colorLUT;
+        const nSteps = Math.ceil(targetStop * 255) - Math.floor(targetStart * 255);
+
+        for (let i = Math.floor(targetStart * 255); i < Math.ceil(targetStop * 255); i++) {
+            const idx = i - Math.floor(targetStart * 255);
+            const startY = height - (idx + 1) * height / nSteps;
+
+            const [r, g, b] = colorLUT.mapping.slice(3 * i, 3 * (i + 1));
             ctx.fillStyle = `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
-            ctx.fillRect(0, 0, width, height);
-        } else {
-            const [domainStart, domainStop] = mapping.transformParams.domainBounds;
-            const [targetStart, targetStop] = mapping.transformParams.targetBounds;
-            const colorLUT = mapping.colorLUT;
-            const nSteps = Math.ceil(targetStop * 255) - Math.floor(targetStart * 255);
-
-            for (let i = Math.floor(targetStart * 255); i < Math.ceil(targetStop * 255); i++) {
-                const idx = i - Math.floor(targetStart * 255);
-                const startY = height - (idx + 1) * height / nSteps;
-
-                const [r, g, b] = colorLUT.mapping.slice(3 * i, 3 * (i + 1));
-                ctx.fillStyle = `rgb(${Math.round(r * 255)}, ${Math.round(g * 255)}, ${Math.round(b * 255)})`;
-                ctx.fillRect(0, startY, width, height / nSteps);
-            }
+            ctx.fillRect(0, startY, baseWidth, height / nSteps);
         }
+
+        ctx.fillStyle = "black";
+        ctx.font = `${fontSize}px Helvetica`;
+        ctx.fillText(domainStart.toFixed(2), baseWidth + 10, height);
+        ctx.fillText(domainStop.toFixed(2), baseWidth + 10, 20);
+
+        // scale to fit but don't stretch
+        const scaleFactor = Math.min(1, baseWidth);
+        ctx.translate(width / 2, height / 2);
+        ctx.scale(scaleFactor, 1);
 
         return ctx.canvas;
     }
 
     protected makeLabelCanvas(baseWidth: number, fontSize: number, epochs: Epoch[]): HTMLCanvasElement {
         const ctx = document.createElement('canvas').getContext('2d');
-        const font = `${fontSize}px sans-serif`;
+        const font = `${fontSize}px Helvetica`;
 
         const width = baseWidth + 5;
         const height = fontSize + 10;
@@ -480,9 +491,9 @@ export class BrainViewer {
         });
 
         // scale to fit but don't stretch
-        const scaleFactor = Math.min(1, baseWidth);
+        const scaleFactor = Math.min(1, height);
         ctx.translate(width / 2, height / 2);
-        ctx.scale(scaleFactor, 1);
+        ctx.scale(1, scaleFactor);
 
         return ctx.canvas;
     }
@@ -597,6 +608,10 @@ export class BrainViewer {
     }
 
     public setAestheticAssignment(mapping: AestheticMapping, callback: Function): void {
+        if (this.colorGradient) {
+            this.camera.remove(this.colorGradient);
+            this.colorGradient = null;
+        }
         this.initColorGradient(mapping.color);
 
         this.loadedPenetrationsMap.forEach((penetration, penetrationId) => {

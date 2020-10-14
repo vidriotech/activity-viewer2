@@ -55,6 +55,14 @@ def get_penetration_data_file(penetration_id: str):
     )
 
 
+@app.route("/images/<image_path>")
+def get_image(image_path: str):
+    file_path = Path(__file__).parent.parent / "assets" / "images" / image_path
+    if not file_path.is_file():
+        return make_response(f"Image '{image_path}' not found.", 404)
+
+    return send_file(file_path)
+
 @app.route("/mesh/<int:structure_id>")
 def get_mesh(structure_id: int):
     return state.cache.load_structure_mesh(structure_id)

@@ -1,50 +1,49 @@
 import React from "react";
 import * as _ from "lodash";
+
+import Button from "@material-ui/core/Button";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Drawer from "@material-ui/core/Drawer";
 import Grid from "@material-ui/core/Grid";
+import IconButton from "@material-ui/core/IconButton";
+import Typography from "@material-ui/core/Typography";
+
+import {ChevronLeft, ChevronRight, LockOpenOutlined, LockOutlined} from "@material-ui/icons";
 
 // eslint-disable-next-line import/no-unresolved
 import {APIClient} from "../../apiClient";
 // eslint-disable-next-line import/no-unresolved
 import {AVConstants, colorMaps} from "../../constants";
-
 // eslint-disable-next-line import/no-unresolved
+import {tab10Blue} from "../../styles";
+
 import {
     AestheticMapping,
     AestheticProps,
-    ColorMapping,
-    ScalarMapping,
-    TransformParams
+// eslint-disable-next-line import/no-unresolved
 } from "../../models/aestheticMapping";
 // eslint-disable-next-line import/no-unresolved
 import {AVSettings} from "../../models/apiModels";
 // eslint-disable-next-line import/no-unresolved
-import {ColorLUT} from "../../models/colorMap";
+import {CompartmentTree} from "../../models/compartmentTree";
 // eslint-disable-next-line import/no-unresolved
 import {SliceImageType, SliceType} from "../../models/enums";
 // eslint-disable-next-line import/no-unresolved
-import {Predicate, PropIneqPredicate} from "../../models/predicates";
+import {Penetration} from "../../models/penetration";
 // eslint-disable-next-line import/no-unresolved
-import {TimeseriesData, TimeseriesSummary} from "../../models/timeseries";
+import {Predicate} from "../../models/predicates";
+// eslint-disable-next-line import/no-unresolved
+import {TimeseriesSummary} from "../../models/timeseries";
+// eslint-disable-next-line import/no-unresolved
+import {TomographySlice} from "../../models/tomographySlice";
+
 // eslint-disable-next-line import/no-unresolved
 import {BrainViewer} from "../../viewers/brainViewer";
 
-import Typography from "@material-ui/core/Typography";
-// eslint-disable-next-line import/no-unresolved
-import {tab10Blue} from "../../styles";
-import {ChevronLeft, ChevronRight, LockOpenOutlined, LockOutlined} from "@material-ui/icons";
-import IconButton from "@material-ui/core/IconButton";
-import CircularProgress from "@material-ui/core/CircularProgress";
-// eslint-disable-next-line import/no-unresolved
-import {Penetration} from "../../models/penetration";
-// eslint-disable-next-line import/no-unresolved
-import {TomographySlice} from "../../models/tomographySlice";
 // eslint-disable-next-line import/no-unresolved
 import {PlayerSlider, PlayerSliderProps} from "./PlayerSlider";
-import Button from "@material-ui/core/Button";
 // eslint-disable-next-line import/no-unresolved
 import {TimeseriesMappers, TimeseriesMappersProps} from "../TimeseriesControls/TimeseriesMappers";
-import Drawer from "@material-ui/core/Drawer";
-import {CompartmentNode, CompartmentTree} from "../../models/compartmentTree";
 
 export interface ViewerContainerProps {
     compartmentTree: CompartmentTree;
@@ -256,10 +255,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         }
 
         const coordinate = this.props.tomographySliceCoordinate;
-        this.apiClient.fetchSliceData(this.props.tomographySliceType, coordinate)
-            .then((res) => res.data)
-            .then((sliceData) =>  TomographySlice.fromResponse(sliceData))
-            .then((slice) => {
+        const slice = new TomographySlice(this.props.tomographySliceType, coordinate);
+        slice.initialize()
+            .then(() => {
                 slice.imageType = this.props.showTomographyAnnotation ?
                     SliceImageType.ANNOTATION :
                     SliceImageType.TEMPLATE;
@@ -614,7 +612,8 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
                         </Grid> : null
                     }
-                    <Grid item xs>
+                    <Grid item xs
+                          style={{alignItems: "center"}}>
                         <Typography align="left" gutterBottom>
                             {this.props.progressMessage}
                         </Typography>
