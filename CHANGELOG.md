@@ -6,6 +6,9 @@ The format is based on
 adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+- The `viewerd` command is now un-deprecated. The two-process workflow,
+  formerly `viewer start-daemon; cd app/; npm start` uses `viewerd` instead of
+  `viewer`. The `viewer` command spawns the GUI app, if found.
 - The `dataFiles` field in the settings file now takes a glob, or a list of
   file names, or a list of file names and globs.
 - The settings file now takes an optional `epochs` field, allowing you to
