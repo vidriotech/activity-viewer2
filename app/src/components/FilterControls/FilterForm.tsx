@@ -80,7 +80,7 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
                     if (unitStatId === this.state.currentCondition) {
                         c += 1;
                         let progress = c / this.props.selectedPenetrations.size;
-                        if (Math.abs(progress - 1) < 1e-15) {
+                        if (Math.abs(progress - 1) < 1e-13) {
                             progress = 1;
                         }
                         this.setState({loadProgress: progress});

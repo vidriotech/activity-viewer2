@@ -323,7 +323,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
     private onFetchSuccessful(increment: number): void {
         this.progress += increment;
-        if (Math.abs(1 - this.progress) < 1e-15) {
+        if (Math.abs(1 - this.progress) < 1e-13) {
             this.progress = 1;
         }
 
