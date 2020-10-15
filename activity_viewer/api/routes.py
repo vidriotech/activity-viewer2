@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import sys
 from tempfile import mkdtemp
 
 from flask import Flask, make_response, request, send_file
@@ -57,7 +58,8 @@ def get_penetration_data_file(penetration_id: str):
 
 @app.route("/images/<image_path>")
 def get_image(image_path: str):
-    file_path = Path(__file__).parent.parent / "assets" / "images" / image_path
+    base_dir = getattr(sys, "_MEIPASS", Path(__file__).parent.parent)
+    file_path = Path(base_dir) / "assets" / "images" / image_path
     if not file_path.is_file():
         return make_response(f"Image '{image_path}' not found.", 404)
 

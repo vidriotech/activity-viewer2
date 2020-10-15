@@ -203,5 +203,4 @@ class AVSettings(DefaultSerializable):
 
 def make_default_settings() -> AVSettings:
     """Return default settings"""
-    return AVSettings.from_file(Path(__file__).parent / "default_settings.json")
-    
+    return AVSettings()

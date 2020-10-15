@@ -122,6 +122,10 @@ export class BrainViewer {
     }
 
     protected initColorGradient(mapping: ColorMapping): void {
+        if (!mapping) {
+            return;
+        }
+
         const labelWidth = 40;
         const fontSize = 20;
 

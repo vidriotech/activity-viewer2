@@ -2,6 +2,7 @@ import gevent
 from gevent.pywsgi import WSGIServer
 from gevent.subprocess import Popen
 from pathlib import Path
+import os
 import platform
 import re
 import shlex
@@ -10,47 +11,59 @@ import sys
 from activity_viewer.api import app
 
 
-def _get_gui_path():
+def run_mac(http_server):
+    base_path = getattr(sys, "_MEIPASS", Path(__file__).parent.parent.resolve())
+    os.chdir(base_path)
+
+    gui = 'open -a "Activity Viewer"'
+    try:
+        Popen(shlex.split(gui))
+    except Exception as e:
+        print(f"Failed to launch: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    http_server.serve_forever()
+
+
+def run_win(http_server):
     base_path = Path(__file__).parent.parent
-    system = platform.system()
+    if base_path.name == "pkgs":
+        base_path = base_path.parent
 
-    build_dir = binary = path = None
     app_out = Path("app", "out")
+    build_dir = "Activity Viewer-win32-x64"
+    binary = "Activity Viewer.exe"
 
-    if system == "Windows":
-        if base_path.name == "pkgs":
-            base_path = base_path.parent
-
-        build_dir = "Activity Viewer-win32-x64"
-        binary = "Activity Viewer.exe"
-    elif system == "Darwin":
-        build_dir = Path("Activity Viewer-darwin-x64", "Activity Viewer.app", "Contents", "MacOS")
-        binary = "Activity Viewer"
-
+    path = None
     if build_dir and binary:
         if Path(base_path, build_dir).is_dir() and Path(base_path, build_dir, binary).is_file():
             path = Path(base_path, build_dir, binary)
         elif Path(base_path, app_out, build_dir).is_dir() and Path(base_path, app_out, build_dir, binary).is_file():
             path = Path(base_path, app_out, build_dir, binary)
 
-    return path
+    if path is None:
+        print("GUI application not found", file=sys.stderr)
+        sys.exit(1)
+
+    server_greenlet = gevent.spawn(http_server.serve_forever)
+
+    gui = re.sub(r"\s+", r"\ ", str(path).replace("\\", "\\\\"))
+    gui_proc = Popen(shlex.split(gui))
+
+    gevent.joinall([gui_proc])
+    server_greenlet.kill()
 
 
 def main():
-    gui = _get_gui_path()
-    if gui is not None:
-        http_server = WSGIServer(("127.0.0.1", 3030), app)
-        server_greenlet = gevent.spawn(http_server.serve_forever)
+    http_server = WSGIServer(("127.0.0.1", 3030), app)
+    system = platform.system()
 
-        gui = re.sub(r"\s+", r"\ ", str(gui).replace("\\", "\\\\"))
-        gui_proc = Popen(shlex.split(gui))
-
-        gevent.joinall([gui_proc])
-
-        server_greenlet.kill()
+    if system == "Windows":
+        run_win(http_server)
+    elif system == "Darwin":
+        run_mac(http_server)
     else:
-        print("GUI application not found", file=sys.stderr)
-        sys.exit(1)
+        print(f"Unsupported platform: {system}.", file=sys.stderr)
 
 
 if __name__ == "__main__":
