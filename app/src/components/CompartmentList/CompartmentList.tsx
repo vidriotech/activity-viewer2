@@ -157,12 +157,12 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
 
     public render(): React.ReactElement {
         // fill children of list depending on state of filter text or subset selection
-        let listChildren;
+        let listChildren = null;
         if (this.state.filteredCompartmentIds.length > 0) {
             listChildren = this.renderFilteredCompartments();
         } else if (this.state.subsetSelection === SubsetSelection.SELECTED) {
             listChildren = this.renderSelectedCompartments();
-        } else {
+        } else if (this.props.compartmentTree) {
             const rootNode = this.props.compartmentTree.getCompartmentNodeByName("root")
             const rootNodeProps: CompartmentListNodeProps = {
                 busy: this.props.busy,
@@ -180,6 +180,10 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
             );
         }
 
+        const options = this.props.compartmentTree ?
+            Array.from(this.props.compartmentTree.getAllCompartmentNodes()) :
+            [];
+
         return (
             <Container disableGutters>
                 {this.renderHeader()}
@@ -187,7 +191,7 @@ export class CompartmentList extends React.Component<CompartmentListProps, Compa
                               size="small"
                               disabled={this.props.busy}
                               id="ac-compartment-search"
-                              options={Array.from(this.props.compartmentTree.getAllCompartmentNodes())}
+                              options={options}
                               getOptionLabel={(option): string => option.name}
                               filterSelectedOptions
                               onChange={(_evt, nodes: CompartmentNode[]): void => {

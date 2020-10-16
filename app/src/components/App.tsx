@@ -23,6 +23,10 @@ import {Predicate} from "../models/predicates";
 
 // eslint-disable-next-line import/no-unresolved
 import { MainView, MainViewProps } from "./MainView";
+import Dialog from "@material-ui/core/Dialog";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Grid from "@material-ui/core/Grid";
 
 const theme = createMuiTheme({
     palette: {
@@ -120,11 +124,6 @@ export class App extends React.Component<AppProps, AppState> {
                 });
 
             if (penetrationData) {
-                this.penetrations.set(
-                    pid,
-                    Penetration.fromResponse(penetrationData)
-                );
-
                 penetrationData.unitStatIds.forEach((statId) => {
                     availableStats.add(statId);
                 });
@@ -134,6 +133,13 @@ export class App extends React.Component<AppProps, AppState> {
                 });
 
                 loadedPenetrations.add(pid);
+
+                const penetration = Penetration.fromResponse(penetrationData);
+                if (this.state.filterPredicate) {
+                    penetration.setFilter(this.state.filterPredicate);
+                }
+
+                this.penetrations.set(pid, penetration);
             }
 
             this.setState({nLoaded: this.state.nLoaded + 1});
@@ -319,17 +325,29 @@ export class App extends React.Component<AppProps, AppState> {
             onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
         }
 
-        if (!(this.state.compartmentTree && this.state.settings && this.state.ready)) {
-            return (
-                <Container disableGutters style={{justifyContent: "center"}}>
-                    <CircularProgress variant="indeterminate" />
-                    <Typography variant="h6" component="h1">
-                        {`Loading penetration ${this.state.nLoaded}/${this.state.nLoadable}`}
-                    </Typography>
-                </Container>
-            )
-        } else {
-            return <MainView {...mainViewProps} />;
-        }
+        return (
+            <div>
+                <Dialog open={(!(this.state.compartmentTree && this.state.settings && this.state.ready))}
+                        disableBackdropClick
+                        disableEscapeKeyDown
+                        aria-labelledby="loading-modal" >
+                    <DialogTitle>Loading penetrations</DialogTitle>
+                    <DialogContent>
+                        <Grid container alignItems="center">
+                            <Grid item xs={2}>
+                                <CircularProgress variant="indeterminate" size={25} />
+                            </Grid>
+                            <Grid item xs>
+
+                                <Typography variant="body1" component="h1">
+                                    {`Fetching penetration ${this.state.nLoaded}/${this.state.nLoadable}`}
+                                </Typography>
+                            </Grid>
+                        </Grid>
+                    </DialogContent>
+                </Dialog>
+                <MainView {...mainViewProps} />;
+            </div>
+        );
     }
 }

@@ -130,7 +130,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         let timeMin = NaN;
         let timeMax = NaN;
         let timeStep = NaN;
-        if (this.props.settings.epochs.length > 0) {
+        if (this.props.settings && this.props.settings.epochs.length > 0) {
             const epochs = this.props.settings.epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0])
             timeMin = epochs[0].bounds[0];
             timeMax = epochs[epochs.length - 1].bounds[1];
@@ -207,9 +207,36 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         return { width, height };
     }
 
+    private clearAestheticAssignments(): void {
+        this.setState({
+            colorTimeseries: "nothing",
+            colorBounds: [0, 1],
+            colorGamma: 1,
+            colorMapping: "bwr",
+            opacityTimeseries: "nothing",
+            opacityBounds: [0.01, 1],
+            opacityGamma: 1,
+            radiusTimeseries: "nothing",
+            radiusBounds: [0.01, 1],
+            radiusGamma: 1,
+        }, () => {
+            if (this.viewer) {
+                this.viewer.clearAestheticAssignments();
+            }
+        });
+    }
+
     private async createViewer(): Promise<void> {
-        const v = new BrainViewer(this.props.settings.epochs);
+        const v = new BrainViewer();
         this.initViewer(v);
+    }
+
+    private handleMapperCommit(aestheticProps: AestheticProps): void {
+        this.setState({showMappers: false}, () => {
+            this.setState(aestheticProps, () => {
+                this.propagateAestheticCommit()
+            });
+        });
     }
 
     private lockToPlane(): void {
@@ -261,7 +288,9 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
                 this.viewer.setTomographySlice(slice);
                 if (lock) {
-                    this.lockToPlane();
+                    this.viewer.lockToPlane();
+                    this.viewer.hideAllCompartments();
+                    this.viewer.projectToPlane();
                 }
             })
             .catch((err) => {
@@ -433,7 +462,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
 
                         }
 
-                        this.viewer.setAestheticAssignment(mapping, () => this.onFetchSuccessful(increment));
+                        this.viewer.setAestheticAssignment(mapping, (coef = 1) => this.onFetchSuccessful(coef * increment));
                     }
                 });
             })
@@ -530,7 +559,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     private renderCompartments(): void {
-        if (!this.viewer || this.props.rotateLocked) {
+        if (!this.viewer || this.props.rotateLocked || !this.props.compartmentTree) {
             return;
         }
 
@@ -687,6 +716,22 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
     }
 
     public componentDidUpdate(prevProps: Readonly<ViewerContainerProps>): void {
+        if (prevProps.settings !== this.props.settings && this.props.settings) {
+            if (this.viewer) {
+                this.viewer.epochs = this.props.settings.epochs;
+            }
+        }
+
+        if (this.viewer && prevProps.selectedPenetrations !== this.props.selectedPenetrations) {
+            prevProps.selectedPenetrations.forEach((penetration, penetrationId) => {
+                if (!this.props.selectedPenetrations.has(penetrationId)) {
+                    this.viewer.unloadPenetration(penetrationId);
+                }
+            });
+
+            this.clearAestheticAssignments();
+        }
+
         if (!prevProps.showTestSlice && this.props.showTestSlice) {
             this.setTestSlice();
         } else if (prevProps.showTestSlice && !this.props.showTestSlice) {
@@ -698,7 +743,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
         if ((!prevProps.showTomographySlice && this.props.showTomographySlice) ||
             (this.props.showTomographySlice && prevProps.tomographySliceCoordinate !== this.props.tomographySliceCoordinate)
         ) {
-            this.setTomographySlice(false);
+            this.setTomographySlice(this.props.rotateLocked);
         } else if (prevProps.showTomographySlice && !this.props.showTomographySlice) {
             this.removeTomographySlice();
             this.unlockFromPlane();
@@ -752,9 +797,7 @@ export class ViewerContainer extends React.Component<ViewerContainerProps, Viewe
             radiusBounds: this.state.radiusBounds,
             radiusGamma: this.state.radiusGamma,
             timeseriesList: Array.from(this.props.availableTimeseries),
-            onCommit: (aestheticProps: AestheticProps): void => {
-                this.setState(_.extend(aestheticProps, {showMappers: false}), () => this.propagateAestheticCommit())
-            },
+            onCommit: this.handleMapperCommit.bind(this),
         };
 
         const header = this.renderHeader();

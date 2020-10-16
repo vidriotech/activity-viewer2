@@ -62,6 +62,11 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
     constructor(props: DisplayPanelProps) {
         super(props);
 
+        const visibleCompartmentIds: number[] = [];
+        if (this.props.compartmentTree) {
+            visibleCompartmentIds.push(this.props.compartmentTree.getCompartmentNodeByName("root").id);
+        }
+
         this.state = {
             showDataPanel: true,
             showPhysPanel: true,
@@ -69,7 +74,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             progress: 1,
             progressMessage: "Ready.",
 
-            visibleCompartmentIds: new Set<number>([this.props.compartmentTree.getCompartmentNodeByName("root").id]),
+            visibleCompartmentIds: new Set<number>(visibleCompartmentIds),
 
             showTomographyAnnotation: true,
             showTomographySlice: false,
@@ -110,6 +115,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
             showTomographySlice: true,
             tomographySliceType: this.state.sliceType,
             tomographySliceCoordinate: sliceCoordinate,
+            rotateLocked: true,
         }, () => {
             const coordName = this.state.tomographySliceType === SliceType.CORONAL ?
                 "x" : "z";
@@ -122,29 +128,27 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         this.setState({
             tomographySliceCoordinate: coordinate
         }, () => {
-            if (this.state.rotateLocked) {
-                let coordName: "x" | "z";
-                let maxCoord: number;
+            let coordName: "x" | "z";
+            let maxCoord: number;
 
-                switch (this.state.tomographySliceType) {
-                    case SliceType.CORONAL:
-                        coordName = "x";
-                        maxCoord = CoronalMax;
-                        break;
-                    case SliceType.SAGITTAL:
-                        coordName = "z";
-                        maxCoord = SagittalMax;
-                }
-
-                const padding = (this.state.testSliceBounds[1] - this.state.testSliceBounds[0]) / 2;
-                const predicate = new PropIneqPredicate(
-                    coordName,
-                    Math.max(0, coordinate - padding),
-                    Math.min(maxCoord, coordinate + padding)
-                );
-
-                this.props.onUpdateFilterPredicate(predicate);
+            switch (this.state.tomographySliceType) {
+                case SliceType.CORONAL:
+                    coordName = "x";
+                    maxCoord = CoronalMax;
+                    break;
+                case SliceType.SAGITTAL:
+                    coordName = "z";
+                    maxCoord = SagittalMax;
             }
+
+            const padding = (this.state.testSliceBounds[1] - this.state.testSliceBounds[0]) / 2;
+            const predicate = new PropIneqPredicate(
+                coordName,
+                Math.max(0, coordinate - padding),
+                Math.min(maxCoord, coordinate + padding)
+            );
+
+            this.props.onUpdateFilterPredicate(predicate);
         });
     }
 
@@ -189,6 +193,14 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
 
     private isBusy(): boolean {
         return this.state.progress < 1;
+    }
+
+    public componentDidUpdate(prevProps: Readonly<DisplayPanelProps>): void {
+        if (!prevProps.compartmentTree && this.props.compartmentTree) {
+            const visibleCompartmentIds = _.clone(this.state.visibleCompartmentIds);
+            visibleCompartmentIds.add(this.props.compartmentTree.getCompartmentNodeByName("root").id);
+            this.setState({visibleCompartmentIds});
+        }
     }
 
     public render(): React.ReactElement {

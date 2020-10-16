@@ -57,7 +57,7 @@ export class BrainViewer {
     public container = "container";
     public flip = true; // flip y axis
 
-    protected epochs: Epoch[];
+    protected _epochs: Epoch[] = [];
 
     // animation
     protected animFrameHandle: number = null;
@@ -92,11 +92,9 @@ export class BrainViewer {
     private tomographySlice: TomographySlice = null;
     private slicingPlanes: SlicingPlanes = null;
 
-    private loadedCompartments: Set<string>;
     private visibleCompartments: Set<string>;
 
-    constructor(epochs: Epoch[]) {
-        this.epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
+    constructor() {
         this.cameraStartPosition = [0, 0, -20000];
 
         this.colorData = new Map<string, number[]>();
@@ -106,8 +104,11 @@ export class BrainViewer {
         this.loadedPenetrationsMap = new Map<string, Penetration>();
         this.penetrationPointsMap = new Map<string, Points<BufferGeometry>>();
 
-        this.loadedCompartments = new Set<string>();
         this.visibleCompartments = new Set<string>();
+    }
+
+    protected compartmentIsLoaded(compartmentName: string): boolean {
+        return this.scene && (this.scene.getObjectByName(compartmentName) !== undefined);
     }
 
     protected initCamera(): void {
@@ -156,14 +157,14 @@ export class BrainViewer {
     }
 
     protected initEpochLabels(): void {
-        if (this.epochs.length === 0) {
+        if (this._epochs.length === 0) {
             return null;
         }
 
         const labelWidth = 1000;
         const fontSize = 28;
 
-        const epochs = this.epochs;
+        const epochs = this._epochs;
 
         const root = new THREE.Object3D();
         const labelBaseScale = 0.01;
@@ -342,6 +343,50 @@ export class BrainViewer {
         return newValues;
     }
 
+    private loadCompartment(compartmentNode: CompartmentNode): void {
+        const name = compartmentNode.name;
+        if (this.compartmentIsLoaded(name)) {
+            return;
+        }
+
+        const compartmentId = compartmentNode.id;
+        const compartmentColor = '#' + this.rgb2Hex(compartmentNode.rgbTriplet);
+
+        const loader = new THREE.OBJLoader();
+        const path = `${apiEndpoint}/mesh/${compartmentId}`;
+
+        loader.load(path, (obj: Object3D) => {
+            const makeMaterial = (child: Mesh): void => {
+                child.material = new ShaderMaterial({
+                    uniforms: {
+                        color: {
+                            value: new THREE.Color(compartmentColor)
+                        },
+                    },
+                    vertexShader: compartmentVertexShader,
+                    fragmentShader: compartmentFragmentShader,
+                    transparent: true,
+                    depthTest: true,
+                    depthWrite: false,
+                    side: THREE.DoubleSide,
+                });
+            };
+
+            obj.traverse(makeMaterial.bind(this))
+
+            obj.name = name;
+            const [x, y, z] = volumeCenterPoint.map((t: number) => -t);
+            obj.position.set(x, y, z);
+
+            this.scene.add(obj);
+
+            // user can select and unselect before the compartment has a chance to load
+            if (!this.visibleCompartments.has(name)) {
+                obj.visible = false;
+            }
+        });
+    }
+
     protected makeShaderMaterial(aestheticMapping: AestheticMapping): ShaderMaterial {
         const colors = [];
         let colorLUT: ColorLUT;
@@ -455,8 +500,10 @@ export class BrainViewer {
 
         ctx.fillStyle = "black";
         ctx.font = `${fontSize}px Helvetica`;
-        ctx.fillText(domainStart.toFixed(2), baseWidth + 10, height);
-        ctx.fillText(domainStop.toFixed(2), baseWidth + 10, 20);
+        if (domainStart !== undefined && domainStop !== undefined) {
+            ctx.fillText(domainStart.toFixed(2), baseWidth + 10, height);
+            ctx.fillText(domainStop.toFixed(2), baseWidth + 10, 20);
+        }
 
         // scale to fit but don't stretch
         const scaleFactor = Math.min(1, baseWidth);
@@ -578,7 +625,7 @@ export class BrainViewer {
         opacity.fill(defaultOpacity);
 
         const size = new Float32Array(penetration.nUnits);
-        size.fill(400 * defaultRadius);
+        size.fill(defaultRadius);
 
         const visible = new Float32Array(penetration.visible);
 
@@ -599,6 +646,20 @@ export class BrainViewer {
         this.scene.add(points);
     }
 
+    public unloadPenetration(penetrationId: string): void {
+        if (!this.loadedPenetrationsMap.has(penetrationId)) {
+            return;
+        }
+
+        this.loadedPenetrationsMap.delete(penetrationId);
+        if (this.penetrationPointsMap.has(penetrationId)) {
+            const points = this.penetrationPointsMap.get(penetrationId);
+
+            this.scene.remove(points);
+            this.penetrationPointsMap.delete(penetrationId);
+        }
+    }
+
     public render(): void {
         this.renderer.render(this.scene, this.camera);
     }
@@ -609,6 +670,11 @@ export class BrainViewer {
             this.opacityData.set(penetrationId, null);
             this.radiusData.set(penetrationId, null);
         });
+
+        if (this.colorGradient) {
+            this.camera.remove(this.colorGradient);
+            this.colorGradient = null;
+        }
     }
 
     public setAestheticAssignment(mapping: AestheticMapping, callback: Function): void {
@@ -621,6 +687,7 @@ export class BrainViewer {
         this.loadedPenetrationsMap.forEach((penetration, penetrationId) => {
             const pointObj = this.penetrationPointsMap.get(penetrationId);
             if (!pointObj) {
+                callback(3);
                 return;
             }
 
@@ -636,8 +703,9 @@ export class BrainViewer {
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
                             this.updatePenetrationAttributes(penetrationId, true);
-                            callback();
                         }
+
+                        callback();
                     })
                     .catch((err) => {
                         console.error(err);
@@ -656,8 +724,9 @@ export class BrainViewer {
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
                             this.updatePenetrationAttributes(penetrationId, true);
-                            callback();
                         }
+
+                        callback();
                     })
                     .catch((err) => {
                         console.error(err);
@@ -676,8 +745,9 @@ export class BrainViewer {
                                 this.interpExtrapTranspose(data.times, data.values)
                             );
                             this.updatePenetrationAttributes(penetrationId, true);
-                            callback();
                         }
+
+                        callback();
                     })
                     .catch((err) => {
                         console.error(err);
@@ -900,74 +970,6 @@ export class BrainViewer {
         this.render();
     }
 
-    public get timeStep(): number {
-        return this._timeStep;
-    }
-
-    public set timeVal(t: number) {
-        this._timeVal = t;
-        this.updateAllPenetrationAttributes();
-        this.updateTimeSlider();
-    }
-
-    public get sliceType(): SliceType {
-        return this.tomographySlice ?
-            this.tomographySlice.sliceType :
-            null;
-    }
-
-    public set imageType(imageType: SliceImageType) {
-        if (this.tomographySlice) {
-            this.tomographySlice.imageType = imageType;
-        }
-    }
-
-    private loadCompartment(compartmentNode: CompartmentNode): void {
-        const name = compartmentNode.name;
-        if (this.loadedCompartments.has(name)) {
-            return;
-        }
-
-        const compartmentId = compartmentNode.id;
-        const compartmentColor = '#' + this.rgb2Hex(compartmentNode.rgbTriplet);
-
-        const loader = new THREE.OBJLoader();
-        const path = `${apiEndpoint}/mesh/${compartmentId}`;
-
-        loader.load(path, (obj: Object3D) => {
-            const makeMaterial = (child: Mesh): void => {
-                child.material = new ShaderMaterial({
-                    uniforms: {
-                        color: {
-                            value: new THREE.Color(compartmentColor)
-                        },
-                    },
-                    vertexShader: compartmentVertexShader,
-                    fragmentShader: compartmentFragmentShader,
-                    transparent: true,
-                    depthTest: true,
-                    depthWrite: false,
-                    side: THREE.DoubleSide,
-                });
-            };
-
-            obj.traverse(makeMaterial.bind(this))
-
-            obj.name = name;
-            const [x, y, z] = volumeCenterPoint.map((t: number) => -t);
-            obj.position.set(x, y, z);
-
-            this.loadedCompartments.add(name);
-
-            this.scene.add(obj);
-
-            // user can select and unselect before the compartment has a chance to load
-            if (!this.visibleCompartments.has(name)) {
-                obj.visible = false;
-            }
-        });
-    }
-
     public hideAllCompartments(): void {
         this.visibleCompartments.forEach((name) => {
             const compartment = this.scene.getObjectByName(name);
@@ -987,13 +989,41 @@ export class BrainViewer {
             this.visibleCompartments.delete(name)
         }
 
-        if (visible && !this.loadedCompartments.has(name)) {
+        if (visible && !this.compartmentIsLoaded(name)) {
             this.loadCompartment(compartmentNode);
         }
         const compartmentObj = this.scene.getObjectByName(name);
 
         if (compartmentObj) {
             compartmentObj.visible = visible;
+        }
+    }
+
+    public get timeStep(): number {
+        return this._timeStep;
+    }
+
+    public set timeVal(t: number) {
+        this._timeVal = t;
+        this.updateAllPenetrationAttributes();
+        this.updateTimeSlider();
+    }
+
+    public get sliceType(): SliceType {
+        return this.tomographySlice ?
+            this.tomographySlice.sliceType :
+            null;
+    }
+
+    public set epochs(epochs: Epoch[]) {
+        this._epochs = epochs.sort((e1, e2) => e1.bounds[0] - e2.bounds[0]);
+        this.initEpochLabels();
+        this.initEpochSlider();
+    }
+
+    public set imageType(imageType: SliceImageType) {
+        if (this.tomographySlice) {
+            this.tomographySlice.imageType = imageType;
         }
     }
 }

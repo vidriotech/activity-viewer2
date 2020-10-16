@@ -1,3 +1,5 @@
+import * as _ from "lodash";
+
 // eslint-disable-next-line import/no-unresolved
 import {CompartmentNodeInterface} from "./apiModels";
 
@@ -12,10 +14,11 @@ export class CompartmentNode implements CompartmentNodeInterface {
     protected _structureSetIds: number[];
     protected _children: CompartmentNode[];
 
+    protected penetrationUnits: Map<string, Set<number>>;
+
     private _nDescendentPenetrations: number;
     private _nDescendentUnits: number;
 
-    private penetrationUnits: Map<string, Set<number>>;
 
     constructor() {
         this._acronym = "";
@@ -32,6 +35,19 @@ export class CompartmentNode implements CompartmentNodeInterface {
         this._nDescendentUnits = -1;
 
         this.penetrationUnits = new Map<string, Set<number>>();
+    }
+
+    protected uniqueDescendantPenetrations(): string[] {
+        let penetrationIds = Array.from(this.penetrationUnits.keys());
+        for (const child of this._children) {
+            penetrationIds = penetrationIds.concat(child.uniqueDescendantPenetrations());
+        }
+
+        return _.uniq(penetrationIds);
+    }
+
+    protected uniqueExactPenetrations(): string[] {
+        return _.uniq(Array.from(this.penetrationUnits.keys()));
     }
 
     public static fromResponse(node: CompartmentNodeInterface): CompartmentNode {
@@ -81,12 +97,7 @@ export class CompartmentNode implements CompartmentNodeInterface {
     }
 
     public nDescendentPenetrations(): number {
-        let sum = this.nExactPenetrations();
-        this.children.forEach((child) => {
-            sum += child.nDescendentPenetrations();
-        });
-
-        return sum;
+        return this.uniqueDescendantPenetrations().length;
     }
 
     public nDescendentUnits(): number {
