@@ -33,7 +33,7 @@ export interface PenetrationData {
 }
 
 export interface PenetrationRequest {
-    data_paths: string[];
+    dataPaths: string[];
 }
 
 export interface PenetrationResponse {
@@ -91,12 +91,12 @@ export interface Epoch {
 }
 
 export interface AVSettings {
-    compartment: {
+    compartment?: {
         include: string[];
         exclude: string[];
         maxDepth: number;
     };
-    system: {
+    system?: {
         atlasVersion: string;
         cacheDirectory: string;
         dataFiles: string[];

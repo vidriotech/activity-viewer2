@@ -29,22 +29,30 @@
 import {ipcRenderer} from "electron";
 
 import React from "react";
-import ReactDOM from "react-dom";
+import ReactDOM, {render} from "react-dom";
 
 // Import styling
 import "./assets/css/index.css";
 import "fontsource-roboto";
 
 // eslint-disable-next-line import/no-unresolved
-import { App } from "./components/App";
+import {App, AppProps} from "./components/App";
 
-ipcRenderer.on("getSettings", (event, response) => {
-    // Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
-    const root = document.createElement("div");
-    root.id = "root";
-    document.body.appendChild(root);
+function renderApp(props: AppProps): void {
+    ReactDOM.render(<App {...props} />, document.getElementById("root"));
+}
 
-    ReactDOM.render(<App initialSettingsPath={response} />, document.getElementById("root"));
+// Since we are using HtmlWebpackPlugin WITHOUT a template, we should create our own root node in the body element before rendering into it
+const root = document.createElement("div");
+root.id = "root";
+document.body.appendChild(root);
+
+renderApp({settingsPath: "", dataPaths: []});
+
+ipcRenderer.on("setSettings", (event, response: string) => {
+    renderApp({settingsPath: response, dataPaths: []});
 });
 
-ipcRenderer.send("getSettings");
+ipcRenderer.on("setDataPaths", (event, response: string[]) => {
+   renderApp({dataPaths: response});
+});

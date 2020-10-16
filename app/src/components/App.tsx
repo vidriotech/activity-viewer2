@@ -10,20 +10,19 @@ import {createMuiTheme, ThemeProvider} from '@material-ui/core/styles';
 // eslint-disable-next-line import/no-unresolved
 import {APIClient} from "../apiClient";
 // eslint-disable-next-line import/no-unresolved
-import { AVConstants } from "../constants";
+import {AVConstants, defaultSettings} from "../constants";
 
 // eslint-disable-next-line import/no-unresolved
-import {AVSettings, ExportingUnit, PenetrationData} from "../models/apiModels";
+import {AVSettings, ExportingUnit} from "../models/apiModels";
+// eslint-disable-next-line import/no-unresolved
+import {CompartmentTree} from "../models/compartmentTree";
 // eslint-disable-next-line import/no-unresolved
 import {Penetration, PenetrationInterface} from "../models/penetration";
 // eslint-disable-next-line import/no-unresolved
 import {Predicate} from "../models/predicates";
-// eslint-disable-next-line import/no-unresolved
-import {UnitModel} from "../models/unitModel";
 
 // eslint-disable-next-line import/no-unresolved
 import { MainView, MainViewProps } from "./MainView";
-import {CompartmentTree} from "../models/compartmentTree";
 
 const theme = createMuiTheme({
     palette: {
@@ -51,7 +50,8 @@ const theme = createMuiTheme({
 });
 
 export interface AppProps {
-    initialSettingsPath: string;
+    settingsPath?: string;
+    dataPaths?: string[];
 }
 
 interface AppState {
@@ -68,6 +68,8 @@ interface AppState {
 
     filterPredicate: Predicate;
 
+    nLoaded: number;
+    nLoadable: number;
     ready: boolean;
 }
 
@@ -93,6 +95,8 @@ export class App extends React.Component<AppProps, AppState> {
             filterPredicate: null,
 
             ready: false,
+            nLoaded: 0,
+            nLoadable: 0
         };
 
         this.apiClient = new APIClient(this.state.constants.apiEndpoint);
@@ -100,6 +104,10 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     private async fetchPenetrationVitals(): Promise<void> {
+        const availableStats = new Set<string>();
+        const availableTimeseries = new Set<string>();
+        const loadedPenetrations = new Set<string>();
+
         for (const pid of this.state.availablePenetrations) {
             let penetrationData: PenetrationInterface;
 
@@ -117,22 +125,21 @@ export class App extends React.Component<AppProps, AppState> {
                     Penetration.fromResponse(penetrationData)
                 );
 
-                const availableStats = _.clone(this.state.availableStats);
                 penetrationData.unitStatIds.forEach((statId) => {
                     availableStats.add(statId);
                 });
 
-                const availableTimeseries = _.clone(this.state.availableTimeseries);
                 penetrationData.timeseriesIds.forEach((timeseriesId) => {
                     availableTimeseries.add(timeseriesId);
                 });
 
-                const loadedPenetrations = _.clone(this.state.loadedPenetrations);
                 loadedPenetrations.add(pid);
-
-                this.setState({loadedPenetrations, availableStats, availableTimeseries});
             }
+
+            this.setState({nLoaded: this.state.nLoaded + 1});
         }
+
+        this.setState({loadedPenetrations, availableStats, availableTimeseries, ready: true});
     }
 
     private getSelectedPenetrations(): Map<string, Penetration> {
@@ -190,6 +197,49 @@ export class App extends React.Component<AppProps, AppState> {
         }
     }
 
+    private handleSetDataFiles(): void {
+        this.apiClient.setPenetrationPaths(this.props.dataPaths)
+            .then((data) => {
+                const availablePenetrations = new Set<string>(data.penetrationIds);
+                this.setState({availablePenetrations}, () => {
+                    this.fetchPenetrationVitals();
+                });
+            });
+    }
+
+    private handleSetSettingsFile(): void {
+        let availablePenetrations: Set<string>;
+        let settings: AVSettings = null;
+        let compartmentTree: CompartmentTree = null;
+
+        this.apiClient.setSettings(this.props.settingsPath)
+            .then((data: AVSettings) => {
+                settings = data;
+
+                return this.apiClient.fetchCompartmentTree();
+            })
+            .then((rootNode) => {
+                compartmentTree = CompartmentTree.fromCompartmentNode(rootNode);
+
+                return this.apiClient.fetchPenetrationIds();
+            })
+            .then((data) => {
+                availablePenetrations = new Set<string>(data.penetrationIds);
+                this.setState({
+                    availablePenetrations,
+                    compartmentTree,
+                    settings,
+                    nLoaded: 0,
+                    nLoadable: data.penetrationIds.length,
+                }, () => {
+                    this.fetchPenetrationVitals();
+                });
+            })
+            .catch((err) => {
+                console.error(err);
+            });
+    }
+
     private handleUpdateFilterPredicate(predicate: Predicate): void {
         this.penetrations.forEach((penetration) => {
             penetration.setFilter(predicate);
@@ -222,32 +272,30 @@ export class App extends React.Component<AppProps, AppState> {
     }
 
     public componentDidMount(): void {
-        let availablePenetrations: Set<string>;
-        let settings: AVSettings = null;
-        let compartmentTree: CompartmentTree = null;
+        if (this.props.settingsPath !== "") {
+            this.handleSetSettingsFile();
+        } else {
+            const availablePenetrations = new Set<string>();
+            const settings = defaultSettings;
 
-        this.apiClient.setSettings(this.props.initialSettingsPath)
-            .then((data: AVSettings) => {
-                settings = data;
-
-                return this.apiClient.fetchCompartmentTree();
-            })
-            .then((rootNode) => {
-                compartmentTree = CompartmentTree.fromCompartmentNode(rootNode);
-
-                return this.apiClient.fetchPenetrationIds();
-            })
-            .then((res) => res.data)
-            .then((data) => {
-                availablePenetrations = new Set<string>(data.penetrationIds);
-                this.setState({availablePenetrations, compartmentTree, settings}, () => {
-                    this.fetchPenetrationVitals()
-                        .then(() => this.setState({ready: true}));
+            this.apiClient.fetchCompartmentTree()
+                .then((rootNode) => {
+                    const compartmentTree = CompartmentTree.fromCompartmentNode(rootNode);
+                    this.setState({availablePenetrations, compartmentTree, settings, ready: true});
                 });
-            })
-            .catch((err) => {
-                console.error(err);
+        }
+    }
+
+    public componentDidUpdate(prevProps: Readonly<AppProps>): void {
+        if (this.props.settingsPath && prevProps.settingsPath !== this.props.settingsPath) {
+            this.setState({ready: false}, () => {
+                this.handleSetSettingsFile();
             });
+        } else if (this.props.dataPaths && prevProps.dataPaths !== this.props.dataPaths) {
+            this.setState({ready: false, nLoaded: 0, nLoadable: this.props.dataPaths.length}, () => {
+                this.handleSetDataFiles();
+            });
+        }
     }
 
     public render(): React.ReactElement {
@@ -271,17 +319,12 @@ export class App extends React.Component<AppProps, AppState> {
             onUpdateFilterPredicate: this.handleUpdateFilterPredicate.bind(this),
         }
 
-        const nAvailable = this.state.availablePenetrations.size;
-        const nLoaded = this.state.loadedPenetrations.size;
-        const message = nAvailable > 0 ?
-            `Fetching penetration ${nLoaded + 1} / ${nAvailable} ...` :
-            "Loading ...";
         if (!(this.state.compartmentTree && this.state.settings && this.state.ready)) {
             return (
-                <Container>
+                <Container disableGutters style={{justifyContent: "center"}}>
                     <CircularProgress variant="indeterminate" />
                     <Typography variant="h6" component="h1">
-                        {message}
+                        {`Loading penetration ${this.state.nLoaded}/${this.state.nLoadable}`}
                     </Typography>
                 </Container>
             )

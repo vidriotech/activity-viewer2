@@ -54,6 +54,7 @@ import ListItemText from "@material-ui/core/ListItemText";
 import {SelectPenetrationsDialog} from "./SelectPenetrationsDialog";
 // eslint-disable-next-line import/no-unresolved
 import {CompartmentTree} from "../models/compartmentTree";
+import Button from "@material-ui/core/Button";
 
 interface UnitStatsData {
     penetrationId: string;
@@ -92,7 +93,9 @@ interface MainViewState {
     showDisplayLeft: boolean;
     showDisplayRight: boolean;
 
-    dialogOpen: boolean;
+    selectDataDialogOpen: boolean;
+
+    selectPenetrationsDialogOpen: boolean;
     selectPenetrationsDialog: boolean;
     selectedPenetrationIds: string[];
 }
@@ -120,7 +123,8 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
             showDisplayLeft: true,
             showDisplayRight: true,
 
-            dialogOpen: true,
+            selectDataDialogOpen: this.props.availablePenetrations.size === 0,
+            selectPenetrationsDialogOpen: false,
             selectPenetrationsDialog: true,
             selectedPenetrationIds: Array.from(this.props.selectedPenetrations.keys()),
         }
@@ -132,9 +136,15 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
         this.busyMessages = new Map<string, string>();
     }
 
+    public componentDidMount(): void {
+        if (this.props.loadedPenetrations.size > 0) {
+            this.setState({selectPenetrationsDialogOpen: true});
+        }
+    }
+
     public componentDidUpdate(prevProps: Readonly<MainViewProps>): void {
-        if (prevProps.loadedPenetrations !== this.props.loadedPenetrations) {
-            this.setState({dialogOpen: true});
+        if (prevProps.loadedPenetrations !== this.props.loadedPenetrations && this.props.loadedPenetrations.size > 0) {
+            this.setState({selectPenetrationsDialogOpen: true});
         }
     }
 
@@ -174,18 +184,30 @@ export class MainView extends React.Component<MainViewProps, MainViewState> {
                 <Grid item>
                     <DisplayPanel {...displayPanelProps} />
                 </Grid>
-                <Grid item>
-                    <SelectPenetrationsDialog open={this.state.dialogOpen}
-                                              loadedPenetrationIds={Array.from(this.props.loadedPenetrations)}
-                                              selectedPenetrations={this.props.selectedPenetrations}
-                                              onCommitSelection={(selectedPenetrationIds): void => {
-                                                  this.setState({dialogOpen: false}, () => {
-                                                      if (selectedPenetrationIds) {
-                                                          this.props.onUpdateSelectedPenetrations(selectedPenetrationIds);
-                                                      }
-                                                  });
-                                              }} />
-                </Grid>
+                <SelectPenetrationsDialog open={this.state.selectPenetrationsDialogOpen}
+                                          loadedPenetrationIds={Array.from(this.props.loadedPenetrations)}
+                                          selectedPenetrations={this.props.selectedPenetrations}
+                                          onCommitSelection={(selectedPenetrationIds): void => {
+                                              this.setState({selectPenetrationsDialogOpen: false}, () => {
+                                                  if (selectedPenetrationIds) {
+                                                      this.props.onUpdateSelectedPenetrations(selectedPenetrationIds);
+                                                  }
+                                              });
+                                          }} />
+               <Dialog open={this.state.selectDataDialogOpen}
+                       onClose={(): void => {this.setState({selectDataDialogOpen: false})}} >
+                   <DialogTitle id="select-data-files-or-settings">
+                       Select data to display
+                   </DialogTitle>
+                   <DialogContent>
+                       <Typography>
+                           Please select some data files or a settings file from the File menu.
+                       </Typography>
+                       <Button onClick={(): void => {this.setState({selectDataDialogOpen: false})}}>
+                           OK
+                       </Button>
+                   </DialogContent>
+               </Dialog>
             </Grid>
         );
     }

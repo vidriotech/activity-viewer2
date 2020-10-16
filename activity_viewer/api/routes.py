@@ -71,11 +71,6 @@ def get_mesh(structure_id: int):
     return state.cache.load_structure_mesh(structure_id)
 
 
-@app.route("/penetration-names")
-def get_penetration_names():
-    return {"penetrationIds": state.penetrations}
-
-
 @app.route("/penetrations", methods=["GET", "POST", "PUT", "DELETE"])
 def get_penetrations():
     data = None
@@ -86,38 +81,18 @@ def get_penetrations():
         except json.JSONDecodeError as e:
             app.logger.error(e)
 
-    page = request.args.get("page", default=1, type=int)
-    limit = request.args.get("limit", default=10, type=int)
-
     if request.method == "POST":  # reset all penetrations
-        if data is not None and "data_paths" in data:
+        if data is not None and "dataPaths" in data:
             state.clear_penetrations()
-            state.add_penetrations(data["data_paths"])
+            state.add_penetrations(data["dataPaths"])
     elif request.method == "PUT":  # add one or more penetration
-        if data is not None and "data_paths" in data:
-            state.add_penetrations(data["data_paths"])
+        if data is not None and "dataPaths" in data:
+            state.add_penetrations(data["dataPaths"])
     elif request.method == "DELETE":
         if data is not None and "penetrations" in data:
             state.rm_penetrations(data["penetrations"])        
 
-    n_pens = len(state.penetrations)
-    response = {
-        "penetrations": [],
-        "info": {
-            "totalCount": n_pens
-        },
-        "link": None
-    }
-
-    start = (page - 1) * limit
-    stop = page * limit
-    if start < n_pens:
-        response["penetrations"] = [get_penetration_vitals(pen) for pen in state.penetrations[start:stop]]
-
-    if stop < n_pens - 1:
-        response["link"] = f"/penetrations?page={page + 1}&limit={limit}"
-
-    return response
+    return {"penetrationIds": state.penetrations}
 
 
 @app.route("/penetrations/<penetration_id>")

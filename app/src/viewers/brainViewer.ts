@@ -630,7 +630,7 @@ export class BrainViewer {
             if (mapping.color) {
                 penetration.getTimeseries(mapping.color.timeseriesId)
                     .then((data) => {
-                        if (data.times) {
+                        if (data && data.times) {
                             this.colorData.set(
                                 penetrationId,
                                 this.interpExtrapTranspose(data.times, data.values)

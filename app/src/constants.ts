@@ -1,5 +1,12 @@
 // eslint-disable-next-line import/no-unresolved
+import {AVSettings} from "./models/apiModels";
+// eslint-disable-next-line import/no-unresolved
 import {ColorLUT} from "./models/colorMap";
+
+/* default settings */
+export const defaultSettings: AVSettings = {
+    epochs: [],
+}
 
 export const apiEndpoint = "http://localhost:3030";
 

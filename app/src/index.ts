@@ -1,6 +1,10 @@
 import {homedir} from "os";
 
-import {BrowserWindow, app, dialog, ipcMain} from "electron";
+import {BrowserWindow, app, ipcMain, Menu} from "electron";
+
+// eslint-disable-next-line import/no-unresolved
+import {createMenu} from "./menu";
+
 declare const MAIN_WINDOW_WEBPACK_ENTRY: any;
 
 // Keep a reference for dev mode
@@ -13,8 +17,6 @@ if (require("electron-squirrel-startup")) { // eslint-disable-line global-requir
     app.quit();
 }
 
-let settingsPath: string;
-
 const createWindow = (): void => {
     // Create the browser window.
     const mainWindow = new BrowserWindow({
@@ -25,47 +27,31 @@ const createWindow = (): void => {
         }
     });
 
-    // require a settings file
-    dialog.showOpenDialog({
-        title: "Select settings file",
-        defaultPath: homedir(),
-        properties: ["openFile"]
-    }).then((value) => {
-        if (value.canceled) {
-            throw Error("No settings file given.");
-        } else {
-            return value.filePaths[0];
-        }
-    }).then((selectedSettings) => {
-        settingsPath = selectedSettings;
+    Menu.setApplicationMenu(createMenu(mainWindow.webContents));
 
-        // and load the index.html of the app.
-        return mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY);
-    }).then(() => {
-        // Open the DevTools.
-        if (devMode) {
-            mainWindow.webContents.openDevTools();
-        }
-    }).catch((err) => {
-        let errmsg: Error | string;
-        if (err.isAxiosError) {
-            if (err.code === "ECONNREFUSED") {
-                errmsg = "Connection failed. Is the viewer daemon running?";
-            } else {
-                errmsg = `Connection failed with code "${err.code}"`;
+    // and load the index.html of the app.
+    mainWindow.loadURL(MAIN_WINDOW_WEBPACK_ENTRY)
+        .then(() => {
+            // Open the DevTools.
+            if (devMode) {
+                mainWindow.webContents.openDevTools();
             }
-        } else {
-            errmsg = err;
-        }
+        }).catch((err) => {
+            let errmsg: Error | string;
+            if (err.isAxiosError) {
+                if (err.code === "ECONNREFUSED") {
+                    errmsg = "Connection failed. Is the viewer daemon running?";
+                } else {
+                    errmsg = `Connection failed with code "${err.code}"`;
+                }
+            } else {
+                errmsg = err;
+            }
 
-        console.error(errmsg);
-        app.quit();
-    });
+            console.error(errmsg);
+            app.quit();
+        });
 };
-
-ipcMain.on("getSettings", (event, args) => {
-    event.reply("getSettings", settingsPath);
-});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

@@ -75,8 +75,9 @@ export class APIClient {
         }).then((res: AxiosResponse<Blob>) => res.data);
     }
 
-    async fetchPenetrationIds(): Promise<AxiosResponse<PenetrationIdsResponse>> {
-        return await axios.get(`${this.endpoint}/penetration-names`);
+    async fetchPenetrationIds(): Promise<PenetrationIdsResponse> {
+        return await axios.get(`${this.endpoint}/penetrations`)
+            .then((res: AxiosResponse<PenetrationIdsResponse>) => res.data);
     }
 
     async fetchPenetrations(limit: number, page: number): Promise<AxiosResponse<PenetrationResponse>> {
@@ -111,5 +112,14 @@ export class APIClient {
             "data": settingsReqData,
             "timeout": 5000
         }).then((res: AxiosResponse<AVSettings>) => res.data);
+    }
+
+    async setPenetrationPaths(dataPaths: string[]): Promise<PenetrationIdsResponse> {
+        return await axios({
+            method: "POST",
+            url: `${this.endpoint}/penetrations`,
+            data: {dataPaths: dataPaths},
+            timeout: 5000
+        }).then((res: AxiosResponse<PenetrationIdsResponse>) => res.data);
     }
 }
