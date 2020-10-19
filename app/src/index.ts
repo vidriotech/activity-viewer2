@@ -1,6 +1,6 @@
 import {homedir} from "os";
 
-import {BrowserWindow, app, ipcMain, Menu} from "electron";
+import {BrowserWindow, app, Menu} from "electron";
 
 // eslint-disable-next-line import/no-unresolved
 import {createMenu} from "./menu";

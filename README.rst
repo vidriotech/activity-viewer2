@@ -8,9 +8,15 @@ This is the new and improved unit viewer for the Mesoscale Activity Project.
 Installing
 ----------
 
-This package is under development and does not have a fixed installation method
-just yet. If you're adventurous, follow the instructions in
-the next section to get started.
+For Windows users, head over to `Releases <https://github.com/vidriotech/activity-viewer2/releases>`_
+and select the latest version for an installer. Simply extract the zip file and double click
+"Activity_Viewer_0.1.0.exe".
+
+**N.B.:** This release has not been signed. If this concerns you, you can use the installation method
+in the Development section below.
+
+Mac and Linux users, until we can build and distribute binaries, you should also use the Development instructions
+below.
 
 .. _install-develop:
 
@@ -33,7 +39,7 @@ should get it for you. If you don't like Anaconda, you can do
 
 You'll also need to have `Node.js <https://nodejs.org/en/>`_ 12 or later with 
 `Yarn <https://yarnpkg.com/>`_ installed. After installing Node,
-``npm install -g yarn`` will get it for you.
+``npm install -g yarn`` will get Yarn for you.
 
 Setting up
 ~~~~~~~~~~
@@ -68,23 +74,20 @@ Now you can start hacking.
 Running the viewer
 ~~~~~~~~~~~~~~~~~~
 
-Paths to the settings file and data files are made available to the frontend
-(Electron) process by way of a GET request to the ``/settings`` endpoint. In
-order to circumvent the zombie process issue (see below), the frontend and
-backend processes should currently be run in two separate terminals.
+If you installed the binary on Windows, you should see an Activity Viewer entry in your Start menu.
+Simply double-click that and the viewer will start up.
 
-First, with the virtualenv activated, simply run ``viewer start-daemon`` if
-your settings file is in the current directory, or if you want to use the
-default settings. Otherwise, run
-``viewer start-daemon /path/to/settings.json``. **Ensure that you have set**
-**your data files in the** ``dataFiles`` **field in your settings.json**.
+Otherwise, you'll need two terminals.
+In the first terminal, activate your virtualenv and run ``viewerd start-daemon``.
+In the second terminal, ``cd`` into the app/ directory and run ``yarn start``.
+After a few moments, the frontend process will fully load.
 
-Next, ``cd`` into the app/ directory and run ``npm start``. The frontend
-process will send a GET request to the viewer daemon to fetch the currently
-loaded settings.
+On startup, the viewer prompts you to load a settings file or some data files, which you can do by
+selecting the appropriate option from the File menu.
+Selecting only data files will use the default settings, or you can specify data files within your settings file.
 
-We have tested the viewer with up to 20 penetrations and performance is
-adequate so far.
+For a description of the formats of the settings and data files, please read
+`this section <https://vidriotech.github.io/activity-viewer2/usage.html#input-files>`_ of the docs.
 
 Current limitations and known issues
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -117,66 +120,10 @@ As a workaround, if you do
 the dependencies should install correctly. You may also need to install the
 latest `C++ Build Tools <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`__.
 
-Zombie process
-++++++++++++++
-
-Calling either ``viewerd`` or ``viewer visualize [FILENAME1 ...]`` (or
-``npm start`` in the app/ directory) will spawn a Flask server which for now
-needs to be manually cleaned up. This is a BUG that needs squashing.
-
-If you make changes to any API routes that aren't reflected when you test them,
-it's likely you've run afoul of this.
-
-For right now, the best way to hack on this project is to use two separate
-processes. In one terminal (with the virtualenv activated), run ``viewerd``,
-like so:
-
-.. code-block:: shell
-
-    > $ viewerd
-     * Serving Flask app "activity_viewer.api.routes" (lazy loading)
-     * Environment: production
-     WARNING: This is a development server. Do not use it in a production deployment.
-     Use a production WSGI server instead.
-     * Debug mode: on
-     * Restarting with stat
-     * Debugger is active!
-     * Debugger PIN: 206-084-148
-     * Running on http://127.0.0.1:3030/ (Press CTRL+C to quit)
-
-In another terminal, ``cd`` to the app/ folder and run ``npm start``, like so,
-expecting the following output:
-
-.. code-block:: shell
-
-    > $ npm start
-
-    > app@1.0.0 start /path/to/activity-viewer2/app
-    > electron-forge start
-
-    √ Checking your system
-    √ Locating Application
-    √ Preparing native dependencies
-    √ Compiling Main Process Code
-    - Launch Dev ServersStarting type checking service...
-    Using 1 worker with 2048MB memory limit
-    √ Launch Dev Servers
-    √ Compiling Preload Scripts
-    √ Launching Application
-
-
-    Webpack Output Available: http://localhost:9000
-
-
-    statusCode: [object Object]
-    Type checking in progress...
-    webpack built ddc1507d1ec19a680ca7 in 3015ms
-    No type errors found
-    Version: typescript 3.9.7
-    Time: 4380ms
 
 Acknowledgments
 ---------------
 
-Much of the UI code is based off of or otherwise inspired by work done previously by
+This work was supported by the Mesoscale Activity Project.
+Parts of the UI code, especially the WebGL shaders, are based off of or otherwise inspired by work done previously by
 Patrick Edson for the `Mouselight Neuron Browser <https://ml-neuronbrowser.janelia.org/>`__.

@@ -32,16 +32,17 @@ export interface FilterFormProps {
     selectedPenetrations: Map<string, Penetration>;
     availableStats: Set<string>;
     filterPredicate: Predicate;
+    statsBounds: [number, number];
 
     onUpdateFilterPredicate(predicate: Predicate): void;
+    onUpdateSelectedStat(unitStatId: string, unitStatData: number[]): void;
+    onUpdateStatBounds(bounds: [number, number]): void;
 }
 
 interface FilterFormState {
     strEqualsValue: string;
     strNotEqualsValue: string;
     strSubsetEqualsValue: string;
-    statLowerBound: number;
-    statUpperBound: number;
 
     currentCondition: string;
 
@@ -50,6 +51,7 @@ interface FilterFormState {
 
 export class FilterForm extends React.Component<FilterFormProps, FilterFormState> {
     private propKeys: Map<string, keyof UnitModel>;
+    private statData: number[];
 
     constructor(props: FilterFormProps) {
         super(props);
@@ -58,8 +60,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
             strEqualsValue: "",
             strNotEqualsValue: "",
             strSubsetEqualsValue: "",
-            statLowerBound: -Infinity,
-            statUpperBound: Infinity,
 
             currentCondition: "penetration-id",
 
@@ -69,14 +69,18 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         this.propKeys = new Map<string, keyof UnitModel>();
         this.propKeys.set("compartment-name", "compartmentName");
         this.propKeys.set("penetration-id", "penetrationId");
+
+        this.statData = [];
     }
 
-    private fetchAndUpdateStat(unitStatId: string): void {
+    private async fetchAndUpdateStat(unitStatId: string): Promise<void> {
         let c = 0;
 
-        this.props.selectedPenetrations.forEach((penetration) => {
-            penetration.getUnitStat(unitStatId)
-                .then(() => {
+        for (const penetration of this.props.selectedPenetrations.values()) {
+            await penetration.getUnitStat(unitStatId)
+                .then((statData) => {
+                    this.statData = this.statData.concat(statData);
+
                     if (unitStatId === this.state.currentCondition) {
                         c += 1;
                         let progress = c / this.props.selectedPenetrations.size;
@@ -86,18 +90,13 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
                         this.setState({loadProgress: progress});
                     }
                 });
-        });
+        }
     }
 
     private handleClickFilter(op?: "AND" | "OR"): void {
-        const isPropCondition = _.includes([
-            "penetration-id",
-            "compartment-name"
-        ], this.state.currentCondition);
-
         let predicate: Predicate;
 
-        if (isPropCondition) {
+        if (this.isPropCondition) {
             if (this.state.strSubsetEqualsValue !== "") {
                 const compartmentNode = this.props.compartmentTree.getCompartmentNodeByName(this.state.strSubsetEqualsValue);
                 predicate = new SubcompartmentPredicate(compartmentNode);
@@ -110,8 +109,8 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
                 predicate = new PropEqPredicate(this.propKeys.get(this.state.currentCondition), propValue, negate);
             }
         } else { // stat predicate
-            const lowerBound = Number.isNaN(this.state.statLowerBound) ? -Infinity : this.state.statLowerBound;
-            const upperBound = Number.isNaN(this.state.statUpperBound) ? Infinity : this.state.statUpperBound;
+            const lowerBound = this.props.statsBounds[0];
+            const upperBound = this.props.statsBounds[1];
 
             predicate = new StatPredicate(this.state.currentCondition, lowerBound, upperBound);
         }
@@ -209,18 +208,16 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
 
     private renderFilterButton(): React.ReactElement {
         const disabled = (
-            this.state.loadProgress < 1 || (
+            this.isBusy || (
+                this.isPropCondition &&
                 this.state.strEqualsValue === "" &&
                 this.state.strNotEqualsValue === "" &&
-                this.state.strSubsetEqualsValue === "" && (
-                    (Number.isNaN(this.state.statLowerBound) && Number.isNaN(this.state.statUpperBound)) ||
-                    !(Number.isFinite(this.state.statLowerBound) || Number.isFinite(this.state.statUpperBound))
-                )
+                this.state.strSubsetEqualsValue === ""
             )
         );
 
         let button: React.ReactElement;
-        if (this.state.loadProgress < 1) {
+        if (this.isBusy) {
             button = <CircularProgress variant="indeterminate" size={25} />;
         } else if (!this.props.filterPredicate) {
             button = (
@@ -257,12 +254,16 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
 
         let placeholder: string;
         let helperText: string;
+        let value: number;
+
         if (key === "statLowerBound") {
             placeholder = "≥";
             helperText = "Lower bound";
+            value = this.props.statsBounds[0];
         } else if (key === "statUpperBound") {
             placeholder = "≤";
             helperText = "Upper bound";
+            value = this.props.statsBounds[1];
         }
 
         return (
@@ -273,15 +274,17 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
                        helperText={helperText}
                        type="number"
                        size="small"
-                       value={this.state[key]}
+                       value={value}
                        onChange={(evt) => {
-                           const newState = {
-                               statLowerBound: this.state.statLowerBound,
-                               statUpperBound: this.state.statUpperBound,
-                           };
-                           newState[key] = Number.parseFloat(evt.target.value);
+                           let values: [number, number];
+                           const newValue = Number.parseFloat(evt.target.value);
+                           if (key === "statLowerBound") {
+                               values = [newValue, this.props.statsBounds[1]];
+                           } else {
+                               values = [this.props.statsBounds[0], newValue];
+                           }
 
-                           this.setState(newState)
+                           this.props.onUpdateStatBounds(values);
                        }} />
         );
     }
@@ -291,8 +294,6 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
             strEqualsValue: "",
             strNotEqualsValue: "",
             strSubsetEqualsValue: "",
-            statLowerBound: -Infinity,
-            statUpperBound: Infinity,
         });
     }
 
@@ -300,18 +301,39 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         if (prevState.currentCondition !== this.state.currentCondition &&
             this.props.availableStats.has(this.state.currentCondition)
         ) {
-            this.fetchAndUpdateStat(this.state.currentCondition);
-        } else if (this.state.loadProgress < 1 && !this.props.availableStats.has(this.state.currentCondition)) {
-            this.setState({loadProgress: 1});
+            this.setState({loadProgress: 0}, () => {
+                this.statData = [];
+
+                this.fetchAndUpdateStat(this.state.currentCondition)
+                    .then(() => {
+                        this.props.onUpdateSelectedStat(this.state.currentCondition, this.statData);
+                    })
+                    .catch((err) => console.error(err));
+            });
+        } else if (prevState.currentCondition !== this.state.currentCondition && !this.isPropCondition) {
+            if (this.props.availableStats.has(prevState.currentCondition)) {
+                this.props.onUpdateSelectedStat("", []);
+            }
+
+            if (this.isBusy) {
+                this.setState({loadProgress: 1});
+            }
         }
+    }
+
+    public get isBusy(): boolean {
+        return this.state.loadProgress < 1;
+    }
+
+    public get isPropCondition(): boolean {
+        return _.includes([
+            "penetration-id",
+            "compartment-name"
+        ], this.state.currentCondition);
     }
 
     public render(): React.ReactElement {
         const availableStats = Array.from(this.props.availableStats);
-        const isPropCondition = _.includes([
-            "penetration-id",
-            "compartment-name"
-        ], this.state.currentCondition);
 
         const conditionMenuItems = _.union(
             [
@@ -332,6 +354,7 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
         let formChildren = [
             <FormControl>
                 <Select autoWidth
+                        disabled={this.isBusy}
                         variant="outlined"
                         labelId="filter-form-select-label"
                         id="filter-form-select"
@@ -348,7 +371,7 @@ export class FilterForm extends React.Component<FilterFormProps, FilterFormState
             </FormControl>
         ];
 
-        if (isPropCondition) {
+        if (this.isPropCondition) {
             formChildren = formChildren.concat(
                 [
                     <FormControl>

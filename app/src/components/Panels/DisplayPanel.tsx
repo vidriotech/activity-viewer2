@@ -124,7 +124,7 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
         });
     }
 
-    private handleSetSliceCoordinate(coordinate: number): void {
+    private handleSetSliceCoordinate(coordinate: number, commit: boolean): void {
         this.setState({
             tomographySliceCoordinate: coordinate
         }, () => {
@@ -141,14 +141,16 @@ export class DisplayPanel extends React.Component<DisplayPanelProps, DisplayPane
                     maxCoord = SagittalMax;
             }
 
-            const padding = (this.state.testSliceBounds[1] - this.state.testSliceBounds[0]) / 2;
-            const predicate = new PropIneqPredicate(
-                coordName,
-                Math.max(0, coordinate - padding),
-                Math.min(maxCoord, coordinate + padding)
-            );
+            if (commit) {
+                const padding = (this.state.testSliceBounds[1] - this.state.testSliceBounds[0]) / 2;
+                const predicate = new PropIneqPredicate(
+                    coordName,
+                    Math.max(0, coordinate - padding),
+                    Math.min(maxCoord, coordinate + padding)
+                );
 
-            this.props.onUpdateFilterPredicate(predicate);
+                this.props.onUpdateFilterPredicate(predicate);
+            }
         });
     }
 

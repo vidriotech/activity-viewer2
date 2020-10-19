@@ -157,9 +157,27 @@
 <ul>
 <li class="toctree-l1"><a class="reference internal" href="activity_viewer.api.html">activity_viewer.api package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#module-activity_viewer.api.compute">activity_viewer.api.compute module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#module-activity_viewer.api.routes">activity_viewer.api.routes module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#module-activity_viewer.api.state">activity_viewer.api.state module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="activity_viewer.api.html#module-activity_viewer.api">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="activity_viewer.assets.html">activity_viewer.assets package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.assets.html#subpackages">Subpackages</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="activity_viewer.assets.images.html">activity_viewer.assets.images package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="activity_viewer.assets.images.html#module-activity_viewer.assets.images">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.assets.html#module-activity_viewer.assets">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="activity_viewer.compute.html">activity_viewer.compute package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.compute.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.compute.html#module-activity_viewer.compute.summaries">activity_viewer.compute.summaries module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="activity_viewer.compute.html#module-activity_viewer.compute">Module contents</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="activity_viewer.loaders.html">activity_viewer.loaders package</a><ul>
@@ -182,6 +200,24 @@
 </div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-activity_viewer.app">
+<span id="activity-viewer-app-module"></span><h2>activity_viewer.app module<a class="headerlink" href="#module-activity_viewer.app" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="activity_viewer.app.main">
+<code class="sig-prename descclassname">activity_viewer.app.</code><code class="sig-name descname">main</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.app.main" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.app.run_mac">
+<code class="sig-prename descclassname">activity_viewer.app.</code><code class="sig-name descname">run_mac</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">http_server</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.app.run_mac" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.app.run_win">
+<code class="sig-prename descclassname">activity_viewer.app.</code><code class="sig-name descname">run_win</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">http_server</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.app.run_win" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-activity_viewer.base">
 <span id="activity-viewer-base-module"></span><h2>activity_viewer.base module<a class="headerlink" href="#module-activity_viewer.base" title="Permalink to this headline">¶</a></h2>
@@ -430,7 +466,7 @@ Values which are themselves dicts will be converted in like manner.</p>
 
 <dl class="py method">
 <dt id="activity_viewer.cache.Cache.load_annotation_volume">
-<code class="sig-name descname">load_annotation_volume</code><span class="sig-paren">(</span><em class="sig-param">) -&gt; (&lt;class 'numpy.ndarray'&gt;</em>, <em class="sig-param">&lt;class 'dict'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache.load_annotation_volume" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load_annotation_volume</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#activity_viewer.cache.Cache.load_annotation_volume" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load annotation volume from cache.</p>
 </dd></dl>
 
@@ -460,7 +496,7 @@ Values which are themselves dicts will be converted in like manner.</p>
 
 <dl class="py method">
 <dt id="activity_viewer.cache.Cache.load_template_volume">
-<code class="sig-name descname">load_template_volume</code><span class="sig-paren">(</span><em class="sig-param">) -&gt; (&lt;class 'numpy.ndarray'&gt;</em>, <em class="sig-param">&lt;class 'dict'&gt;</em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cache.Cache.load_template_volume" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">load_template_volume</code><span class="sig-paren">(</span><span class="sig-paren">)</span> &#x2192; numpy.ndarray<a class="headerlink" href="#activity_viewer.cache.Cache.load_template_volume" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load template volume from cache.</p>
 </dd></dl>
 
@@ -557,6 +593,26 @@ Values which are themselves dicts will be converted in like manner.</p>
 <dt id="activity_viewer.cli.load_settings_file">
 <code class="sig-prename descclassname">activity_viewer.cli.</code><code class="sig-name descname">load_settings_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="p">:</span> <span class="n">pathlib.Path</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.cli.load_settings_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load settings from a file.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer.constants">
+<span id="activity-viewer-constants-module"></span><h2>activity_viewer.constants module<a class="headerlink" href="#module-activity_viewer.constants" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="activity_viewer.constants.SliceType">
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.constants.</code><code class="sig-name descname">SliceType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.constants.SliceType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="activity_viewer.constants.SliceType.CORONAL">
+<code class="sig-name descname">CORONAL</code><em class="property"> = 0</em><a class="headerlink" href="#activity_viewer.constants.SliceType.CORONAL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="activity_viewer.constants.SliceType.SAGITTAL">
+<code class="sig-name descname">SAGITTAL</code><em class="property"> = 1</em><a class="headerlink" href="#activity_viewer.constants.SliceType.SAGITTAL" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 </div>

@@ -10,8 +10,10 @@ import Slider from '@material-ui/core/Slider';
 import Switch from '@material-ui/core/Switch';
 import Typography from '@material-ui/core/Typography';
 
+// eslint-disable-next-line import/no-unresolved
 import {AVConstants, defaultColorFadedHex, defaultColorHex} from '../../constants';
 
+// eslint-disable-next-line import/no-unresolved
 import { Predicate, StatPredicate } from '../../models/predicates';
 
 export interface StatsHistogramProps {
@@ -19,11 +21,14 @@ export interface StatsHistogramProps {
     height: number;
     unitStatId: string;
     width: number;
+    filterPredicate: Predicate;
+    histBounds: [number, number];
+
     onUpdateFilterPredicate(predicate: Predicate): void;
+    onUpdateStatBounds(bounds: [number, number]): void;
 }
 
 interface StatsHistogramState {
-    histBounds: [number, number];
     logScale: boolean;
 }
 
@@ -34,7 +39,6 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, StatsHi
         super(props);
 
         this.state = {
-            histBounds: [0, 1],
             logScale: false,
         }
     }
@@ -80,27 +84,12 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, StatsHi
         return _.min(bins.map(b => b.x1 - b.x0).filter(x => x > 0));
     }
 
-    private handleBoundsChange(_event: any, newData: [number, number], commit = false): void {
-        this.setState({ histBounds: newData }, () => {
-            if (commit) {
-                this.updateStatFilter();
-            }
-        });
-    }
-
-    private handleLogScaleToggle(): void {
-        const logScale = !this.state.logScale;
-
-        let histBounds = this.state.histBounds;
-        if (logScale && _.some(histBounds, (x) => x < 0)) {
-            histBounds = this.computeDomain();
-        } else if (logScale) {
-            histBounds = histBounds.map((x) => Math.log10(x)) as [number, number];
-        } else {
-            histBounds = histBounds.map((x) => Math.pow(10, x)) as [number, number];
+    private handleBoundsChange(_event: any, newData: [number, number]): void {
+        if (this.state.logScale) {
+            newData = newData.map((x) => Math.pow(10, x)) as [number, number];
         }
 
-        this.setState({ logScale, histBounds });
+        this.props.onUpdateStatBounds(newData);
     }
 
     private renderHistogram(): void {
@@ -163,7 +152,7 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, StatsHi
             .attr('y', d => y(d.length))
             .attr('height', d => y(0) - y(d.length))
             .attr('fill',
-                d => inBounds(this.state.logScale ? Math.log10(d.x0) : d.x0, this.state.histBounds) ?
+                d => inBounds(this.state.logScale ? Math.log10(d.x0) : d.x0, this.props.histBounds) ?
                 `#${defaultColorHex.toString(16).padStart(6, "0")}` :
                 `#${defaultColorFadedHex.toString(16).padStart(6, "0")}`);
       
@@ -181,79 +170,71 @@ export class StatsHistogram extends React.Component<StatsHistogramProps, StatsHi
     }
 
     private updateStatFilter(): void {
-        const lowerBound = this.state.logScale ? Math.pow(10, this.state.histBounds[0]) : this.state.histBounds[0];
-        const upperBound = this.state.logScale ? Math.pow(10, this.state.histBounds[1]) : this.state.histBounds[1];
-        const predicate = new StatPredicate(this.props.unitStatId, lowerBound, upperBound);
+        const lowerBound = this.state.logScale ? Math.pow(10, this.props.histBounds[0]) : this.props.histBounds[0];
+        const upperBound = this.state.logScale ? Math.pow(10, this.props.histBounds[1]) : this.props.histBounds[1];
+        let predicate: Predicate = new StatPredicate(this.props.unitStatId, lowerBound, upperBound);
+
+        if (this.props.filterPredicate) {
+            const oldPredicate = this.props.filterPredicate;
+            if (oldPredicate.filtersOn(this.props.unitStatId)) {
+                predicate = predicate.or(this.props.filterPredicate);
+            } else {
+                predicate = predicate.and(this.props.filterPredicate);
+            }
+        }
 
         this.props.onUpdateFilterPredicate(predicate);
     }
 
+    public componentDidMount(): void {
+        this.renderHistogram();
+    }
+
     public componentDidUpdate(prevProps: Readonly<StatsHistogramProps>): void {
-        if (prevProps.unitStatId !== this.props.unitStatId) {
-            this.setState({ histBounds: this.computeDomain()}, () => {
-                this.clearHistogram();
-                this.renderHistogram();
-            });
-        } else {
-            this.clearHistogram();
-            this.renderHistogram();
-        }
+        this.clearHistogram();
+        this.renderHistogram();
     }
 
     public render(): React.ReactElement {
         const [ min, max ] = this.computeDomain();
         const step = this.computeStep();
-        const disabled = this.props.unitStatId === 'nothing';
+        const disabled = this.props.unitStatId === "";
 
-        const toStr = (x: number): string => (
-            this.state.logScale ?
-                `1e${x > 0 ? '+' : ''}${x.toFixed(1)}` :
-                x.toFixed(2)
-        )
+        const sliderMarks = [
+            {label: this.props.histBounds[0].toFixed(2), value: this.props.histBounds[0]},
+            {label: this.props.histBounds[1].toFixed(2), value: this.props.histBounds[1]},
+        ];
 
         return (
-            <Container id='stats-histogram-container'>
-                <Grid container
-                    spacing={2}>
-                    <Grid item xs={12}>
-                        <svg className='container'
-                            id={this.histId}
-                            width={this.props.width}
-                            height={this.props.height} />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <Typography variant='caption'>
-                            {disabled ? '' : toStr(this.state.histBounds[0])}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={7}>
-                        <Slider min={min}
-                                max={max}
-                                scale={this.state.logScale ? (x) => 10**x : (x) => x}
-                                step={step}
-                                value={this.state.histBounds}
-                                onChange={this.handleBoundsChange.bind(this)}
-                                onChangeCommitted={(evt, newData) => this.handleBoundsChange(evt, newData as [number, number], true)}
-                                disabled={disabled} />
-                    </Grid>
-                    <Grid item xs={1}>
-                        <Typography variant='caption'>
-                            {disabled ? '' : toStr(this.state.histBounds[1])}
-                        </Typography>
-                    </Grid>
-                    <Grid item xs={2}>
-                        <FormControlLabel
-                            control={
-                                <Switch checked={this.state.logScale}
-                                        onChange={this.handleLogScaleToggle.bind(this)}
-                                        name='switch-logscale' />
-                            }
-                            label="Log scale"
-                            disabled={disabled}
-                        />
-                    </Grid>
+            <Grid container spacing={2}>
+                <Grid item xs={12}>
+                    <svg className='container'
+                        id={this.histId}
+                        width={this.props.width}
+                        height={this.props.height} />
                 </Grid>
-            </Container>
+                <Grid item xs>
+                    <Slider min={min}
+                            max={max}
+                            marks={sliderMarks}
+                            scale={(x) => this.state.logScale ? Math.pow(10, x) : x}
+                            step={step}
+                            value={this.props.histBounds}
+                            onChange={this.handleBoundsChange.bind(this)}
+                            disabled={disabled} />
+                </Grid>
+                {/*<Grid item xs>*/}
+                {/*    <FormControlLabel*/}
+                {/*        control={*/}
+                {/*            <Switch checked={this.state.logScale}*/}
+                {/*                    onChange={() => this.setState({logScale: !this.state.logScale})}*/}
+                {/*                    name='switch-logscale' />*/}
+                {/*        }*/}
+                {/*        label="Log scale"*/}
+                {/*        disabled={disabled}*/}
+                {/*    />*/}
+                {/*</Grid>*/}
+            </Grid>
         );
     }
 }

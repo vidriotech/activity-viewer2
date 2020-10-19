@@ -4,6 +4,14 @@ activity\_viewer.api package
 Submodules
 ----------
 
+activity\_viewer.api.compute module
+-----------------------------------
+
+.. automodule:: activity_viewer.api.compute
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 activity\_viewer.api.routes module
 ----------------------------------
 

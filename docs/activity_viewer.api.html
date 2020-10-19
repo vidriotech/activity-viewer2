@@ -154,13 +154,67 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-activity_viewer.api.routes">
-<span id="activity-viewer-api-routes-module"></span><h2>activity_viewer.api.routes module<a class="headerlink" href="#module-activity_viewer.api.routes" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-activity_viewer.api.compute">
+<span id="activity-viewer-api-compute-module"></span><h2>activity_viewer.api.compute module<a class="headerlink" href="#module-activity_viewer.api.compute" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt id="activity_viewer.api.routes.get_all_penetrations">
-<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_all_penetrations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_all_penetrations" title="Permalink to this definition">¶</a></dt>
+<dt id="activity_viewer.api.compute.slice_to_data_uri">
+<code class="sig-prename descclassname">activity_viewer.api.compute.</code><code class="sig-name descname">slice_to_data_uri</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">slice_data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">annotation</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rotate</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#activity_viewer.api.compute.slice_to_data_uri" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert an RGB or grayscale array to a PNG data URI.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>slice_data</strong> (<em>ndarray</em>) – RGB or grayscale data array.</p></li>
+<li><p><strong>annotation</strong> (<em>ndarray</em>) – Annotation values for each pixel in the slice.</p></li>
+<li><p><strong>rotate</strong> (<em>int</em>) – Number of times to rotate the image 90 degrees (once for sagittal, none for coronal).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>data_uri</strong> – Base64-encoded PNG image with transparency.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.compute.slice_to_image">
+<code class="sig-prename descclassname">activity_viewer.api.compute.</code><code class="sig-name descname">slice_to_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">slice_data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">annotation</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em>, <em class="sig-param"><span class="n">rotate</span><span class="p">:</span> <span class="n">int</span></em><span class="sig-paren">)</span> &#x2192; &lt;module ‘PIL.Image’ from ‘c:\users\alanc\source\repos\activity-viewer2\venv\lib\site-packages\PIL\Image.py’&gt;<a class="headerlink" href="#activity_viewer.api.compute.slice_to_image" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py function">
+<dt id="activity_viewer.api.compute.summarize_timeseries">
+<code class="sig-prename descclassname">activity_viewer.api.compute.</code><code class="sig-name descname">summarize_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">data</span><span class="p">:</span> <span class="n">numpy.ndarray</span></em><span class="sig-paren">)</span> &#x2192; dict<a class="headerlink" href="#activity_viewer.api.compute.summarize_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute min/max time, min/max values, and stride of timeseries.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>data</strong> (<em>ndarray</em>) – Array of times and values for the timeseries.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><p><strong>summary</strong> –</p>
+<dl class="simple">
+<dt>Contains the following entries:</dt><dd><ul class="simple">
+<li><p>data: the data itself, as a list</p></li>
+<li><p>stride: the stride of the data</p></li>
+<li><p>timeMin: the minimum time value (time is assumed sorted)</p></li>
+<li><p>timeMax: the maximum time value</p></li>
+<li><p>timeStep: the minimum difference between adjacent time steps</p></li>
+<li><p>minVal: the minimum timeseries value over all points</p></li>
+<li><p>maxVal: the maximum timeseries value over all points</p></li>
+</ul>
+</dd>
+</dl>
+</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-activity_viewer.api.routes">
+<span id="activity-viewer-api-routes-module"></span><h2>activity_viewer.api.routes module<a class="headerlink" href="#module-activity_viewer.api.routes" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_compartment_tree">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_compartment_tree</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_compartment_tree" title="Permalink to this definition">¶</a></dt>
@@ -169,18 +223,12 @@
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_export_data_file">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_export_data_file</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_export_data_file" title="Permalink to this definition">¶</a></dt>
-<dd><dl class="simple">
-<dt>export interface IUnitExport {</dt><dd><p>penetrationId: string,
-unitIds: number[],</p>
-</dd>
-</dl>
-<p>}</p>
-<dl class="simple">
-<dt>export interface IExportRequest {</dt><dd><p>data: IUnitExport[],</p>
-</dd>
-</dl>
-<p>}</p>
-</dd></dl>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_image">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">image_path</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_mesh">
@@ -193,10 +241,25 @@ unitIds: number[],</p>
 <dd></dd></dl>
 
 <dl class="py function">
+<dt id="activity_viewer.api.routes.get_penetration_timeseries">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_penetration_timeseries</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_penetration_timeseries" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_penetration_unit_stat">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_penetration_unit_stat</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_penetration_unit_stat" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="activity_viewer.api.routes.get_penetration_vitals">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_penetration_vitals</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_penetration_vitals" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get IDs, coordinates, and compartments for each point in <cite>penetration_id</cite>.</p>
 </dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_penetrations">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_penetrations</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_penetrations" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_pseudocoronal_annotation_slice">
@@ -204,18 +267,24 @@ unitIds: number[],</p>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="activity_viewer.api.routes.get_timeseries">
-<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_timeseries" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dt id="activity_viewer.api.routes.get_settings">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_settings" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update or fetch settings in use.</p>
+</dd></dl>
 
 <dl class="py function">
-<dt id="activity_viewer.api.routes.get_timeseries_by_id">
-<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_timeseries_by_id</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_timeseries_by_id" title="Permalink to this definition">¶</a></dt>
+<dt id="activity_viewer.api.routes.get_slices">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_slices</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_slices" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
 <dt id="activity_viewer.api.routes.get_timeseries_list">
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_timeseries_list</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_timeseries_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="activity_viewer.api.routes.get_timeseries_summary">
+<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">get_timeseries_summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.get_timeseries_summary" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -238,18 +307,12 @@ unitIds: number[],</p>
 <code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">hello</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.hello" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py function">
-<dt id="activity_viewer.api.routes.settings">
-<code class="sig-prename descclassname">activity_viewer.api.routes.</code><code class="sig-name descname">settings</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.routes.settings" title="Permalink to this definition">¶</a></dt>
-<dd><p>Update or fetch settings in use.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="module-activity_viewer.api.state">
 <span id="activity-viewer-api-state-module"></span><h2>activity_viewer.api.state module<a class="headerlink" href="#module-activity_viewer.api.state" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="activity_viewer.api.state.APIState">
-<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.api.state.</code><code class="sig-name descname">APIState</code><a class="headerlink" href="#activity_viewer.api.state.APIState" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">activity_viewer.api.state.</code><code class="sig-name descname">APIState</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">settings</span><span class="p">:</span> <span class="n"><a class="reference internal" href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings" title="activity_viewer.settings.avsettings.AVSettings">activity_viewer.settings.avsettings.AVSettings</a></span> <span class="o">=</span> <span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Class representing state of the HTTP API.</p>
 <dl class="py method">
@@ -294,6 +357,21 @@ unitIds: number[],</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_coronal_annotation_rgb">
+<code class="sig-name descname">get_coronal_annotation_rgb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ap_coordinate</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_coronal_annotation_rgb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_coronal_annotation_slice">
+<code class="sig-name descname">get_coronal_annotation_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ap_coordinate</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_coronal_annotation_slice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_coronal_template_slice">
+<code class="sig-name descname">get_coronal_template_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ap_coordinate</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_coronal_template_slice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt id="activity_viewer.api.state.APIState.get_penetration_filename">
 <code class="sig-name descname">get_penetration_filename</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_penetration_filename" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -305,8 +383,23 @@ unitIds: number[],</p>
 </dd></dl>
 
 <dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_sagittal_annotation_rgb">
+<code class="sig-name descname">get_sagittal_annotation_rgb</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lr_coordinate</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_sagittal_annotation_rgb" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_sagittal_annotation_slice">
+<code class="sig-name descname">get_sagittal_annotation_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lr_coordinate</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_sagittal_annotation_slice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.get_sagittal_template_slice">
+<code class="sig-name descname">get_sagittal_template_slice</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">lr_coordinate</span><span class="p">:</span> <span class="n">float</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_sagittal_template_slice" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt id="activity_viewer.api.state.APIState.get_timeseries">
-<code class="sig-name descname">get_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_timeseries" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">get_timeseries</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em>, <em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; Optional<span class="p">[</span>numpy.ndarray<span class="p">]</span><a class="headerlink" href="#activity_viewer.api.state.APIState.get_timeseries" title="Permalink to this definition">¶</a></dt>
 <dd><p>Get a specific timeseries’ values for a specific penetration.</p>
 </dd></dl>
 
@@ -345,6 +438,11 @@ unitIds: number[],</p>
 <code class="sig-name descname">load_penetration</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">penetration_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span><a class="headerlink" href="#activity_viewer.api.state.APIState.load_penetration" title="Permalink to this definition">¶</a></dt>
 <dd><p>Load data from penetration file.</p>
 </dd></dl>
+
+<dl class="py method">
+<dt id="activity_viewer.api.state.APIState.make_timeseries_summary">
+<code class="sig-name descname">make_timeseries_summary</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">timeseries_id</span><span class="p">:</span> <span class="n">str</span></em><span class="sig-paren">)</span> &#x2192; <a class="reference internal" href="activity_viewer.compute.html#activity_viewer.compute.summaries.TimeseriesSummary" title="activity_viewer.compute.summaries.TimeseriesSummary">activity_viewer.compute.summaries.TimeseriesSummary</a><a class="headerlink" href="#activity_viewer.api.state.APIState.make_timeseries_summary" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="activity_viewer.api.state.APIState.npz_loader">

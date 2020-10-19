@@ -53,7 +53,7 @@ export interface PhysiologyPanelProps {
     onClearSlicing(): void;
     onSetSliceType(sliceType: SliceType): void;
     onSetSliceImageType(sliceImageType: SliceImageType): void;
-    onSetSliceCoordinate(coordinate: number): void;
+    onSetSliceCoordinate(coordinate: number, commit: boolean): void;
 
     onSelectSliceType(sliceType: SliceType, testSliceBounds: [number, number], showTemplate: boolean): void;
     onUnselectSliceType(): void;

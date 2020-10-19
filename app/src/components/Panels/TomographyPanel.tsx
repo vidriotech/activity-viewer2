@@ -38,7 +38,7 @@ export interface TomographyPanelProps {
     onClearSlicing(): void;
     onSetSliceType(sliceType: SliceType): void;
     onSetSliceImageType(sliceImageType: SliceImageType): void;
-    onSetSliceCoordinate(coordinate: number): void;
+    onSetSliceCoordinate(coordinate: number, commit: boolean): void;
 
     onSelectSliceType(sliceType: SliceType, testSliceBounds: [number, number], showTemplate: boolean): void;
     onUnselectSliceType(): void;
@@ -66,8 +66,12 @@ export class TomographyPanel extends React.Component<TomographyPanelProps, {}> {
                     value={this.props.sliceCoordinate}
                     disabled={this.props.busy || !this.props.tomographySliceShown}
                     onChange={(_e, value: number) => {
-                        this.props.onSetSliceCoordinate(value);
-                    }} />
+                        this.props.onSetSliceCoordinate(value, true);
+                    }}
+                    onChangeCommitted={(_e, value: number) => {
+                        this.props.onSetSliceCoordinate(value, true);
+                    }}
+            />
         );
     }
 
@@ -157,7 +161,7 @@ export class TomographyPanel extends React.Component<TomographyPanelProps, {}> {
                                paddingLeft: 40,
                                paddingRight: 40
                            }} >
-                    <FormGroup row>
+                    <FormGroup row style={{paddingBottom: 40}}>
                         <RadioGroup row
                                     aria-label="subset" name="subset"
                                     value={this.props.sliceType}
@@ -195,7 +199,9 @@ export class TomographyPanel extends React.Component<TomographyPanelProps, {}> {
                             {clearButton}
                         </ButtonGroup>
                     </FormGroup>
+                    <Typography gutterBottom>Slicing Bounds</Typography>
                     {testSlider}
+                    <Typography gutterBottom>Slice Position</Typography>
                     {coordinateSlider}
                 </Container>
             </Container>

@@ -76,7 +76,7 @@ export class PredicateList extends React.Component<PredicateListProps, {}> {
                     {`SQL: ${predicateString}`}
                 </Typography>
                 <List dense
-                      style={{ width: "100%", maxHeight: 100, overflow: "auto", position: "relative" }} >
+                      style={{ width: "100%", maxHeight: 200, overflow: "auto", position: "relative" }} >
                     <PredicateListNode level={0}
                                        predicate={this.props.filterPredicate}
                                        indexChain={[]}

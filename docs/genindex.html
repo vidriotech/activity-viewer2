@@ -169,6 +169,7 @@
  | <a href="#R"><strong>R</strong></a>
  | <a href="#S"><strong>S</strong></a>
  | <a href="#T"><strong>T</strong></a>
+ | <a href="#U"><strong>U</strong></a>
  | <a href="#V"><strong>V</strong></a>
  
 </div>
@@ -212,6 +213,13 @@
 </li>
       </ul></li>
       <li>
+    activity_viewer.api.compute
+
+      <ul>
+        <li><a href="activity_viewer.api.html#module-activity_viewer.api.compute">module</a>
+</li>
+      </ul></li>
+      <li>
     activity_viewer.api.routes
 
       <ul>
@@ -223,6 +231,27 @@
 
       <ul>
         <li><a href="activity_viewer.api.html#module-activity_viewer.api.state">module</a>
+</li>
+      </ul></li>
+      <li>
+    activity_viewer.app
+
+      <ul>
+        <li><a href="activity_viewer.html#module-activity_viewer.app">module</a>
+</li>
+      </ul></li>
+      <li>
+    activity_viewer.assets
+
+      <ul>
+        <li><a href="activity_viewer.assets.html#module-activity_viewer.assets">module</a>
+</li>
+      </ul></li>
+      <li>
+    activity_viewer.assets.images
+
+      <ul>
+        <li><a href="activity_viewer.assets.images.html#module-activity_viewer.assets.images">module</a>
 </li>
       </ul></li>
       <li>
@@ -247,6 +276,29 @@
 </li>
       </ul></li>
       <li>
+    activity_viewer.compute
+
+      <ul>
+        <li><a href="activity_viewer.compute.html#module-activity_viewer.compute">module</a>
+</li>
+      </ul></li>
+      <li>
+    activity_viewer.compute.summaries
+
+      <ul>
+        <li><a href="activity_viewer.compute.html#module-activity_viewer.compute.summaries">module</a>
+</li>
+      </ul></li>
+      <li>
+    activity_viewer.constants
+
+      <ul>
+        <li><a href="activity_viewer.html#module-activity_viewer.constants">module</a>
+</li>
+      </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li>
     activity_viewer.loaders
 
       <ul>
@@ -267,8 +319,6 @@
         <li><a href="activity_viewer.settings.html#module-activity_viewer.settings">module</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     activity_viewer.settings.avsettings
 
@@ -310,6 +360,8 @@
       <li><a href="activity_viewer.html#activity_viewer.base.Serializable.ATTRS">ATTRS (activity_viewer.base.Serializable attribute)</a>
 
       <ul>
+        <li><a href="activity_viewer.compute.html#activity_viewer.compute.summaries.TimeseriesSummary.ATTRS">(activity_viewer.compute.summaries.TimeseriesSummary attribute)</a>
+</li>
         <li><a href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings.ATTRS">(activity_viewer.settings.avsettings.AVSettings attribute)</a>
 </li>
         <li><a href="activity_viewer.settings.html#activity_viewer.settings.epoch.Epoch.ATTRS">(activity_viewer.settings.epoch.Epoch attribute)</a>
@@ -349,6 +401,8 @@
 </li>
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings.compartment">compartment() (activity_viewer.settings.avsettings.AVSettings property)</a>
 </li>
+      <li><a href="activity_viewer.html#activity_viewer.constants.SliceType.CORONAL">CORONAL (activity_viewer.constants.SliceType attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
@@ -362,6 +416,8 @@
       <li><a href="activity_viewer.html#activity_viewer.base.DefaultSerializable.DEFAULTS">DEFAULTS (activity_viewer.base.DefaultSerializable attribute)</a>
 
       <ul>
+        <li><a href="activity_viewer.compute.html#activity_viewer.compute.summaries.TimeseriesSummary.DEFAULTS">(activity_viewer.compute.summaries.TimeseriesSummary attribute)</a>
+</li>
         <li><a href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings.DEFAULTS">(activity_viewer.settings.avsettings.AVSettings attribute)</a>
 </li>
         <li><a href="activity_viewer.settings.html#activity_viewer.settings.sections.Compartment.DEFAULTS">(activity_viewer.settings.sections.Compartment attribute)</a>
@@ -437,8 +493,6 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.loaders.html#activity_viewer.loaders.npz_loader.NpzLoader.get">get() (activity_viewer.loaders.npz_loader.NpzLoader method)</a>
 </li>
-      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_all_penetrations">get_all_penetrations() (in module activity_viewer.api.routes)</a>
-</li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_compartment_tree">get_compartment_tree() (activity_viewer.api.state.APIState method)</a>
 
       <ul>
@@ -449,7 +503,15 @@
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_coordinates">get_coordinates() (activity_viewer.api.state.APIState method)</a>
 </li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_coronal_annotation_rgb">get_coronal_annotation_rgb() (activity_viewer.api.state.APIState method)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_coronal_annotation_slice">get_coronal_annotation_slice() (activity_viewer.api.state.APIState method)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_coronal_template_slice">get_coronal_template_slice() (activity_viewer.api.state.APIState method)</a>
+</li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_export_data_file">get_export_data_file() (in module activity_viewer.api.routes)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_image">get_image() (in module activity_viewer.api.routes)</a>
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_mesh">get_mesh() (in module activity_viewer.api.routes)</a>
 </li>
@@ -457,23 +519,33 @@
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_penetration_filename">get_penetration_filename() (activity_viewer.api.state.APIState method)</a>
 </li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_penetration_timeseries">get_penetration_timeseries() (in module activity_viewer.api.routes)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_penetration_unit_stat">get_penetration_unit_stat() (in module activity_viewer.api.routes)</a>
+</li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_penetration_vitals">get_penetration_vitals() (in module activity_viewer.api.routes)</a>
 </li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_penetrations">get_penetrations() (in module activity_viewer.api.routes)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_pseudocoronal_annotation_slice">get_pseudocoronal_annotation_slice() (activity_viewer.api.state.APIState method)</a>
 
       <ul>
         <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_pseudocoronal_annotation_slice">(in module activity_viewer.api.routes)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_timeseries">get_timeseries() (activity_viewer.api.state.APIState method)</a>
-
-      <ul>
-        <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_timeseries">(in module activity_viewer.api.routes)</a>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_sagittal_annotation_rgb">get_sagittal_annotation_rgb() (activity_viewer.api.state.APIState method)</a>
 </li>
-      </ul></li>
-      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_timeseries_by_id">get_timeseries_by_id() (in module activity_viewer.api.routes)</a>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_sagittal_annotation_slice">get_sagittal_annotation_slice() (activity_viewer.api.state.APIState method)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_sagittal_template_slice">get_sagittal_template_slice() (activity_viewer.api.state.APIState method)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_settings">get_settings() (in module activity_viewer.api.routes)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_slices">get_slices() (in module activity_viewer.api.routes)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_timeseries">get_timeseries() (activity_viewer.api.state.APIState method)</a>
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_timeseries_list">get_timeseries_list() (activity_viewer.api.state.APIState method)</a>
 
@@ -481,6 +553,8 @@
         <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_timeseries_list">(in module activity_viewer.api.routes)</a>
 </li>
       </ul></li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.routes.get_timeseries_summary">get_timeseries_summary() (in module activity_viewer.api.routes)</a>
+</li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_unit_ids">get_unit_ids() (activity_viewer.api.state.APIState method)</a>
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.get_unit_stat">get_unit_stat() (activity_viewer.api.state.APIState method)</a>
@@ -559,9 +633,13 @@
 <h2 id="M">M</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="activity_viewer.html#activity_viewer.app.main">main() (in module activity_viewer.app)</a>
+</li>
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.avsettings.make_default_settings">make_default_settings() (in module activity_viewer.settings.avsettings)</a>
 </li>
       <li><a href="activity_viewer.api.html#activity_viewer.api.state.make_settings">make_settings() (in module activity_viewer.api.state)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.make_timeseries_summary">make_timeseries_summary() (activity_viewer.api.state.APIState method)</a>
 </li>
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.sections.Compartment.max_depth">max_depth() (activity_viewer.settings.sections.Compartment property)</a>
 </li>
@@ -573,15 +651,29 @@
 </li>
         <li><a href="activity_viewer.api.html#module-activity_viewer.api">activity_viewer.api</a>
 </li>
+        <li><a href="activity_viewer.api.html#module-activity_viewer.api.compute">activity_viewer.api.compute</a>
+</li>
         <li><a href="activity_viewer.api.html#module-activity_viewer.api.routes">activity_viewer.api.routes</a>
 </li>
         <li><a href="activity_viewer.api.html#module-activity_viewer.api.state">activity_viewer.api.state</a>
+</li>
+        <li><a href="activity_viewer.html#module-activity_viewer.app">activity_viewer.app</a>
+</li>
+        <li><a href="activity_viewer.assets.html#module-activity_viewer.assets">activity_viewer.assets</a>
+</li>
+        <li><a href="activity_viewer.assets.images.html#module-activity_viewer.assets.images">activity_viewer.assets.images</a>
 </li>
         <li><a href="activity_viewer.html#module-activity_viewer.base">activity_viewer.base</a>
 </li>
         <li><a href="activity_viewer.html#module-activity_viewer.cache">activity_viewer.cache</a>
 </li>
         <li><a href="activity_viewer.html#module-activity_viewer.cli">activity_viewer.cli</a>
+</li>
+        <li><a href="activity_viewer.compute.html#module-activity_viewer.compute">activity_viewer.compute</a>
+</li>
+        <li><a href="activity_viewer.compute.html#module-activity_viewer.compute.summaries">activity_viewer.compute.summaries</a>
+</li>
+        <li><a href="activity_viewer.html#module-activity_viewer.constants">activity_viewer.constants</a>
 </li>
         <li><a href="activity_viewer.loaders.html#module-activity_viewer.loaders">activity_viewer.loaders</a>
 </li>
@@ -628,9 +720,13 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.sections.System.resolution">resolution() (activity_viewer.settings.sections.System property)</a>
 </li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.rm_penetrations">rm_penetrations() (activity_viewer.api.state.APIState method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="activity_viewer.api.html#activity_viewer.api.state.APIState.rm_penetrations">rm_penetrations() (activity_viewer.api.state.APIState method)</a>
+      <li><a href="activity_viewer.html#activity_viewer.app.run_mac">run_mac() (in module activity_viewer.app)</a>
+</li>
+      <li><a href="activity_viewer.html#activity_viewer.app.run_win">run_win() (in module activity_viewer.app)</a>
 </li>
   </ul></td>
 </tr></table>
@@ -638,6 +734,8 @@
 <h2 id="S">S</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="activity_viewer.html#activity_viewer.constants.SliceType.SAGITTAL">SAGITTAL (activity_viewer.constants.SliceType attribute)</a>
+</li>
       <li><a href="activity_viewer.html#activity_viewer.cache.Cache.save_annotation_volume">save_annotation_volume() (activity_viewer.cache.Cache method)</a>
 </li>
       <li><a href="activity_viewer.html#activity_viewer.cache.Cache.save_structure_centers">save_structure_centers() (activity_viewer.cache.Cache method)</a>
@@ -655,8 +753,6 @@
       <ul>
         <li><a href="activity_viewer.html#activity_viewer.cache.Cache.settings">(activity_viewer.cache.Cache property)</a>
 </li>
-        <li><a href="activity_viewer.api.html#activity_viewer.api.routes.settings">(in module activity_viewer.api.routes)</a>
-</li>
       </ul></li>
       <li>
     SETTINGS_FILE
@@ -665,11 +761,17 @@
         <li><a href="usage.html#cmdoption-viewer-start-daemon-arg-SETTINGS_FILE">viewer-start-daemon command line option</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.validate.SettingsValidator">SettingsValidator (class in activity_viewer.settings.validate)</a>
 </li>
       <li><a href="activity_viewer.html#activity_viewer.base.sha256sum_file">sha256sum_file() (in module activity_viewer.base)</a>
+</li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.compute.slice_to_data_uri">slice_to_data_uri() (in module activity_viewer.api.compute)</a>
+</li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.compute.slice_to_image">slice_to_image() (in module activity_viewer.api.compute)</a>
+</li>
+      <li><a href="activity_viewer.html#activity_viewer.constants.SliceType">SliceType (class in activity_viewer.constants)</a>
 </li>
       <li><a href="activity_viewer.html#activity_viewer.base.slugify">slugify() (in module activity_viewer.base)</a>
 </li>
@@ -687,6 +789,8 @@
 </li>
       <li><a href="activity_viewer.html#activity_viewer.cache.Cache.structure_mesh_path">structure_mesh_path() (activity_viewer.cache.Cache method)</a>
 </li>
+      <li><a href="activity_viewer.api.html#activity_viewer.api.compute.summarize_timeseries">summarize_timeseries() (in module activity_viewer.api.compute)</a>
+</li>
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.sections.System">System (class in activity_viewer.settings.sections)</a>
 </li>
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.avsettings.AVSettings.system">system() (activity_viewer.settings.avsettings.AVSettings property)</a>
@@ -701,6 +805,8 @@
 </li>
       <li><a href="activity_viewer.html#activity_viewer.cache.Cache.template_volume_path">template_volume_path() (activity_viewer.cache.Cache property)</a>
 </li>
+      <li><a href="activity_viewer.compute.html#activity_viewer.compute.summaries.TimeseriesSummary">TimeseriesSummary (class in activity_viewer.compute.summaries)</a>
+</li>
       <li><a href="activity_viewer.html#activity_viewer.base.Serializable.to_dict">to_dict() (activity_viewer.base.Serializable method)</a>
 </li>
   </ul></td>
@@ -712,6 +818,14 @@
       <li><a href="activity_viewer.settings.html#activity_viewer.settings.avsettings.touch_file">touch_file() (in module activity_viewer.settings.avsettings)</a>
 </li>
       <li><a href="activity_viewer.html#activity_viewer.base.type_check">type_check() (in module activity_viewer.base)</a>
+</li>
+  </ul></td>
+</tr></table>
+
+<h2 id="U">U</h2>
+<table style="width: 100%" class="indextable genindextable"><tr>
+  <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="activity_viewer.compute.html#activity_viewer.compute.summaries.TimeseriesSummary.update">update() (activity_viewer.compute.summaries.TimeseriesSummary method)</a>
 </li>
   </ul></td>
 </tr></table>

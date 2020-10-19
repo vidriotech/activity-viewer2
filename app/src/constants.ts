@@ -237,9 +237,8 @@ void main() {
     int colorIdx = int(255.0 * transformVal(kolor, colorDomain, colorTarget, colorGamma));
     vColor = colorLUT[colorIdx];
     vOpacity = transformVal(opacity, opacityDomain, opacityTarget, opacityGamma);
-    float xSize = 200.0 * transformVal(size, radiusDomain, radiusTarget, radiusGamma);
-    vVisible = show;  // a problem!
-    // vVisible = show;
+    float xSize = 300.0 * transformVal(size, radiusDomain, radiusTarget, radiusGamma);
+    vVisible = show;
     vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );
     gl_PointSize = xSize * ( 3000.0 / -mvPosition.z );
     gl_Position = projectionMatrix * mvPosition;
@@ -363,7 +362,7 @@ void main() {
     int colorIdx = int(255.0 * transformVal(kolor, colorDomain, colorTarget, colorGamma));
     vColor = colorLUT[colorIdx];
     vOpacity = transformVal(opacity, opacityDomain, opacityTarget, opacityGamma);
-    float xSize = 200.0 * transformVal(size, radiusDomain, radiusTarget, radiusGamma);
+    float xSize = 300.0 * transformVal(size, radiusDomain, radiusTarget, radiusGamma);
     vVisible = show;  // a problem!
     // vVisible = show;
     vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );

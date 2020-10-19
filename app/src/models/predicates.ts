@@ -17,6 +17,7 @@ export abstract class Predicate {
     }
 
     abstract eval(points: UnitModel[]): boolean[];
+    abstract filtersOn(predicateName: string): boolean;
     abstract toString(): string;
     
     public depth(): number {
@@ -85,6 +86,10 @@ export class StatPredicate extends Predicate {
         return result;
     }
 
+    public filtersOn(predicateName: string): boolean {
+        return predicateName === this._statName;
+    }
+
     public toString(): string {
         return `${this._lowerBound} ≤ ${this._statName} ≤ ${this._upperBound}`;
     }
@@ -104,9 +109,9 @@ export class StatPredicate extends Predicate {
 
 // StringPropPredicate are (IN)EQUALITIES
 export class PropEqPredicate extends Predicate {
-    private propName: keyof(UnitModel);
-    private propValue: string | number;
-    private negate: boolean;
+    private readonly propName: keyof(UnitModel);
+    private readonly propValue: string | number;
+    private readonly negate: boolean;
 
     constructor(propName: keyof(UnitModel), propValue: string | number, negate: boolean) {
         super('string');
@@ -127,6 +132,10 @@ export class PropEqPredicate extends Predicate {
         });
 
         return result;
+    }
+
+    public filtersOn(predicateName: string): boolean {
+        return predicateName === this.propName;
     }
 
     public toString(): string {
@@ -182,6 +191,10 @@ export class PropIneqPredicate extends Predicate {
         return result;
     }
 
+    public filtersOn(predicateName: string): boolean {
+        return predicateName === this._propName;
+    }
+
     public toString(): string {
         return `${this.lowerBound} ≤ ${this.propName} ≤ ${this.upperBound}`;
     }
@@ -220,6 +233,10 @@ export class SubcompartmentPredicate extends Predicate {
         return result;
     }
 
+    public filtersOn(predicateName: string): boolean {
+        return predicateName === "compartmentName";
+    }
+
     public toString(): string {
         return `compartmentName ⊆ ${this.parentCompartment.name}`;
     }
@@ -229,8 +246,8 @@ export abstract class PredicateChain extends Predicate {
     protected predicates: Predicate[];
 
     constructor(...predicates: Predicate[]) {
-        let types = predicates.map((p) => p.predicateType);
-        let type = _.uniq(types).length === 1 ?
+        const types = predicates.map((p) => p.predicateType);
+        const type = _.uniq(types).length === 1 ?
             types[0] : 'mixed';
 
         super(type);
@@ -243,6 +260,16 @@ export abstract class PredicateChain extends Predicate {
 
     abstract eval(points: UnitModel[]): boolean[];
 
+    public filtersOn(predicateName: string): boolean {
+        for (const predicate of this.predicates) {
+            if (predicate.filtersOn(predicateName)) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     public split(): Predicate[] {
         return this.predicates.sort((a, b) => a.depth() - b.depth());
     }
@@ -252,7 +279,7 @@ export abstract class PredicateChain extends Predicate {
 
 export class ANDPredicateChain extends PredicateChain {
     public eval(points: UnitModel[]): boolean[] {
-        let result: boolean[] = new Array(points.length);
+        const result: boolean[] = new Array(points.length);
         result.fill(true);
 
         result.forEach((val, idx) => {
@@ -261,7 +288,7 @@ export class ANDPredicateChain extends PredicateChain {
                     return;
                 }
 
-                let response = p.eval([points[idx]]);
+                const response = p.eval([points[idx]]);
                 val = val && response[0];
             });
 
@@ -283,15 +310,15 @@ export class ANDPredicateChain extends PredicateChain {
         return new ANDPredicateChain(...predicates);
     }
 
-    public toString() {
+    public toString(): string {
         return '(' + _.join(this.predicates, ') && (') + ')';
     }
     
-    public without(idx: number) {
+    public without(idx: number): Predicate {
         if (idx < 0 || idx >= this.predicates.length) {
             return this;
         } else {
-            let predicates = _.concat(
+            const predicates = _.concat(
                 this.predicates.slice(0, idx),
                 this.predicates.slice(idx+1)
             );
@@ -307,7 +334,7 @@ export class ANDPredicateChain extends PredicateChain {
 
 export class ORPredicateChain extends PredicateChain {
     public eval(points: UnitModel[]): boolean[] {
-        let result: boolean[] = new Array(points.length);
+        const result: boolean[] = new Array(points.length);
         result.fill(false);
 
         result.forEach((val, idx) => {
@@ -316,7 +343,7 @@ export class ORPredicateChain extends PredicateChain {
                     return;
                 }
 
-                let response = p.eval([points[idx]]);
+                const response = p.eval([points[idx]]);
                 val = val || response[0];
             });
 
@@ -338,15 +365,15 @@ export class ORPredicateChain extends PredicateChain {
         return new ORPredicateChain(...predicates);
     }
 
-    public toString() {
+    public toString(): string {
         return '(' + _.join(this.predicates, ') || (') + ')';
     }
     
-    public without(idx: number) {
+    public without(idx: number): Predicate {
         if (idx < 0 || idx >= this.predicates.length) {
             return this;
         } else {
-            let predicates = _.concat(
+            const predicates = _.concat(
                 this.predicates.slice(0, idx),
                 this.predicates.slice(idx+1)
             );
