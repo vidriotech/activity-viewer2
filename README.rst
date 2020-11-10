@@ -120,10 +120,16 @@ As a workaround, if you do
 the dependencies should install correctly. You may also need to install the
 latest `C++ Build Tools <https://visualstudio.microsoft.com/visual-cpp-build-tools/>`__.
 
+.. _cite:
+
+Citing
+------
+
+If you find this software to be useful, please cite the `Mesoscale Activity Project <https://www.simonsfoundation.org/funded-project/multi-regional-neuronal-dynamics-of-memory-guided-flexible-behavior/>`__ and the `Simons Collaboration on the Global Brain <https://www.simonsfoundation.org/collaborations/global-brain/>`__.
 
 Acknowledgments
 ---------------
 
-This work was supported by the Mesoscale Activity Project.
+This work was supported by the `Mesoscale Activity Project <https://www.simonsfoundation.org/funded-project/multi-regional-neuronal-dynamics-of-memory-guided-flexible-behavior/>`__.
 Parts of the UI code, especially the WebGL shaders, are based off of or otherwise inspired by work done previously by
 Patrick Edson for the `Mouselight Neuron Browser <https://ml-neuronbrowser.janelia.org/>`__.
